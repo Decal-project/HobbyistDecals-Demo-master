@@ -1,6 +1,6 @@
 import React from "react";
 import { Mail, MapPin } from "lucide-react";
-import BrowsePanel from "@/components/global/browse-panel";
+
 
 const Contact = () => {
   return (

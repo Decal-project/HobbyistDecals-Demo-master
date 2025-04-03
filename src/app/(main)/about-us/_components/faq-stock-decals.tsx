@@ -24,34 +24,34 @@ const FaqStock = () => {
       answer: "Yes, all our stock decals are precut for easy application, ensuring a clean and professional finish without the need for additional trimming.",
     },
     {
-      question: "What materials are used for your stock decals??",
+      question: "What materials are used for your stock decals?",
       answer:
         "Our stock decals are made from high-quality materials, including Waterslide (18 micron), White Vinyl (80gsm), and Clear Vinyl (80gsm). Each material is chosen for its durability and clarity.",
     },
     {
-        question: "How do I apply stock decals?",
-        answer:
+      question: "How do I apply stock decals?",
+      answer:
         "The application process varies slightly depending on the material. For waterslide decals, soak them in water before sliding them onto your surface. Vinyl decals can be peeled and stuck directly. Detailed instructions are provided with each purchase to ensure proper application.",
     },
     {
-        question: "Can I order stock decals in bulk?",
-        answer:
+      question: "Can I order stock decals in bulk?",
+      answer:
         "Yes, we offer bulk purchasing options for stock decals. If you need a large quantity for a project or resale, please contact us for more details and pricing.",
     },
     {
-        question: "Do you offer international shipping for stock decals?",
-        answer:
+      question: "Do you offer international shipping for stock decals?",
+      answer:
         "Yes, we ship our stock decals worldwide. Shipping costs and delivery times vary based on the destination. Detailed shipping information is available at checkout.",
     },
     {
-        question: "How do I care for my decals after application?",
-        answer:
+      question: "How do I care for my decals after application?",
+      answer:
         "To ensure longevity, apply decals to clean, dry surfaces and consider sealing them with a clear coat or varnish. This will protect them from wear and environmental factors.",
     },
     {
-        question: "What is your return policy for stock decals?",
-        answer:
-        "We strive for customer satisfaction. If you are not happy with your purchase, please contact us within 7 days of receiving your order. We Do not accept returns but we can Reship the decals after fixing the issue.",
+      question: "What is your return policy for stock decals?",
+      answer:
+        "We strive for customer satisfaction. If you are not happy with your purchase, please contact us within 7 days of receiving your order. We do not accept returns, but we can reship the decals after fixing the issue.",
     },
   ];
 
@@ -62,29 +62,31 @@ const FaqStock = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-100 py-10 flex flex-col items-center">
+    <div className="w-full min-h-screen bg-blue-50 py-20 flex flex-col items-center">
       {faqs.map((faq, index) => (
         <div
           key={index}
-          className="bg-white w-[90%] md:w-[85%] lg:w-[80%] rounded-lg shadow mb-4"
+          className="bg-white w-[90%] md:w-[70%] lg:w-[60%] rounded-lg shadow-md mb-6 transition-all duration-300 hover:shadow-lg border border-blue-300"
         >
           <button
             onClick={() => toggleFAQ(index)}
-            className="w-full flex justify-between items-center p-6" // Increased padding for height
+            className="w-full flex justify-between items-center p-6 cursor-pointer focus:outline-none bg-blue-100 hover:bg-blue-200 transition-colors rounded-lg"
           >
-            <span className="font-semibold text-lg">{`Q${index + 1}: ${faq.question}`}</span>
+            <span className="font-semibold text-lg text-blue-900">{`Q${index + 1}: ${faq.question}`}</span>
             {activeIndex === index ? (
-              <ChevronDown className="h-6 w-6" /> // Slightly increased icon size
+              <ChevronDown className="h-6 w-6 text-blue-700 transition-transform duration-200 transform rotate-180" />
             ) : (
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-6 w-6 text-blue-700 transition-transform duration-200" />
             )}
           </button>
 
-          {activeIndex === index && (
-            <div className="px-6 pb-6 text-gray-700 text-base leading-relaxed">
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${activeIndex === index ? 'max-h-[500px] opacity-100 py-6 bg-white' : 'max-h-0 opacity-0'}`}
+          >
+            <div className="px-6 pb-6 text-blue-800 text-lg leading-relaxed">
               {faq.answer}
             </div>
-          )}
+          </div>
         </div>
       ))}
     </div>

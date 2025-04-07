@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Carousel,
   CarouselContent,
@@ -12,9 +13,9 @@ import Image from "next/image";
 type Props = {
   title: string;
   list: Array<{ img: string; title: string }>;
-}
+};
 
-const DecalListCarousalComponent = ({ title, list } : Props) => {
+const DecalListCarousalComponent = ({ title, list }: Props) => {
   return (
     <div className="w-full min-h-[300px] p-4 flex flex-col items-start justify-center gap-6 bg-white">
       <h2 className="capitalize text-xl text-black font-semibold">
@@ -39,7 +40,7 @@ const DecalListCarousalComponent = ({ title, list } : Props) => {
                 className="basis-1 md:basis-1/3 lg:basis-1/6 bg-transparent h-full border border-border rounded-xl overflow-clip !p-0"
               >
                 <div className="h-[275px] w-full flex flex-col items-center justify-center gap-2 p-2">
-                  <Image 
+                  <Image
                     src={item.img}
                     alt={index.toString()}
                     width={0}
@@ -49,9 +50,12 @@ const DecalListCarousalComponent = ({ title, list } : Props) => {
                     draggable="false"
                     className="h-[175px] w-full object-cover"
                   />
-                  <p className="flex-1 w-full text-base text-center leading-5 px-2 text-wrap line-clamp-3 truncate">
-                    {item.title}
-                  </p>
+                 <Link
+                  href={`/category/${encodeURIComponent(item.title)}`}
+                   className="flex-1 w-full text-base text-center leading-5 px-2 text-wrap line-clamp-3 truncate text-blue-600 hover:underline"
+                  >
+                   {item.title}
+                  </Link>
                 </div>
               </CarouselItem>
             ))}

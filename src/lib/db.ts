@@ -1,7 +1,7 @@
 // src/lib/db.ts
 
-import dotenv from "dotenv";
-const { Pool } = require("pg");
+import dotenv from 'dotenv';
+import { Pool } from 'pg';
 
 dotenv.config();
 

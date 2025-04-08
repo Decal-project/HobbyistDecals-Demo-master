@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     client.release();
 
     // 🔧 Ensure images is always an array of full URLs
-    const formattedRows = result.rows.map((product) => ({
+    const formattedRows = result.rows.map((product: { images: any; }) => ({
       ...product,
       images: Array.isArray(product.images)
         ? product.images

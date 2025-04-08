@@ -1,8 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
+interface Product {
+  id: number;
+  name: string;
+  categories: string[];
+  images: string[] | string;
+}
+
 // GET /api/product?category=Some%20Category
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const rawCategory = searchParams.get("category") ?? "";
 
@@ -16,28 +23,18 @@ export async function GET(req: NextRequest) {
     let result;
 
     if (decodedCategory) {
-      result = await client.query<{
-        id: number;
-        name: string;
-        categories: string[];
-        images: string[] | string;
-      }>(
+      result = await client.query<Product>(
         "SELECT id, name, categories, images FROM products WHERE categories ILIKE $1",
         [likeCategory]
       );
     } else {
-      result = await client.query<{
-        id: number;
-        name: string;
-        categories: string[];
-        images: string[] | string;
-      }>("SELECT id, name, categories, images FROM products");
+      result = await client.query<Product>("SELECT id, name, categories, images FROM products");
     }
 
     client.release();
 
     // 🔧 Ensure images is always an array of full URLs
-    const formattedRows = result.rows.map((product) => ({
+    const formattedRows = result.rows.map((product: Product) => ({
       ...product,
       images: Array.isArray(product.images)
         ? product.images

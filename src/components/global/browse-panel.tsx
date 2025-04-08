@@ -42,6 +42,8 @@ const BrowsePanelComponent = () => {
               alt="category_1_img"
               quality={100}
               unoptimized
+              width={50}
+              height={50}
               className="w-[50px] h-[50px] object-contain"
             />
             <p className="capitalize font-semibold text-black text-base text-center">

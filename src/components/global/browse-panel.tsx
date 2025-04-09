@@ -38,7 +38,7 @@ const BrowsePanelComponent = () => {
         <Link href="src/app/(main)">
           <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
             <Image
-              src={"/Images/home-browse-panel-hd-decals.jpg"}
+              src={"/images/home-browse-panel-hd-decals.jpg"}
               alt="category_1_img"
               quality={100}
               unoptimized

@@ -6,8 +6,11 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const rawCategory = searchParams.get("category") ?? "";
 
-  // Decode and strip trailing (number), e.g., "Cars (3)" → "Cars"
-  const decodedCategory = decodeURIComponent(rawCategory).replace(/\s*\(\d+\)$/, "");
+  // Decode and clean input
+  const decodedCategory = decodeURIComponent(rawCategory)
+    .replace(/\s*\(\d+\)$/, "")
+    .replace(/\\/g, ""); // Remove backslashes
+
   console.log("🔎 Requested category (cleaned):", decodedCategory);
 
   try {
@@ -17,17 +20,19 @@ export async function GET(req: Request) {
 
     if (decodedCategory) {
       result = await client.query(
-        "SELECT id, name, categories, images FROM products WHERE categories ILIKE $1",
+        `SELECT id, name,regular_price, categories, images 
+         FROM products 
+         WHERE REPLACE(categories, '\\', '') ILIKE $1`, // Clean DB value too
         [likeCategory]
       );
     } else {
-      result = await client.query("SELECT id, name, categories, images FROM products");
+      result = await client.query("SELECT id, name,regular_price, categories, images FROM products");
     }
 
     client.release();
 
-    // 🔧 Ensure images is always an array of full URLs
-    const formattedRows = result.rows.map((product: { images: any; }) => ({
+    // Format image(s)
+    const formattedRows = result.rows.map((product) => ({
       ...product,
       images: Array.isArray(product.images)
         ? product.images

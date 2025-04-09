@@ -36,20 +36,20 @@ const BrowsePanelComponent = () => {
     <div className="min-h-fit w-full py-3 flex items-center justify-center bg-white">
       <div className="w-[85%] h-full flex flex-row items-center justify-center gap-12 flex-nowrap">
         <Link href="src/app/(main)">
-          <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
-            <Image
-              src={"/images/home-browse-panel-hd-decals.jpg"}
-              alt="category_1_img"
-              quality={100}
-              unoptimized
-              width={50}
-              height={50}
-              className="w-[50px] h-[50px] object-contain"
-            />
-            <p className="capitalize font-semibold text-black text-base text-center">
-              HD Decals
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
+  <Image
+    src={"/images/home-browse-panel-hd-decals.jpg"}
+    alt="category_1_img"
+    quality={100}
+    unoptimized
+    width={50} // 👈 Required numeric props
+    height={50}
+    className="object-contain"
+  />
+  <p className="capitalize font-semibold text-black text-base text-center">
+    HD Decals
+  </p>
+</div>
         </Link>
         <div
           className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
@@ -206,44 +206,52 @@ const BrowsePanelComponent = () => {
         
         </div>
         <div
-          className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
-          onMouseEnter={() => setIsCategoriesDropdownOpen(true)}
-          onMouseLeave={() => setIsCategoriesDropdownOpen(false)}
-        >
-          <Image
-            src={"/images/home-browse-panel-categories.png"}
-            alt="category_1_img"
-            quality={100}
-            unoptimized
-            width={0}
-            height={0}
-            className="w-[50px] h-[50px] object-contain"
-          />
-          <div className="w-full flex flex-row items-center justify-center gap-1">
-            <p className="capitalize font-semibold text-black text-base text-center transform transition-all duration-300 group-hover:text-link">
-              categories
-            </p>
-            <ChevronDown 
-              className={`w-5 h-5 text-black transform transition-all duration-300 
-                ${isCategoriesDropdownOpen ? "rotate-180 text-black-600" : ""}`}
-            />
-          </div>
-          {isCategoriesDropdownOpen && (
-            <div
-              className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-48 bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-2"
-              onMouseEnter={() => setIsCategoriesDropdownOpen(true)}
-              onMouseLeave={() => setIsCategoriesDropdownOpen(false)}
+  className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
+  onMouseEnter={() => setIsCategoriesDropdownOpen(true)}
+  onMouseLeave={() => setIsCategoriesDropdownOpen(false)}
+>
+  <Image
+    src={"/images/home-browse-panel-categories.png"}
+    alt="category_1_img"
+    quality={100}
+    unoptimized
+    width={0}
+    height={0}
+    className="w-[50px] h-[50px] object-contain"
+  />
+  <div className="w-full flex flex-row items-center justify-center gap-1">
+    <p className="capitalize font-semibold text-black text-base text-center transform transition-all duration-300 group-hover:text-link">
+      categories
+    </p>
+    <ChevronDown 
+      className={`w-5 h-5 text-black transform transition-all duration-300 
+        ${isCategoriesDropdownOpen ? "rotate-180 text-black-600" : ""}`}
+    />
+  </div>
+
+  {isCategoriesDropdownOpen && (
+    <div
+      className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-48 bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-2"
+    >
+      <ul className="flex flex-col gap-2">
+        {categories.map((category, index) => (
+          <li
+            key={index}
+            className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-400 last:border-none"
+          >
+            <Link
+              href={`/category/${category.name}`}
+              className="block w-full h-full"
             >
-              <ul className="flex flex-col gap-2">
-                {categories.map((category, index) => (
-                  <li key={index} className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-400 last:border-none">
-                    <Link href={category.path} className="block w-full h-full">{category.name}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+              {category.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</div>
+
       </div>
     </div>
   );

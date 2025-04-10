@@ -16,9 +16,6 @@ export default function OurMedia() {
             className="w-full h-auto object-cover"
           />
         </div>
-        <div className="mt-8">
-    <BrowsePanel />
-  </div>
         <div className="w-full">
           {/* Heading */}
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mt-8">
@@ -89,7 +86,7 @@ export default function OurMedia() {
             </div>
           </div>
 
-          {/* Final Paragraph */}
+          {/* Final */}
           <div className="mt-12 text-center text-gray-700 text-xl">
             <p className="text-justify">
               Each of these media types is carefully selected to provide you with the best possible results, 

@@ -3,7 +3,7 @@ import pool from "@/lib/db";
 
 // Update product by ID
 export async function PUT(req: NextRequest) {
-  const id = req.nextUrl.pathname.split("/").pop(); // This extracts [id] from the URL
+  const id = req.nextUrl.pathname.split("/").pop();
   const data = await req.json();
   const { name, brand, price, category, description, imageUrl, stock } = data;
 
@@ -15,7 +15,7 @@ export async function PUT(req: NextRequest) {
     );
     return NextResponse.json(result.rows[0]);
   } catch (error) {
-    console.error("PUT error:", error);
+    console.error("PUT error:", error); // optional, helps with debugging
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
@@ -28,7 +28,7 @@ export async function DELETE(req: NextRequest) {
     await pool.query("DELETE FROM products WHERE id = $1", [id]);
     return NextResponse.json({ message: "Deleted successfully" });
   } catch (error) {
-    console.error("DELETE error:", error);
+    console.error("DELETE error:", error); // optional
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

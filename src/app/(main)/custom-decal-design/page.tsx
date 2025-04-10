@@ -4,11 +4,15 @@ import DesignProcess from './_components/design-process';
 import ClientDecals from './_components/client-decals';
 import GetStarted from './_components/design-today';
 import FAQAccordion from "./_components/faq-about";
+import BrowsePanel from "@/components/global/browse-panel";
 
 const CustomDecalPage: React.FC = () => {
   return (
     <>
-       <div className="w-full">
+      <div className="w-full">
+        <BrowsePanel />
+      </div>
+       <div className="w-full mt-0">
         <img 
         src="/images/custom-decal-design-img-1.png" 
         className="w-full h-auto object-cover"

@@ -36,8 +36,8 @@ const ShopPage = () => {
   return (
     <div className="max-w-7xl mx-auto p-6  font-sans">
         <div className="w-full">
-                <BrowsePanel />
-              </div>
+        <BrowsePanel />
+      </div>
         
       {/* Breadcrumb */}
       <div className="text-gray-600 text-sm mb-4 bg-gray-200 p-6">

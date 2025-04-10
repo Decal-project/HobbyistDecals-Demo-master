@@ -35,21 +35,21 @@ const BrowsePanelComponent = () => {
   return (
     <div className="min-h-fit w-full py-3 flex items-center justify-center bg-white">
       <div className="w-[85%] h-full flex flex-row items-center justify-center gap-12 flex-nowrap">
-        <Link href="src/app/(main)">
-        <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
-          <Image
-            src={"/images/home-browse-panel-hd-decals.jpg"}
-            alt="category_1_img"
-            quality={100}
-            unoptimized
-            width={50} 
-            height={50}
-            className="object-contain"
-          />
-          <p className="capitalize font-semibold text-black text-base text-center">
-            HD Decals
-          </p>
-        </div>
+        <Link href="/">
+          <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
+            <Image
+              src={"/images/home-browse-panel-hd-decals.jpg"}
+              alt="category_1_img"
+              quality={100}
+              unoptimized
+              width={50} 
+              height={50}
+              className="object-contain"
+            />
+            <p className="capitalize font-semibold text-black text-base text-center">
+              HD Decals
+            </p>
+          </div>
         </Link>
         <div
           className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"

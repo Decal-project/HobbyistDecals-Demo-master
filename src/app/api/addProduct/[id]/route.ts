@@ -15,6 +15,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     );
     return NextResponse.json(result.rows[0]);
   } catch (error) {
+    console.error("Error updating product:", error);
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
@@ -27,6 +28,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     await pool.query("DELETE FROM products WHERE id = $1", [id]);
     return NextResponse.json({ message: "Deleted successfully" });
   } catch (error) {
+    console.error("Error deleting product:", error);
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

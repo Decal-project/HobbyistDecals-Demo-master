@@ -3,9 +3,7 @@ import pool from "@/lib/db";
 
 // Update product by ID
 export async function PUT(req: NextRequest) {
-  const url = new URL(req.url);
-  const id = url.pathname.split("/").pop(); // or use regex if your route is nested
-
+  const id = req.nextUrl.pathname.split("/").pop(); // This extracts [id] from the URL
   const data = await req.json();
   const { name, brand, price, category, description, imageUrl, stock } = data;
 
@@ -23,8 +21,7 @@ export async function PUT(req: NextRequest) {
 
 // Delete product by ID
 export async function DELETE(req: NextRequest) {
-  const url = new URL(req.url);
-  const id = url.pathname.split("/").pop();
+  const id = req.nextUrl.pathname.split("/").pop();
 
   try {
     await pool.query("DELETE FROM products WHERE id = $1", [id]);

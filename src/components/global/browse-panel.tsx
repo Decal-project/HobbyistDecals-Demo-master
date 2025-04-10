@@ -42,7 +42,7 @@ const BrowsePanelComponent = () => {
     alt="category_1_img"
     quality={100}
     unoptimized
-    width={50} // 👈 Required numeric props
+    width={50} 
     height={50}
     className="object-contain"
   />
@@ -90,7 +90,9 @@ const BrowsePanelComponent = () => {
                     Our Gallery
                   </li>
                   <li className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-300 last:border-none">
-                    Our Media
+                  <Link href="/about-us/our-media" legacyBehavior>
+                    <a className="block w-full px-4 py-2 text-black hover:text-white">Our Media</a>
+                  </Link>
                   </li>
                   <li className="hover:bg-[#16689A] cursor-pointer text-sm transition-colors duration-300 border-b border-gray-300 last:border-none">
                   <Link href="/about-us/faq" legacyBehavior>
@@ -155,102 +157,108 @@ const BrowsePanelComponent = () => {
             </p>
           </div>
         </Link>
-        <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
-          <Image
-            src={"/images/home-browse-panel-decal-shop.png"}
-            alt="category_1_img"
-            quality={100}
-            unoptimized
-            width={0}
-            height={0}
-            className="w-[50px] h-[50px] object-contain"
-          />
-          <p className="capitalize font-semibold text-black text-base text-center">
-            decal shop
-          </p>
-        </div>
-        <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
-          <Image
-            src={"/images/home-browse-panel-bulk-decals.png"}
-            alt="category_1_img"
-            quality={100}
-            unoptimized
-            width={0}
-            height={0}
-            className="w-[50px] h-[50px] object-contain"
-          />
-          <p className="capitalize font-semibold text-black text-base text-center">
-            bulk decals
-          </p>
-        </div>
-        <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
-          <Image
-            src={"/images/home-browse-panel-decal-print.png"}
-            alt="category_1_img"
-            quality={100}
-            unoptimized
-            width={0}
-            height={0}
-            className="w-[50px] h-[50px] object-contain"
-          />
-          <p className="capitalize font-semibold text-black text-base text-center">
-            decal print
-          </p>
-        </div>
+        <Link href="/decal-shop">
+          <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
+            <Image
+              src={"/images/home-browse-panel-decal-shop.png"}
+              alt="category_1_img"
+              quality={100}
+              unoptimized
+              width={0}
+              height={0}
+              className="w-[50px] h-[50px] object-contain"
+            />
+            <p className="capitalize font-semibold text-black text-base text-center">
+              decal shop
+            </p>
+          </div>
+        </Link>
+        <Link href="/bulk-decals">
+          <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
+            <Image
+              src={"/images/home-browse-panel-bulk-decals.png"}
+              alt="category_1_img"
+              quality={100}
+              unoptimized
+              width={0}
+              height={0}
+              className="w-[50px] h-[50px] object-contain"
+            />
+            <p className="capitalize font-semibold text-black text-base text-center">
+              bulk decals
+            </p>
+          </div>
+        </Link>
+        <Link href="/decal-print">
+          <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
+            <Image
+              src={"/images/home-browse-panel-decal-print.png"}
+              alt="category_1_img"
+              quality={100}
+              unoptimized
+              width={0}
+              height={0}
+              className="w-[50px] h-[50px] object-contain"
+            />
+            <p className="capitalize font-semibold text-black text-base text-center">
+              decal print
+            </p>
+          </div>
+        </Link>
         <div className="relative flex flex-col items-center justify-center gap-2 cursor-pointer">
           <Image src="/images/home-browse-panel-joinus.jpeg" alt="Categories" width={50} height={50} className="object-contain" />
             <div className="w-full flex flex-row items-center justify-center gap-1">
-              <button className="capitalize font-semibold text-white text-base text-center hover:text-blue-600 bg-[rgb(29,78,216)] rounded-2xl p-3">
+              <button className="capitalize font-semibold text-white text-base text-center hover:text-blue-600 bg-[#16689A] rounded-2xl p-3">
                 JoinToEarn</button>
             </div>
         
         </div>
         <div
-  className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
-  onMouseEnter={() => setIsCategoriesDropdownOpen(true)}
-  onMouseLeave={() => setIsCategoriesDropdownOpen(false)}
->
-  <Image
-    src={"/images/home-browse-panel-categories.png"}
-    alt="category_1_img"
-    quality={100}
-    unoptimized
-    width={0}
-    height={0}
-    className="w-[50px] h-[50px] object-contain"
-  />
-  <div className="w-full flex flex-row items-center justify-center gap-1">
-    <p className="capitalize font-semibold text-black text-base text-center transform transition-all duration-300 group-hover:text-link">
-      categories
-    </p>
-    <ChevronDown 
-      className={`w-5 h-5 text-black transform transition-all duration-300 
-        ${isCategoriesDropdownOpen ? "rotate-180 text-black-600" : ""}`}
-    />
-  </div>
+        className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
+        onMouseEnter={() => setIsCategoriesDropdownOpen(true)}
+        onMouseLeave={() => setIsCategoriesDropdownOpen(false)}
+      >
+        <Image
+          src={"/images/home-browse-panel-categories.png"}
+          alt="category_1_img"
+          quality={100}
+          unoptimized
+          width={0}
+          height={0}
+          className="w-[50px] h-[50px] object-contain"
+        />
+        <div className="w-full flex flex-row items-center justify-center gap-1">
+          <p className="capitalize font-semibold text-black text-base text-center transform transition-all duration-300 group-hover:text-link">
+            categories
+          </p>
+          <ChevronDown 
+            className={`w-5 h-5 text-black transform transition-all duration-300 
+              ${isCategoriesDropdownOpen ? "rotate-180 text-black-600" : ""}`}
+          />
+        </div>
 
-  {isCategoriesDropdownOpen && (
-    <div
-      className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-48 bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-2"
-    >
-      <ul className="flex flex-col gap-2">
-        {categories.map((category, index) => (
-          <li
-            key={index}
-            className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-400 last:border-none"
+        {isCategoriesDropdownOpen && (
+          <div
+            className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-48 bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-2"
           >
-            <Link
-              href={`/category/${category.name}`}
-              className="block w-full h-full"
-            >
-              {category.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )}
-</div>
+            <ul className="flex flex-col gap-2">
+              {categories.map((category, index) => (
+                <li
+                  key={index}
+                  className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-400 last:border-none"
+                >
+                  <Link
+                    href={`/category/${category.name}`}
+                    className="block w-full h-full"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
       </div>
     </div>

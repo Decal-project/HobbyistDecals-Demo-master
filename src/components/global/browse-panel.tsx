@@ -37,19 +37,19 @@ const BrowsePanelComponent = () => {
       <div className="w-[85%] h-full flex flex-row items-center justify-center gap-12 flex-nowrap">
         <Link href="src/app/(main)">
         <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
-  <Image
-    src={"/images/home-browse-panel-hd-decals.jpg"}
-    alt="category_1_img"
-    quality={100}
-    unoptimized
-    width={50} 
-    height={50}
-    className="object-contain"
-  />
-  <p className="capitalize font-semibold text-black text-base text-center">
-    HD Decals
-  </p>
-</div>
+          <Image
+            src={"/images/home-browse-panel-hd-decals.jpg"}
+            alt="category_1_img"
+            quality={100}
+            unoptimized
+            width={50} 
+            height={50}
+            className="object-contain"
+          />
+          <p className="capitalize font-semibold text-black text-base text-center">
+            HD Decals
+          </p>
+        </div>
         </Link>
         <div
           className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
@@ -211,31 +211,30 @@ const BrowsePanelComponent = () => {
               <button className="capitalize font-semibold text-white text-base text-center hover:text-blue-600 bg-[#16689A] rounded-2xl p-3">
                 JoinToEarn</button>
             </div>
-        
         </div>
         <div
         className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
         onMouseEnter={() => setIsCategoriesDropdownOpen(true)}
         onMouseLeave={() => setIsCategoriesDropdownOpen(false)}
-      >
-        <Image
-          src={"/images/home-browse-panel-categories.png"}
-          alt="category_1_img"
-          quality={100}
-          unoptimized
-          width={0}
-          height={0}
-          className="w-[50px] h-[50px] object-contain"
-        />
-        <div className="w-full flex flex-row items-center justify-center gap-1">
-          <p className="capitalize font-semibold text-black text-base text-center transform transition-all duration-300 group-hover:text-link">
-            categories
-          </p>
-          <ChevronDown 
-            className={`w-5 h-5 text-black transform transition-all duration-300 
-              ${isCategoriesDropdownOpen ? "rotate-180 text-black-600" : ""}`}
+        >
+          <Image
+            src={"/images/home-browse-panel-categories.png"}
+            alt="category_1_img"
+            quality={100}
+            unoptimized
+            width={0}
+            height={0}
+            className="w-[50px] h-[50px] object-contain"
           />
-        </div>
+          <div className="w-full flex flex-row items-center justify-center gap-1">
+            <p className="capitalize font-semibold text-black text-base text-center transform transition-all duration-300 group-hover:text-link">
+              categories
+            </p>
+            <ChevronDown 
+              className={`w-5 h-5 text-black transform transition-all duration-300 
+                ${isCategoriesDropdownOpen ? "rotate-180 text-black-600" : ""}`}
+            />
+          </div>
 
         {isCategoriesDropdownOpen && (
           <div

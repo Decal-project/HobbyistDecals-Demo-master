@@ -1,9 +1,39 @@
 "use client";
 import { useEffect, useState } from "react";
 
+interface Product {
+  id: number;
+  name: string;
+  brand: string;
+  price: number;
+  category: string;
+  description: string;
+  imageUrl: string;
+  stock: number;
+}
+
+interface FormData {
+  name: string;
+  brand: string;
+  price: string;
+  category: string;
+  description: string;
+  imageUrl: string;
+  stock: string;
+}
+
 export default function AddProductPage() {
-  const [form, setForm] = useState({ name: "", brand: "", price: "", category: "", description: "", imageUrl: "", stock: "" });
-  const [products, setProducts] = useState([]);
+  const [form, setForm] = useState<FormData>({
+    name: "",
+    brand: "",
+    price: "",
+    category: "",
+    description: "",
+    imageUrl: "",
+    stock: "",
+  });
+
+  const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const fetchProducts = async () => {
@@ -28,7 +58,15 @@ export default function AddProductPage() {
     });
 
     if (res.ok) {
-      setForm({ name: "", brand: "", price: "", category: "", description: "", imageUrl: "", stock: "" });
+      setForm({
+        name: "",
+        brand: "",
+        price: "",
+        category: "",
+        description: "",
+        imageUrl: "",
+        stock: "",
+      });
       setEditingId(null);
       fetchProducts();
     } else {
@@ -36,8 +74,16 @@ export default function AddProductPage() {
     }
   };
 
-  const handleEdit = (product: any) => {
-    setForm(product);
+  const handleEdit = (product: Product) => {
+    setForm({
+      name: product.name,
+      brand: product.brand,
+      price: product.price.toString(),
+      category: product.category,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      stock: product.stock.toString(),
+    });
     setEditingId(product.id);
   };
 
@@ -78,7 +124,7 @@ export default function AddProductPage() {
           </tr>
         </thead>
         <tbody>
-          {products.map((prod: any) => (
+          {products.map((prod: Product) => (
             <tr key={prod.id} className="border-t">
               <td className="p-2">{prod.name}</td>
               <td className="p-2">{prod.brand}</td>

@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import pool from "@/lib/db";
 
 // Update product by ID
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
   const data = await req.json();
   const { name, brand, price, category, description, imageUrl, stock } = data;
 
   try {
     const result = await pool.query(
-      `UPDATE products SET name=$1, brand=$2, price=$3, category=$4, description=$5, image_url=$6, stock=$7
+      `UPDATE products 
+       SET name=$1, brand=$2, price=$3, category=$4, description=$5, image_url=$6, stock=$7
        WHERE id=$8 RETURNING *`,
       [name, brand, price, category, description, imageUrl, stock, id]
     );
@@ -21,8 +23,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // Delete product by ID
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
 
   try {
     await pool.query("DELETE FROM products WHERE id = $1", [id]);

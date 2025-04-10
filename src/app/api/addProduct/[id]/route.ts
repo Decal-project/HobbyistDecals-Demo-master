@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest) {
       [name, brand, price, category, description, imageUrl, stock, id]
     );
     return NextResponse.json(result.rows[0]);
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
@@ -26,7 +26,7 @@ export async function DELETE(req: NextRequest) {
   try {
     await pool.query("DELETE FROM products WHERE id = $1", [id]);
     return NextResponse.json({ message: "Deleted successfully" });
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

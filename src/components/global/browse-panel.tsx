@@ -89,16 +89,16 @@ const BrowsePanelComponent = () => {
                   <li className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-300 last:border-none">
                     Our Gallery
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-300 last:border-none">
+                  <li className="hover:bg-[#16689A] cursor-pointer text-sm transition-colors duration-300 border-b border-gray-300 last:border-none">
                   <Link href="/about-us/our-media" legacyBehavior>
                     <a className="block w-full px-4 py-2 text-black hover:text-white">Our Media</a>
                   </Link>
                   </li>
                   <li className="hover:bg-[#16689A] cursor-pointer text-sm transition-colors duration-300 border-b border-gray-300 last:border-none">
-                  <Link href="/about-us/faq" legacyBehavior>
-                    <a className="block w-full px-4 py-2 text-black hover:text-white">FAQ</a>
-                  </Link>
-                </li>
+                    <Link href="/about-us/faq" legacyBehavior>
+                      <a className="block w-full px-4 py-2 text-black hover:text-white">FAQ</a>
+                    </Link>
+                  </li>
                   {/* Our Policy Dropdown */}
                   <li
                     className="relative px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors flex justify-between"

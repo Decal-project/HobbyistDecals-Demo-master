@@ -205,13 +205,15 @@ const BrowsePanelComponent = () => {
             </p>
           </div>
         </Link>
-        <div className="relative flex flex-col items-center justify-center gap-2 cursor-pointer">
-          <Image src="/images/home-browse-panel-joinus.jpeg" alt="Categories" width={50} height={50} className="object-contain" />
-            <div className="w-full flex flex-row items-center justify-center gap-1">
-              <button className="capitalize font-semibold text-white text-base text-center hover:text-blue-600 bg-[#16689A] rounded-2xl p-3">
-                JoinToEarn</button>
-            </div>
-        </div>
+        <Link href="/join-to-earn">
+          <div className="relative flex flex-col items-center justify-center gap-2 cursor-pointer">
+            <Image src="/images/home-browse-panel-joinus.jpeg" alt="Categories" width={50} height={50} className="object-contain" />
+              <div className="w-full flex flex-row items-center justify-center gap-1">
+                <button className="capitalize font-semibold text-white text-base text-center bg-[#16689A] hover:bg-black rounded-2xl p-3">
+                  JoinToEarn</button>
+              </div>
+          </div>
+        </Link>
         <div
           className="relative flex flex-col items-center justify-center gap-2 cursor-pointer"
           onClick={() => setIsCategoriesDropdownOpen((prev) => !prev)}

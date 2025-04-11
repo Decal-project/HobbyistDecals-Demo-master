@@ -1,8 +1,6 @@
-export const advertisementBannerImageUrls: string[] = [
-  "https://rukminim2.flixcart.com/fk-p-flap/1620/270/image/c857932113f9e5ad.jpg?q=20",
-  "https://rukminim2.flixcart.com/fk-p-flap/1620/270/image/a8083ac34b2151d4.jpeg?q=20",
-  "https://rukminim2.flixcart.com/fk-p-flap/1620/270/image/36936297551c5f46.jpeg?q=20",
-  "https://rukminim2.flixcart.com/fk-p-flap/1620/270/image/24985ee329643e05.jpg?q=20",
+export const advertisementBannerImageUrls = [
+  "/images/home-advertise1.jpg",
+  "/images/home-advertise2.jpg",
 ];
 
 export const categoriesList: { title: string; img: string }[] = [

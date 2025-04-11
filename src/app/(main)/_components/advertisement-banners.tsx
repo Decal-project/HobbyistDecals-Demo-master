@@ -22,7 +22,7 @@ const AdvertisementBannersComponent = () => {
         ]}
       >
         <CarouselContent className="h-full w-full !m-0">
-          {Array(4)
+          {Array(2)
             .fill(0)
             .map((item, index) => (
               <CarouselItem key={index} className="w-full h-full !p-0">

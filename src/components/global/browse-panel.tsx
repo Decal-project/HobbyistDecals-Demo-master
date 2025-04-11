@@ -28,8 +28,6 @@ const categories = [
   { name: "Others", path: "/categories/tools" },
 ];
 const BrowsePanelComponent = () => {
-  const [isAboutDropdownOpen, setIsAboutDropdownOpen] = useState(false);
-  const [isPolicyDropdownOpen, setIsPolicyDropdownOpen] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
 
   return (

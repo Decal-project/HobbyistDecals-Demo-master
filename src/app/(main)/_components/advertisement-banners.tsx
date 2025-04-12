@@ -33,7 +33,7 @@ const AdvertisementBannersComponent = () => {
                   height={0}
                   unoptimized
                   quality={100}
-                  className="h-[250px] w-full object-cover"
+                  className="w-full h-[250px] object-contain mx-auto"
                 />
               </CarouselItem>
             ))}

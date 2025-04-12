@@ -18,13 +18,16 @@ const NavbarComponent = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const loginRef = useRef(null);
 
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef(null);
+
   const handleSearch = () => {
     if (query.trim()) {
       router.push(`/search?q=${query}`);
     }
   };
 
-  // Close login dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -32,6 +35,12 @@ const NavbarComponent = () => {
         !(loginRef.current as HTMLElement).contains(event.target as Node)
       ) {
         setLoginOpen(false);
+      }
+      if (
+        moreRef.current &&
+        !(moreRef.current as HTMLElement).contains(event.target as Node)
+      ) {
+        setMoreOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -123,9 +132,60 @@ const NavbarComponent = () => {
           <p className="text-black capitalize text-lg">become a seller</p>
         </div>
 
-        {/* More Options */}
-        <div>
+        {/* More Options Dropdown (Click-based like Login) */}
+        <div
+          className="relative cursor-pointer"
+          onClick={() => setMoreOpen((prev) => !prev)}
+          ref={moreRef}
+        >
           <EllipsisVertical className="h-6 w-6" />
+
+          {moreOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-2">
+              <ul className="flex flex-col gap-2">
+                <li className="border-b border-gray-300 last:border-none">
+                  <Link
+                    href="/"
+                    className="block px-4 py-2 text-sm text-black hover:bg-[#16689A] hover:text-white transition-colors duration-300"
+                  >
+                    HD Decals
+                  </Link>
+                </li>
+                <li className="border-b border-gray-300 last:border-none">
+                  <Link
+                    href="/custom-decal-design"
+                    className="block px-4 py-2 text-sm text-black hover:bg-[#16689A] hover:text-white transition-colors duration-300"
+                  >
+                    Custom Decal Design
+                  </Link>
+                </li>
+                <li className="border-b border-gray-300 last:border-none">
+                  <Link
+                    href="/decal-shop"
+                    className="block px-4 py-2 text-sm text-black hover:bg-[#16689A] hover:text-white transition-colors duration-300"
+                  >
+                    Decal Shop
+                  </Link>
+                </li>
+                <li className="border-b border-gray-300 last:border-none">
+                  <Link
+                    href="/bulk-decals"
+                    className="block px-4 py-2 text-sm text-black hover:bg-[#16689A] hover:text-white transition-colors duration-300"
+                  >
+                    Bulk Decals
+                  </Link>
+                </li>
+                <li className="border-b border-gray-300 last:border-none">
+                  <Link
+                    href="/decal-print"
+                    className="block px-4 py-2 text-sm text-black hover:bg-[#16689A] hover:text-white transition-colors duration-300"
+                  >
+                    Decal Print
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

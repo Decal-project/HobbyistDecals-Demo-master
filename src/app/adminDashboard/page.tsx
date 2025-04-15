@@ -1,6 +1,5 @@
 "use client";
 import { useRouter } from "next/navigation";
-//import { Button } from "@/components/ui/button"; // optional if using shadcn/ui
 import React from "react";
 
 export default function AdminDashboard() {

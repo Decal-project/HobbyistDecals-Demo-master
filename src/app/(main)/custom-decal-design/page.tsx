@@ -12,7 +12,7 @@ const CustomDecalPage: React.FC = () => {
       <div className="w-full">
         <BrowsePanel />
       </div>
-      <div className="w-full mt-0">
+       <div className="w-full mt-0">
         <img 
         src="/images/custom-decal-design-img-1.png" 
         className="w-full h-auto object-cover"

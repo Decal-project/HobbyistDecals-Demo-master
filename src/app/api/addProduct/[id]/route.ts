@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 
 // Update product by ID
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function PUT(req: NextRequest) {
+  const id = req.nextUrl.pathname.split("/").pop();
   const data = await req.json();
   const { name, brand, price, category, description, imageUrl, stock } = data;
 
@@ -14,19 +14,19 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       [name, brand, price, category, description, imageUrl, stock, id]
     );
     return NextResponse.json(result.rows[0]);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
 
 // Delete product by ID
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function DELETE(req: NextRequest) {
+  const id = req.nextUrl.pathname.split("/").pop();
 
   try {
     await pool.query("DELETE FROM products WHERE id = $1", [id]);
     return NextResponse.json({ message: "Deleted successfully" });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

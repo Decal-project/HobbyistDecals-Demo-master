@@ -15,9 +15,6 @@ import { useRouter } from "next/navigation";
 const NavbarComponent = () => {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [loginOpen, setLoginOpen] = useState(false);
-  const loginRef = useRef(null);
-
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
 
@@ -27,15 +24,9 @@ const NavbarComponent = () => {
     }
   };
 
-  // Close dropdowns when clicking outside
+  // Close More dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        loginRef.current &&
-        !(loginRef.current as HTMLElement).contains(event.target as Node)
-      ) {
-        setLoginOpen(false);
-      }
       if (
         moreRef.current &&
         !(moreRef.current as HTMLElement).contains(event.target as Node)
@@ -82,39 +73,25 @@ const NavbarComponent = () => {
           </button>
         </div>
 
-        {/* Login Dropdown */}
-        <div
-          className="relative cursor-pointer"
-          onClick={() => setLoginOpen((prev) => !prev)}
-          ref={loginRef}
+        {/* Login and Admin Login */}
+        <div className="flex items-center gap-4">
+          {/* Login Button */}
+          <button
+            onClick={() => router.push("/user-login")}
+            className="flex flex-row items-center justify-center gap-1.5 bg-[#16689A] text-white px-4 py-2 rounded-md hover:bg-[#12557F] transition-colors duration-300"
+          >
+            <CircleUserRound className="w-5 h-5" />
+            <span className="text-base font-medium">Login</span>
+          </button>
+
+          {/* Admin Login Link */}
+        <Link
+          href="/admin-login"
+          className="text-[#16689A] text-base font-medium hover:underline transition-all duration-300"
         >
-          <div className="flex flex-row items-center justify-center gap-1.5">
-            <CircleUserRound className="text-black w-6 h-6" />
-            <p className="text-black capitalize text-lg">login</p>
-            <ChevronDown
-              className={`text-black h-6 w-6 transition-transform duration-200 ${
-                loginOpen ? "rotate-180" : ""
-              }`}
-            />
-          </div>
-          {loginOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-              <ul className="p-2 text-black">
-                <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => router.push("/login")}
-                >
-                  Admin Login
-                </li>
-                <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => router.push("/userLogin")}
-                >
-                  User Login
-                </li>
-              </ul>
-            </div>
-          )}
+          Admin Login
+        </Link>
+
         </div>
 
         {/* Cart */}
@@ -132,14 +109,13 @@ const NavbarComponent = () => {
           <p className="text-black capitalize text-lg">become a seller</p>
         </div>
 
-        {/* More Options Dropdown (Click-based like Login) */}
+        {/* More Options Dropdown */}
         <div
           className="relative cursor-pointer"
           onClick={() => setMoreOpen((prev) => !prev)}
           ref={moreRef}
         >
           <EllipsisVertical className="h-6 w-6" />
-
           {moreOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-2">
               <ul className="flex flex-col gap-2">

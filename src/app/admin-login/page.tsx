@@ -27,9 +27,12 @@ const AdminLogin: React.FC = () => {
       } else {
         setError("Invalid email or password");
       }
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
-    }
+    } 
+    catch (err) {
+        console.error("Login error:", err);
+        setError("Something went wrong. Please try again.");
+      }
+      
   };
 
   return (

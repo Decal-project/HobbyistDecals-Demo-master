@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react"; // Make sure to install `lucide-react`
+import { Eye, EyeOff } from "lucide-react"; // Ensure lucide-react is installed
 
 const AdminLogin: React.FC = () => {
   const router = useRouter();
@@ -12,14 +12,23 @@ const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Demo validation (replace with real logic)
-    if (email === "admin@example.com" && password === "admin123") {
-      router.push("/admin-dashboard");
-    } else {
-      setError("Invalid email or password");
+    try {
+      const res = await fetch("/api/adminLogin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.ok) {
+        router.push("/adminDashboard");
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
     }
   };
 

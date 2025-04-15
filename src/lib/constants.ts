@@ -1,4 +1,4 @@
-export const advertisementBannerImageUrls = [
+export const advertisementBannerImageUrls: string[] = [
   "/images/home-advertise1.jpg",
   "/images/home-advertise2.jpg",
 ];

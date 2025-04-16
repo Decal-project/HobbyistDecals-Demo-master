@@ -163,9 +163,9 @@ const BrowsePanelComponent = () => {
                     className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-400 last:border-none"
                     onClick={() => setIsCategoriesDropdownOpen(false)}
                   >
-                    <Link href={category.path} className="block w-full h-full">
-                      {category.name}
-                    </Link>
+                  <Link href={`/category/${category.name}`} className="block w-full h-full">
+                    {category.name}
+                  </Link>
                   </li>
                 ))}
               </ul>

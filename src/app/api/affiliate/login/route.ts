@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
+
 export async function POST(req: NextRequest) {
   try {
     const { usernameOrEmail, password } = await req.json();
@@ -26,9 +27,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true, user: { id: user.id, username: user.username } }, { status: 200 });
-  } catch (error: any) {
-    console.error('Login error:', error);
-    return NextResponse.json({ error: 'Login failed', details: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: true, user: { id: user.id, username: user.username } },
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Login error:', err);
+    return NextResponse.json({ error: 'Login failed', details: err.message }, { status: 500 });
   }
 }

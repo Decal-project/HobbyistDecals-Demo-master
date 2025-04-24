@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,10 +40,11 @@ export async function POST(req: NextRequest) {
     const result = await pool.query(query, values);
 
     return NextResponse.json({ success: true, id: result.rows[0].id }, { status: 201 });
-  } catch (error: any) {
-    console.error('Error registering affiliate:', error);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Error registering affiliate:', err);
     return NextResponse.json(
-      { error: 'Failed to register affiliate', details: error.message },
+      { error: 'Failed to register affiliate', details: err.message },
       { status: 500 }
     );
   }

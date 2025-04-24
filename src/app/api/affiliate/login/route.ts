@@ -27,13 +27,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    return NextResponse.json(
-      { success: true, user: { id: user.id, username: user.username } },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+      },
+    });
   } catch (error: unknown) {
     const err = error as Error;
-    console.error('Login error:', err);
-    return NextResponse.json({ error: 'Login failed', details: err.message }, { status: 500 });
+    console.error('Login Error:', err.message);
+    return NextResponse.json({ error: 'Login failed', message: err.message }, { status: 500 });
   }
 }

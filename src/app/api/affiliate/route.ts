@@ -7,7 +7,7 @@ export async function GET() {
     return NextResponse.json(result.rows);
   } catch (error: unknown) {
     const err = error as Error;
-    return NextResponse.json({ error: 'Failed to fetch users', details: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch users', message: err.message }, { status: 500 });
   }
 }
 
@@ -15,11 +15,14 @@ export async function PATCH(req: NextRequest) {
   try {
     const { id, is_active } = await req.json();
 
-    await pool.query('UPDATE affiliate_users SET is_active = $1 WHERE id = $2', [is_active, id]);
+    await pool.query(
+      'UPDATE affiliate_users SET is_active = $1 WHERE id = $2',
+      [is_active, id]
+    );
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     const err = error as Error;
-    return NextResponse.json({ error: 'Failed to update status', details: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update user', message: err.message }, { status: 500 });
   }
 }

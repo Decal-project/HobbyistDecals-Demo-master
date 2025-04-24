@@ -82,15 +82,6 @@ const NavbarComponent = () => {
             <CircleUserRound className="w-5 h-5" />
             <span className="text-base font-medium">Login</span>
           </button>
-
-          {/* Admin Login Link */}
-        <Link
-          href="/admin-login"
-          className="text-[#16689A] text-base font-medium hover:underline transition-all duration-300"
-        >
-          Admin Login
-        </Link>
-
         </div>
 
         {/* Cart */}

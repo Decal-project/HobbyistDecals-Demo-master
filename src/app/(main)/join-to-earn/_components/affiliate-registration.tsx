@@ -102,7 +102,7 @@ const AffiliateRegistration = () => {
             <input
               name={field.name}
               type={field.type}
-              value={(formData as any)[field.name]}
+              value={formData[field.name as keyof FormData] || ''} // Ensure it's treated as a key of FormData
               onChange={handleChange}
               required={field.name !== 'website'}
               className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

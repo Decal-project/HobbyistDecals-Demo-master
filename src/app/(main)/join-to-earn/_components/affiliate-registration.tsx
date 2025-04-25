@@ -35,12 +35,10 @@ const AffiliateRegistration = () => {
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type, checked } = e.target;
-    let fieldValue: string | boolean = value;
-
-    if (type === 'checkbox') {
-      fieldValue = checked; // Checkbox will use the checked property instead of value
-    }
+    const { name, value, type } = e.target;
+    const fieldValue = type === 'checkbox'
+      ? (e.target as HTMLInputElement).checked
+      : value;
 
     setFormData((prev) => ({
       ...prev,
@@ -104,8 +102,7 @@ const AffiliateRegistration = () => {
             <input
               name={field.name}
               type={field.type}
-              value={field.type === 'checkbox' ? undefined : formData[field.name as keyof FormData]} // Only provide value for non-checkbox inputs
-              checked={field.type === 'checkbox' ? formData[field.name as keyof FormData] : undefined} // Only set checked for checkboxes
+              value={(formData as any)[field.name]}
               onChange={handleChange}
               required={field.name !== 'website'}
               className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -118,7 +115,7 @@ const AffiliateRegistration = () => {
           <textarea
             name="promotion"
             rows={4}
-            value={formData.promotion} // Textareas are string values
+            value={formData.promotion}
             onChange={handleChange}
             className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -128,7 +125,7 @@ const AffiliateRegistration = () => {
           <input
             name="agree"
             type="checkbox"
-            checked={formData.agree} // Checkbox binding with 'agree' field
+            checked={formData.agree}
             onChange={handleChange}
             className="mt-1 mr-2"
             required

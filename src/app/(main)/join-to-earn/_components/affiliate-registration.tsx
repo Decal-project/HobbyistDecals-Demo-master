@@ -38,9 +38,9 @@ const AffiliateRegistration = () => {
     const { name, value, type } = e.target;
     let fieldValue: string | boolean = value;
 
-    // Check if the target is an input of type checkbox
+    // Explicitly check if the input is a checkbox
     if (type === 'checkbox') {
-      fieldValue = (e.target as HTMLInputElement).checked; // Ensure it's a checkbox
+      fieldValue = (e.target as HTMLInputElement).checked; // Cast to HTMLInputElement for checkbox
     }
 
     setFormData((prev) => ({

@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/bcrypt": "^5.0.2",
     "@types/jquery": "^3.5.32",
     "@types/node": "^20",
     "@types/pg": "^8.11.11",

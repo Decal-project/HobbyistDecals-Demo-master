@@ -35,10 +35,8 @@ const AffiliateRegistration = () => {
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target;
-    const fieldValue = type === 'checkbox'
-      ? (e.target as HTMLInputElement).checked
-      : value;
+    const { name, value, type, checked } = e.target;
+    const fieldValue = type === 'checkbox' ? checked : value; // Adjust for checkbox
 
     setFormData((prev) => ({
       ...prev,
@@ -102,7 +100,7 @@ const AffiliateRegistration = () => {
             <input
               name={field.name}
               type={field.type}
-              value={formData[field.name as keyof FormData]} // Now this works without error
+              value={formData[field.name as keyof FormData]} // This works fine for strings and numbers
               onChange={handleChange}
               required={field.name !== 'website'}
               className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -115,7 +113,7 @@ const AffiliateRegistration = () => {
           <textarea
             name="promotion"
             rows={4}
-            value={formData.promotion}
+            value={formData.promotion} // This is fine since it's a string
             onChange={handleChange}
             className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -125,7 +123,7 @@ const AffiliateRegistration = () => {
           <input
             name="agree"
             type="checkbox"
-            checked={formData.agree}
+            checked={formData.agree} // This binds the checkbox correctly
             onChange={handleChange}
             className="mt-1 mr-2"
             required

@@ -13,15 +13,19 @@ const ITEMS_PER_PAGE = 12;
 const NewArrivalsPage = () => {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);  // New state for loading
 
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
+        setLoading(true);  // Set loading to true when fetch starts
         const res = await fetch("/api/featured");
         const data = await res.json();
         setFeatured(data);
       } catch (error) {
         console.error("Error fetching featured products:", error);
+      } finally {
+        setLoading(false);  // Set loading to false after fetch is complete
       }
     };
 
@@ -31,6 +35,10 @@ const NewArrivalsPage = () => {
   const totalPages = Math.ceil(featured.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = featured.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  if (loading) {
+    return <div className="p-6 text-lg">Loading products...</div>;
+  }
 
   return (
     <div className="p-6 max-w-full mx-auto">
@@ -42,7 +50,7 @@ const NewArrivalsPage = () => {
         {currentItems.map((item, i) => (
           <div
             key={i}
-            className="bg-gray-50 rounded-lg p-4 flex flex-col items-center shadow-sm h-80"
+            className="bg-gray-50 rounded-lg p-4 flex flex-col items-center shadow-sm h-full"
           >
             <div className="w-full h-48 flex items-center justify-center bg-white p-2">
               <img
@@ -53,6 +61,7 @@ const NewArrivalsPage = () => {
             </div>
             <p className="text-sm font-medium text-center mt-2">{item.name}</p>
             <p className="text-blue-600 font-bold mt-1">From $9.90</p>
+            <div className="flex-grow"></div> {/* Ensures the button stays at the bottom */}
             <button className="mt-2 text-sm text-gray-700 border-t border-gray-300 pt-2 hover:underline">
               SELECT OPTIONS
             </button>

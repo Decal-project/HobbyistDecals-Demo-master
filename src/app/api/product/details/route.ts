@@ -47,7 +47,7 @@ export async function GET(req: Request) {
 
     const attribute_1_values = product.attribute_1_values?.split(",").map((v: string) => v.trim()) || [];
 
-    let rawScaleValues = product.attribute_2_values?.trim().toLowerCase() === "25-jan"
+    const rawScaleValues = product.attribute_2_values?.trim().toLowerCase() === "25-jan"
       ? "1/25"
       : product.attribute_2_values || "";
 

@@ -23,8 +23,12 @@ const ShopPage: React.FC = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: Product[] = await res.json();
         setProducts(data);
-      } catch (err: any) {
-        console.error(err);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error(err.message);
+        } else {
+          console.error("An unknown error occurred.");
+        }
         setError("Failed to load products.");
       } finally {
         setLoading(false);
@@ -35,7 +39,7 @@ const ShopPage: React.FC = () => {
   }, []);
 
   if (loading) return <p className="p-6">Loading products…</p>;
-  if (error)   return <p className="p-6 text-red-600">{error}</p>;
+  if (error) return <p className="p-6 text-red-600">{error}</p>;
 
   return (
     <>
@@ -44,7 +48,6 @@ const ShopPage: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 font-sans">
-
         {/* Breadcrumb */}
         <div className="text-gray-600 text-sm mb-4 bg-gray-200 p-6">
           <span className="text-blue-500 text-xl">HobbyistDecals</span> &gt;{" "}

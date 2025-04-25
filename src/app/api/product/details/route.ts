@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import {sql} from "@/lib/db";
+import pool from "@/lib/db"; // Assuming this is a pg Pool instance
 
 function getMediaCode(media: string): string {
   const map: Record<string, string> = {
     waterslide: "WD",
-    // Add more if needed, e.g. vinyl: "VN"
+    // Add more if needed
   };
   return map[media.toLowerCase()] || media;
 }
@@ -26,15 +26,16 @@ export async function GET(req: Request) {
   try {
     const decodedName = decodeURIComponent(decodeURIComponent(name));
 
-    const result = await sql`
-      SELECT * FROM products WHERE name = ${decodedName}
-    `;
+    const result = await pool.query(
+      `SELECT * FROM products WHERE name = $1`,
+      [decodedName]
+    );
 
-    if (result.length === 0) {
+    if (result.rows.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    const product = result[0];
+    const product = result.rows[0];
     const baseSkuMatch = product.images?.match(/(HD\d{6})/);
     const baseSku = baseSkuMatch ? baseSkuMatch[1] : "UNKNOWN";
 
@@ -45,14 +46,15 @@ export async function GET(req: Request) {
     const defaultImage = images[0] || "";
 
     const attribute_1_values = product.attribute_1_values?.split(",").map((v: string) => v.trim()) || [];
-    let rawScaleValues = product.attribute_2_values?.trim().toLowerCase() === "25-jan"
-  ? "1/25"
-  : product.attribute_2_values || "";
 
-const attribute_2_values = rawScaleValues
-  .split(",")
-  .map((v: string) => v.trim())
-  .filter((v: string) => v.toLowerCase() !== "25-jan");
+    let rawScaleValues = product.attribute_2_values?.trim().toLowerCase() === "25-jan"
+      ? "1/25"
+      : product.attribute_2_values || "";
+
+    const attribute_2_values = rawScaleValues
+      .split(",")
+      .map((v: string) => v.trim())
+      .filter((v: string) => v.toLowerCase() !== "25-jan");
 
     const attribute_3_values = product.attribute_3_values
       ? product.attribute_3_values
@@ -80,40 +82,45 @@ const attribute_2_values = rawScaleValues
             if (usedSkus.has(fullSku)) continue;
             usedSkus.add(fullSku);
 
-            const imageResult = await sql`
-              SELECT images FROM products WHERE images LIKE ${`%${baseSku}-${scaleCode}-${variationCode}%`} LIMIT 1
-            `;
-            const priceResult = await sql`
-              SELECT regular_price FROM products WHERE sku=${fullSku} LIMIT 1
-            `;
-            console.log("priceResult",priceResult);
-            const matchedImage = imageResult[0]?.images || defaultImage;
-            const matchedPrice = parseFloat(priceResult[0]?.regular_price) || parseFloat(product.regular_price) || 0;
+            const imageResult = await pool.query(
+              `SELECT images FROM products WHERE images LIKE $1 LIMIT 1`,
+              [`%${baseSku}-${scaleCode}-${variationCode}%`]
+            );
+
+            const priceResult = await pool.query(
+              `SELECT regular_price FROM products WHERE sku = $1 LIMIT 1`,
+              [fullSku]
+            );
+
+            const matchedImage = imageResult.rows[0]?.images || defaultImage;
+            const matchedPrice = parseFloat(priceResult.rows[0]?.regular_price) || parseFloat(product.regular_price) || 0;
 
             skuImageMap[fullSku] = matchedImage;
             allPrices.push(matchedPrice);
-            
-          console.log(`✅ SKU: ${fullSku} → Image: ${matchedImage}`);
+
+            console.log(`✅ SKU: ${fullSku} → Image: ${matchedImage}`);
           }
         } else {
           const fullSku = `${mediaCode}-${baseSku}-${scaleCode}`;
           if (usedSkus.has(fullSku)) continue;
           usedSkus.add(fullSku);
 
-          const imageResult = await sql`
-            SELECT images FROM products WHERE images LIKE ${`%${baseSku}-${scaleCode}%`} LIMIT 1
-          `;
-          const priceResult = await sql`
-            SELECT regular_price FROM products WHERE sku=${fullSku} LIMIT 1
-          `;
-          
-          console.log("priceResult",priceResult);
-          const matchedImage = imageResult[0]?.images || defaultImage;
-          const matchedPrice = parseFloat(priceResult[0]?.regular_price) || parseFloat(product.regular_price) || 0;
+          const imageResult = await pool.query(
+            `SELECT images FROM products WHERE images LIKE $1 LIMIT 1`,
+            [`%${baseSku}-${scaleCode}%`]
+          );
+
+          const priceResult = await pool.query(
+            `SELECT regular_price FROM products WHERE sku = $1 LIMIT 1`,
+            [fullSku]
+          );
+
+          const matchedImage = imageResult.rows[0]?.images || defaultImage;
+          const matchedPrice = parseFloat(priceResult.rows[0]?.regular_price) || parseFloat(product.regular_price) || 0;
 
           skuImageMap[fullSku] = matchedImage;
           allPrices.push(matchedPrice);
-          
+
           console.log(`✅ SKU: ${fullSku} → Image: ${matchedImage}`);
         }
       }
@@ -124,8 +131,8 @@ const attribute_2_values = rawScaleValues
       const min = Math.min(...allPrices);
       const max = Math.max(...allPrices);
       regular_price = min === max ? `${min.toFixed(2)}` : `${min.toFixed(2)} - ${max.toFixed(2)}`;
-    } else  {
-         regular_price = allPrices[0].toFixed(2);
+    } else {
+      regular_price = allPrices[0]?.toFixed(2) || "0.00";
     }
 
     return NextResponse.json({

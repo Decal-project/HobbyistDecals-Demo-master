@@ -1,14 +1,13 @@
-export const runtime = 'nodejs'; // Optional: for compatibility
+export const runtime = 'nodejs';
 
 import { NextResponse } from "next/server";
-import {sql} from "@/lib/db";
+import pool from "@/lib/db";
 
-// GET /api/product?category=Some%20Category
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const rawCategory = searchParams.get("category") ?? "";
 
-  // Decode and strip trailing (number), e.g., "Cars (3)" → "Cars"
+  // Clean category string like "Cars (3)" => "Cars"
   const decodedCategory = decodeURIComponent(rawCategory).replace(/\s*\(\d+\)$/, "");
   console.log("🔎 Requested category (cleaned):", decodedCategory);
 
@@ -16,20 +15,17 @@ export async function GET(req: Request) {
     let result;
 
     if (decodedCategory) {
-      result = await sql`
-        SELECT id, name, categories, images
-        FROM products
-        WHERE categories ILIKE ${`%${decodedCategory}%`}
-      `;
+      result = await pool.query(
+        `SELECT id, name, categories, images FROM products WHERE categories ILIKE $1`,
+        [`%${decodedCategory}%`] // fixed SQL query + parameter binding
+      );
     } else {
-      result = await sql`
-        SELECT id, name, categories, images
-        FROM products
-      `;
+      result = await pool.query(
+        `SELECT id, name, categories, images FROM products`
+      );
     }
 
-    // 🔧 Ensure images is always an array of full URLs
-    const formattedRows = result.map((product) => ({
+    const formattedRows = result.rows.map((product: any) => ({
       ...product,
       images: Array.isArray(product.images)
         ? product.images

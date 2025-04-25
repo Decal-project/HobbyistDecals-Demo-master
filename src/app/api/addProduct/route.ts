@@ -1,6 +1,6 @@
 // app/api/addproduct/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db'; // Import your DB connection
+import {pool} from '@/lib/db'; // Import your DB connection
 
 const PRODUCT_FIELDS = [
   "type", "sku", "gtin", "name", "published", "is_featured", "visibility",

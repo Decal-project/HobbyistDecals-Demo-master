@@ -35,14 +35,10 @@ const AffiliateRegistration = () => {
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target;
-    const fieldValue = type === 'checkbox'
-      ? (e.target as HTMLInputElement).checked
-      : value;
-
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: fieldValue,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -62,9 +58,7 @@ const AffiliateRegistration = () => {
     try {
       const response = await fetch('/api/affiliate/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -77,7 +71,7 @@ const AffiliateRegistration = () => {
         alert(data.error || 'Registration failed.');
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error:', error);
       alert('Something went wrong. Please try again.');
     }
   };
@@ -87,6 +81,7 @@ const AffiliateRegistration = () => {
       <h2 className="text-2xl font-bold text-center mb-6">Affiliate Registration</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Text Fields */}
         {[
           { label: 'Username', name: 'username', type: 'text' },
           { label: 'First Name', name: 'firstname', type: 'text' },
@@ -102,7 +97,7 @@ const AffiliateRegistration = () => {
             <input
               name={field.name}
               type={field.type}
-              value={formData[field.name as keyof FormData] as string}
+              value={(formData[field.name as keyof Omit<FormData, 'agree'>])}
               onChange={handleChange}
               required={field.name !== 'website'}
               className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -110,6 +105,7 @@ const AffiliateRegistration = () => {
           </div>
         ))}
 
+        {/* Promotion Textarea */}
         <div>
           <label className="block font-medium mb-1">How will you promote us?</label>
           <textarea
@@ -121,6 +117,7 @@ const AffiliateRegistration = () => {
           />
         </div>
 
+        {/* Agree Checkbox */}
         <div className="flex items-start">
           <input
             name="agree"
@@ -132,16 +129,12 @@ const AffiliateRegistration = () => {
           />
           <label className="text-sm text-gray-700">
             I agree to the{' '}
-            <a href="#" className="text-blue-600 underline">
-              terms and conditions
-            </a>{' '}
-            and{' '}
-            <a href="#" className="text-blue-600 underline">
-              privacy policy
-            </a>.
+            <a href="#" className="text-blue-600 underline">terms and conditions</a> and{' '}
+            <a href="#" className="text-blue-600 underline">privacy policy</a>.
           </label>
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
           className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"

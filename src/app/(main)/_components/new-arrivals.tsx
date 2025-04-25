@@ -50,7 +50,7 @@ const NewArrivalsSection = () => {
         {featured.slice(0, 6).map((item, i) => (
           <div
             key={i}
-            className="bg-gray-50 rounded-lg p-2 flex flex-col items-center shadow-sm h-72"
+            className="bg-gray-50 rounded-lg p-2 flex flex-col items-center shadow-sm h-full"
           >
             <div className="w-full h-40 flex items-center justify-center bg-white p-2">
               <img
@@ -61,6 +61,7 @@ const NewArrivalsSection = () => {
             </div>
             <p className="text-sm font-medium text-center mt-2">{item.name}</p>
             <p className="text-blue-600 font-bold mt-1">From $9.90</p>
+            <div className="flex-grow"></div> {/* Push the button to the bottom */}
             <button className="mt-2 text-sm text-gray-700 border-t border-gray-300 pt-2 hover:underline">
               SELECT OPTIONS
             </button>

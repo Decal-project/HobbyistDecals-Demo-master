@@ -39,13 +39,13 @@ export default function PopupModal() {
           Sign Up & Save 10% On Your Next Order!*
         </h2>
         <p className="mb-4 text-gray-700">
-          Be the first to know about new products, deals, and events.
+          Be the first to know about new products, deals and events.
         </p>
 
         {/* Email Input */}
         <input
           type="email"
-          placeholder="Name@email.com"
+          placeholder="name@email.com"
           className="w-full border border-gray-300 p-2 rounded mb-3"
         />
 
@@ -73,10 +73,10 @@ export default function PopupModal() {
         {/* Text Alerts */}
         <p className="text-xs text-gray-600 mt-2">
           <a href="#" className="text-[#16689A] font-semibold underline">
-            Sign up for Horizon Hobby Text Alerts!
+            Sign up for HobbyistDecals Text Alerts!
           </a>
           <br />
-          Never miss out – text <strong>HOBBY</strong> to <strong>44721</strong>
+          Never miss out – text <strong>HD</strong> to <strong>XXXXX</strong>
         </p>
       </div>
     </div>

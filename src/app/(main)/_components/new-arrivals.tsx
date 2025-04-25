@@ -16,11 +16,11 @@ const NewArrivalsSection = () => {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const res = await fetch("/api/featured");
+        const res = await fetch("/api/premium");
         const data = await res.json();
         setFeatured(data);
       } catch (error) {
-        console.error("Error fetching featured products:", error);
+        console.error("Error fetching premium products:", error);
       }
     };
 

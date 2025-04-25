@@ -19,6 +19,10 @@ type AffiliateLinks = {
   trackingLink: string;
 };
 
+type PaymentEmailResponse = {
+  paymentEmail?: string;
+};
+
 export default function AffiliateDashboard() {
   const [tab, setTab] = useState("dashboard");
   const [visits, setVisits] = useState<Visit[]>([]);
@@ -92,7 +96,8 @@ export default function AffiliateDashboard() {
 
         if (tab === "settings") {
           const data = await fetchAndParse("/api/affiliate/settings");
-          setPaymentEmail((data as any).paymentEmail || "");
+          const paymentData = data as PaymentEmailResponse;
+          setPaymentEmail(paymentData.paymentEmail || "");
         }
       } catch (error) {
         console.error("Error loading data:", error);

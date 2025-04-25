@@ -7,7 +7,7 @@ export async function GET() {
     const result = await client.query(
       `SELECT id, name, images, product_status 
        FROM products 
-       WHERE product_status = 'featured'`
+       WHERE product_status = 'premium'`
     );
     client.release();
 

@@ -3,6 +3,14 @@ export const runtime = 'nodejs';
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
+// Define the Product type to match the structure of the result rows
+type Product = {
+  id: number;
+  name: string;
+  categories: string;
+  images: string | string[];
+};
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const rawCategory = searchParams.get("category") ?? "";
@@ -25,7 +33,8 @@ export async function GET(req: Request) {
       );
     }
 
-    const formattedRows = result.rows.map((product: any) => ({
+    // Cast rows to the Product type
+    const formattedRows = result.rows.map((product: Product) => ({
       ...product,
       images: Array.isArray(product.images)
         ? product.images
@@ -40,6 +49,6 @@ export async function GET(req: Request) {
     return NextResponse.json(formattedRows);
   } catch (error) {
     console.error("❌ Error fetching products:", error);
-    return new NextResponse("Server error", { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 }); // ✅ valid JSON
   }
 }

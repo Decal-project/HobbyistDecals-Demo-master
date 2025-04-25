@@ -3,7 +3,7 @@ import AdvertisementBannersComponent from "./_components/advertisement-banners";
 import BestDealsComponent from "./_components/best-deals";
 import UserBenefitsComponent from "@/components/global/user-benefits";
 import DecalListCarousalComponent from "@/components/global/decals-list-carousal";
-import { categoriesList, topPicksList } from "@/lib/constants";
+import { categoriesList } from "@/lib/constants";
 import BlogsComponent from "./_components/blogs";
 import YettoComponent from "./_components/yet-to";
 import NewArrivalsSection from "./_components/new-arrivals"; 

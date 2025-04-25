@@ -1,13 +1,14 @@
-"use client";
-
+"use client"
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 type Product = {
+  regular_price: string;
   id: number;
   name: string;
-  images: string[]; // ✅ Updated: expecting array
+  images: string[];
 };
 
 const CategoryPage = () => {
@@ -47,7 +48,9 @@ const CategoryPage = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => {
-            const imageSrc = product.images?.[0] || "/placeholder.jpg"; // fallback
+            const imageSrc = product.images?.[0] || "/placeholder.jpg";
+            const encodedName = encodeURIComponent(product.name);
+
             return (
               <div key={product.id} className="border rounded-lg p-2 hover:shadow-md transition">
                 <Image
@@ -57,7 +60,13 @@ const CategoryPage = () => {
                   height={300}
                   className="w-full h-[200px] object-contain rounded"
                 />
-                <h2 className="text-sm font-semibold mt-2 text-center">{product.name}</h2>
+                <Link
+                  href={`/details/${encodedName}`}
+                  className="block text-center text-blue-600 hover:underline mt-2 text-sm font-semibold"
+                >
+                  {product.name}
+                </Link>
+                <h2 className="text-sm font-semibold mt-1 text-center">{product.regular_price}</h2>
               </div>
             );
           })}

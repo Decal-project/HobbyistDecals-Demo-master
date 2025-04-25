@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
-// Define the Product type to match the structure of the result rows
+// Define the type for the product data fetched from the database
 type Product = {
   id: number;
   name: string;
@@ -22,6 +22,7 @@ export async function GET(req: Request) {
   try {
     let result;
 
+    // Query the database based on the cleaned category
     if (decodedCategory) {
       result = await pool.query(
         `SELECT id, name, categories, images FROM products WHERE categories ILIKE $1`,
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // Cast rows to the Product type
+    // Explicitly define the type for result.rows
     const formattedRows = result.rows.map((product: Product) => ({
       ...product,
       images: Array.isArray(product.images)

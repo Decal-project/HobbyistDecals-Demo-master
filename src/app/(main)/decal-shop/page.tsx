@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import BrowsePanel from "@/components/global/browse-panel";
+import Link from "next/link"; // Import Link for navigation
 
 interface Product {
   id: number;
@@ -87,13 +88,15 @@ const ShopPage: React.FC = () => {
                   No Image
                 </div>
               )}
-              <h2 className="text-sm font-semibold mt-2">{product.name}</h2>
+              <Link
+                href={`/details/${encodeURIComponent(product.name)}`}
+                className="text-sm font-semibold mt-2 block text-blue-600 hover:underline"
+              >
+                {product.name}
+              </Link>
               <p className="text-blue-600 font-bold mt-1">
                 ${parseFloat(product.regular_price).toFixed(2)}
               </p>
-              <button className="bg-blue-600 text-white px-3 py-1 mt-2 rounded-md text-sm">
-                SELECT OPTIONS
-              </button>
             </div>
           ))}
         </div>

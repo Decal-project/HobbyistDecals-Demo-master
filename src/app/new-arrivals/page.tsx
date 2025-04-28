@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 
 type Product = {
   id: number;
@@ -59,12 +60,15 @@ const NewArrivalsPage = () => {
                 className="max-h-full max-w-full object-contain"
               />
             </div>
-            <p className="text-sm font-medium text-center mt-2">{item.name}</p>
+            {/* Product Name as Link */}
+            <Link
+              href={`/details/${encodeURIComponent(item.name)}`}
+              className="text-sm font-medium text-center mt-2 text-blue-600 hover:underline"
+            >
+              {item.name}
+            </Link>
             <p className="text-blue-600 font-bold mt-1">From $9.90</p>
             <div className="flex-grow"></div> {/* Ensures the button stays at the bottom */}
-            <button className="mt-2 text-sm text-gray-700 border-t border-gray-300 pt-2 hover:underline">
-              SELECT OPTIONS
-            </button>
           </div>
         ))}
       </div>

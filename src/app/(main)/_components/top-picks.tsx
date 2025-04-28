@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // Import Link for navigation
 
 type Product = {
   id: number;
@@ -36,7 +37,7 @@ const TopPicksComponent = () => {
     <div className="w-full max-w-7xl bg-white rounded-lg p-4 shadow-md mx-auto mt-8">
       <div className="flex justify-between items-center mb-4 border-b pb-2">
         <h2 className="text-xl font-bold text-gray-800">
-         Browse Our Featured Decals – Top Picks for Quality and Design
+          Browse Our Featured Decals – Top Picks for Quality and Design
         </h2>
         <span
           onClick={handleViewMoreClick}
@@ -59,12 +60,15 @@ const TopPicksComponent = () => {
                 className="max-h-full max-w-full object-contain"
               />
             </div>
-            <p className="text-sm font-medium text-center mt-2">{item.name}</p>
+            {/* Product Name as Link */}
+            <Link
+              href={`/details/${encodeURIComponent(item.name)}`}
+              className="text-sm font-medium text-center mt-2 text-blue-600 hover:underline"
+            >
+              {item.name}
+            </Link>
             <p className="text-blue-600 font-bold mt-1">From $9.90</p>
             <div className="flex-grow"></div> {/* Push the button to the bottom */}
-            <button className="mt-2 text-sm text-gray-700 border-t border-gray-300 pt-2 hover:underline">
-              SELECT OPTIONS
-            </button>
           </div>
         ))}
       </div>

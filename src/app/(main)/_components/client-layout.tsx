@@ -12,7 +12,8 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith("/adminDashboard");
+  const isAdminRoute =
+    pathname.startsWith("/adminDashboard") || pathname === "/admin-login";
 
   return (
     <>
@@ -25,7 +26,7 @@ export default function ClientLayout({
         </div>
       )}
       {!isAdminRoute && <NavbarComponent />}
-      <PopupModal />
+      {!isAdminRoute && <PopupModal />}
       {children}
       {!isAdminRoute && <GetinTouch />}
       {!isAdminRoute && <FooterComponent />}

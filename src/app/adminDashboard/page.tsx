@@ -22,6 +22,12 @@ export default function AdminDashboard() {
           >
             📦 Manage Products
           </button>
+          <button
+            onClick={() => router.push("/admin-login")}
+            className="py-3 bg-blue-700 rounded hover:bg-red-600 transition"
+          >
+            🔒 Logout
+          </button>
         </nav>
       </aside>
 

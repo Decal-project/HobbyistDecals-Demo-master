@@ -85,13 +85,15 @@ const NavbarComponent = () => {
         </div>
 
         {/* Cart */}
-        <div
-          className="flex flex-row items-center justify-center gap-1.5 cursor-pointer"
-          onClick={() => router.push("/cart")}
-        >
-          <ShoppingCart className="text-black w-6 h-6" />
-          <p className="text-black capitalize text-lg">Cart</p>
-        </div>
+        <Link href="/cart">
+          <div
+            className="flex flex-row items-center justify-center gap-1.5 cursor-pointer"
+            onClick={() => router.push("/cart")}
+          >
+            <ShoppingCart className="text-black w-6 h-6" />
+            <p className="text-black capitalize text-lg">Cart</p>
+          </div>
+        </Link>
 
         {/* Become a Seller */}
         <div className="flex flex-row items-center justify-center gap-1.5 cursor-pointer">

@@ -29,8 +29,13 @@ export async function POST(req: NextRequest) {
 
     // Success response
     return NextResponse.json({ message: "Thank you for subscribing!" });
-  } catch (error: any) {
-    console.error("❌ Subscription error:", error.stack || error.message);
-    return NextResponse.json({ message: `Server error: ${error.message || 'try again.'}` }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Subscription error:", error.stack || error.message);
+      return NextResponse.json({ message: `Server error: ${error.message || 'try again.'}` }, { status: 500 });
+    } else {
+      console.error("❌ Unknown error:", error);
+      return NextResponse.json({ message: "Server error: Unknown error" }, { status: 500 });
+    }
   }
 }

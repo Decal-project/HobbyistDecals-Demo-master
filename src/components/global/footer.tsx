@@ -107,7 +107,7 @@ const FooterComponent = () => {
               </div>
               <button
                 onClick={handleSubscribe}
-                className="bg-[#0074A6] text-white text-sm font-semibold px-5 py-2.5 rounded-lg shadow-md cursor-pointer transition-colors active:bg-red-600"
+                className="bg-[#16689A] text-white text-sm font-semibold px-5 py-2.5 rounded-lg shadow-md cursor-pointer transition-colors active:bg-red-600"
               >
                 I&apos;m in!
               </button>

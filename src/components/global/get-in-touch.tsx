@@ -14,7 +14,7 @@ export default function GetinTouch() {
             onClick={() => window.open("https://join.skype.com/invite/wp89j0234p5R", "_blank")}
         >
             <span className="text-xl">💬</span>
-            <span>Skype Chat</span>
+            <span>Teams Chat</span>
         </button>
 
         <Link href="/contact-us" legacyBehavior>

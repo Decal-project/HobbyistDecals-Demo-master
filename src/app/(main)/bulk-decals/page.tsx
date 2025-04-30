@@ -146,7 +146,7 @@ const BulkDecals = () => {
         <div className="bg-[#16689A] text-white py-6 px-9 rounded-3xl text-center max-w-7xl mx-auto">
           <h2 className="text-xl font-bold mb-2">Get Started Today!</h2>
           <p className="text-sm md:text-base">
-            Ready to take advantage of our bulk decal services? Email us at <a href="mailto:info@hobbyistdecals.com" className="font-bold underline">info@hobbyistdecals.com</a> or call on Skype:
+            Ready to take advantage of our bulk decal services? Email us at <a href="mailto:info@hobbyistdecals.com" className="font-bold underline">info@hobbyistdecals.com</a> or call on Teams:
             Search <strong>“Hobbyist Decals”</strong> (Id: <strong>live:.cid.686f9448dc2ad63a</strong>), available <strong>10am – 7pm IST</strong>.
           </p>
         </div>

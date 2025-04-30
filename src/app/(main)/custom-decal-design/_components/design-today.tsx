@@ -13,7 +13,7 @@ export default function GetStartedCTA() {
         <a href="mailto:info@hobbyistdecals.com" className="font-bold underline text-white">
           info@hobbyistdecals.com
         </a>{" "}
-        or call Skype : Search{" "}
+        or call on Teams : Search{" "}
         <span className="font-bold underline text-white">“Hobbyist Decals”</span>{" "}
         (<span className="font-bold underline text-white">Id: live:.cid.686f9448dc2ad63a</span>){" "}
         <span className="font-bold underline text-white">(10am – 7pm **IST**)</span>.

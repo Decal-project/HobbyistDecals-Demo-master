@@ -14,6 +14,7 @@ const BulkDecals = () => {
   });
 
   const [activeTab, setActiveTab] = useState(1);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const steps = [
     { id: 1, title: "Contact Us", content: "Reach out to us with your requirements by email 'info@hobbydecals.com' or Fill up the Form. Our team is here to assist you with the design and planning process." },
@@ -34,10 +35,36 @@ const BulkDecals = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form Data:", formData);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const form = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value) form.append(key, value);
+      });
+    
+      const res = await fetch("/api/quote", {
+        method: "POST",
+        body: form,
+      });
+    
+      if (res.ok) {
+        alert("Quote submitted successfully!");
+        setFormData({
+          firstName: "",
+          phone: "",
+          email: "",
+          subject: "",
+          qty: "",
+          message: "",
+          file: null,
+        });
+      
+        // Clear file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    };      
 
   return (
     <div className="font-sans text-gray-800">
@@ -108,16 +135,31 @@ const BulkDecals = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-4">
-                <input type="text" name="firstName" placeholder="First Name *" required className="p-2 border rounded w-full" onChange={handleChange} />
-                <input type="text" name="phone" placeholder="Phone" className="p-2 border rounded w-full" onChange={handleChange} />
+              <input
+  type="text"
+  name="firstName"
+  placeholder="First Name *"
+  required
+  className="p-2 border rounded w-full"
+  value={formData.firstName}
+  onChange={handleChange}
+/>
+
+                <input type="text" name="phone" placeholder="Phone" className="p-2 border rounded w-full" value={formData.phone} onChange={handleChange} />
               </div>
-              <input type="email" name="email" placeholder="Email Address *" required className="p-2 border rounded w-full" onChange={handleChange} />
-              <input type="text" name="subject" placeholder="Subject" className="p-2 border rounded w-full" onChange={handleChange} />
-              <input type="number" name="qty" placeholder="Quantity" className="p-2 border rounded w-full" onChange={handleChange} />
-              <textarea name="message" placeholder="Message *" required className="p-2 border rounded w-full h-28" onChange={handleChange}></textarea>
+              <input type="email" name="email" placeholder="Email Address *" required className="p-2 border rounded w-full"value={formData.email} onChange={handleChange} />
+              <input type="text" name="subject" placeholder="Subject" className="p-2 border rounded w-full" value={formData.subject} onChange={handleChange} />
+              <input type="number" name="qty" placeholder="Quantity" className="p-2 border rounded w-full" value={formData.qty} onChange={handleChange} />
+              <textarea name="message" placeholder="Message *" required className="p-2 border rounded w-full h-28" value={formData.message} onChange={handleChange}></textarea>
               <div>
                 <label className="block mb-2 text-sm font-medium">File Upload</label>
-                <input type="file" onChange={handleFileChange} className="w-full border rounded p-2" />
+                <input
+  ref={fileInputRef}
+  type="file"
+  onChange={handleFileChange}
+  className="w-full border rounded p-2"
+/>
+
                 <p className="text-xs text-gray-500">Allowed: .jpg, .jpeg, .png, .pdf, .zip, etc.</p>
               </div>
               <button type="submit" className="w-full bg-[#16689A] text-white py-2 rounded-lg hover:bg-blue-800 transition">
@@ -146,7 +188,7 @@ const BulkDecals = () => {
         <div className="bg-[#16689A] text-white py-6 px-9 rounded-3xl text-center max-w-7xl mx-auto">
           <h2 className="text-xl font-bold mb-2">Get Started Today!</h2>
           <p className="text-sm md:text-base">
-            Ready to take advantage of our bulk decal services? Email us at <a href="mailto:info@hobbyistdecals.com" className="font-bold underline">info@hobbyistdecals.com</a> or call on Teams:
+            Ready to take advantage of our bulk decal services? Email us at <a href="mailto:info@hobbyistdecals.com" className="font-bold underline">info@hobbyistdecals.com</a> or call on Skype:
             Search <strong>“Hobbyist Decals”</strong> (Id: <strong>live:.cid.686f9448dc2ad63a</strong>), available <strong>10am – 7pm IST</strong>.
           </p>
         </div>

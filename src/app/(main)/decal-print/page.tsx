@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import BrowsePanel from "@/components/global/browse-panel";
 
 const BulkDecals = () => {
@@ -22,6 +22,7 @@ const BulkDecals = () => {
   });
 
   const [activeTab, setActiveTab] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const steps = [
     {
@@ -63,11 +64,36 @@ const BulkDecals = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form Data:", formData);
-  };
-
+  const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const form = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+          if (value) form.append(key, value);
+        });
+      
+        const res = await fetch("/api/quote", {
+          method: "POST",
+          body: form,
+        });
+      
+        if (res.ok) {
+          alert("Quote submitted successfully!");
+          setFormData({
+            firstName: "",
+            phone: "",
+            email: "",
+            subject: "",
+            qty: "",
+            message: "",
+            file: null,
+          });
+        
+          // Clear file input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+        }
+      };      
   return (
     <div>
       <div className="w-full">
@@ -201,72 +227,36 @@ const BulkDecals = () => {
               HobbyistDecals. Contact us today to get started!
             </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="firstName"
-                  placeholder="First Name *"
-                  required
-                  className="p-2 border rounded w-full"
-                  onChange={handleChange}
-                />
-                <input
-                  type="text"
-                  name="phone"
-                  placeholder="Phone"
-                  className="p-2 border rounded w-full"
-                  onChange={handleChange}
-                />
+              <input
+  type="text"
+  name="firstName"
+  placeholder="First Name *"
+  required
+  className="p-2 border rounded w-full"
+  value={formData.firstName}
+  onChange={handleChange}
+/>
+
+                <input type="text" name="phone" placeholder="Phone" className="p-2 border rounded w-full" value={formData.phone} onChange={handleChange} />
               </div>
-
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address *"
-                required
-                className="p-2 border rounded w-full"
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="subject"
-                placeholder="Subject"
-                className="p-2 border rounded w-full"
-                onChange={handleChange}
-              />
-              <input
-                type="number"
-                name="qty"
-                placeholder="Quantity"
-                className="p-2 border rounded w-full"
-                onChange={handleChange}
-              />
-
-              <textarea
-                name="message"
-                placeholder="Message *"
-                required
-                className="p-2 border rounded w-full h-28"
-                onChange={handleChange}
-              ></textarea>
-
+              <input type="email" name="email" placeholder="Email Address *" required className="p-2 border rounded w-full"value={formData.email} onChange={handleChange} />
+              <input type="text" name="subject" placeholder="Subject" className="p-2 border rounded w-full" value={formData.subject} onChange={handleChange} />
+              <input type="number" name="qty" placeholder="Quantity" className="p-2 border rounded w-full" value={formData.qty} onChange={handleChange} />
+              <textarea name="message" placeholder="Message *" required className="p-2 border rounded w-full h-28" value={formData.message} onChange={handleChange}></textarea>
               <div>
                 <label className="block mb-2 text-sm font-medium">File Upload</label>
                 <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="w-full border rounded p-2"
-                />
-                <p className="text-sm text-gray-500">
-                  Allowed: .jpg, .jpeg, .png, .pdf, .zip, etc.
-                </p>
-              </div>
+  ref={fileInputRef}
+  type="file"
+  onChange={handleFileChange}
+  className="w-full border rounded p-2"
+/>
 
-              <button
-                type="submit"
-                className="w-full bg-[#16689A] text-white py-2 rounded-2xl hover:bg-blue-800 transition"
-              >
+                <p className="text-xs text-gray-500">Allowed: .jpg, .jpeg, .png, .pdf, .zip, etc.</p>
+              </div>
+              <button type="submit" className="w-full bg-[#16689A] text-white py-2 rounded-lg hover:bg-blue-800 transition">
                 Submit
               </button>
             </form>
@@ -322,7 +312,7 @@ const BulkDecals = () => {
             >
               info@hobbyistdecals.com
             </a>{" "}
-            or call on Teams: Search{" "}
+            or call Skype: Search{" "}
             <span className="font-bold">“Hobbyist Decals”</span> (
             <span className="font-semibold">Id: live:.cid.686f9448dc2ad63a</span>
             ), <span className="font-semibold">(10am – 7pm **IST**)</span>. Let

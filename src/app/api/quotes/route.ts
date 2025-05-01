@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { Pool } from "@neondatabase/serverless";
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";

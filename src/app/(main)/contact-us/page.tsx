@@ -40,6 +40,7 @@ const Contact = () => {
         setResponse({ error: data.error || "Submission failed." });
       }
     } catch (err) {
+      console.error("Form submission error:", err);
       setResponse({ error: "Something went wrong." });
     } finally {
       setLoading(false);

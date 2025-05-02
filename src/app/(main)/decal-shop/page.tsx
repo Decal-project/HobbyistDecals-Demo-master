@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import BrowsePanel from "@/components/global/browse-panel";
-import Link from "next/link"; // Import Link for navigation
+import Link from "next/link";
+import DecalListCarousalComponent from "@/components/global/decals-list-carousal";
+import { categoriesList } from "@/lib/constants";
+import TopPicksComponent from "../_components/top-picks";
+import NewArrivalsSection from "../_components/new-arrivals";
 
 interface Product {
   id: number;
@@ -66,40 +70,63 @@ const ShopPage: React.FC = () => {
             onChange={(e) => setSort(e.target.value)}
           >
             <option value="default">DEFAULT SORTING</option>
-            <option value="popularity">Sort By popularity</option>
-            <option value="latest">Sort By latest</option>
-            <option value="price-low">Sort By Price: Low to High</option>
-            <option value="price-high">Sort By Price: High to Low</option>
+            <option value="category">Sort By Category</option>
+            <option value="top">Sort By Top Picks</option>
+            <option value="new">Sort By New Arrivals</option>
           </select>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-          {products.map((product) => (
-            <div key={product.id} className="border p-4 rounded-xl text-center">
-              {product.images.length ? (
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-              ) : (
-                <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-                  No Image
-                </div>
-              )}
-              <Link
-                href={`/details/${encodeURIComponent(product.name)}`}
-                className="text-sm font-semibold mt-2 block text-blue-600 hover:underline"
-              >
-                {product.name}
-              </Link>
-              <p className="text-blue-600 font-bold mt-1">
-                ${parseFloat(product.regular_price).toFixed(2)}
-              </p>
-            </div>
-          ))}
-        </div>
+        {/* Conditional Sections */}
+        {sort === "category" && (
+          <div className="my-6">
+            <DecalListCarousalComponent
+              title="Explore our wide range of high-quality decal categories"
+              list={categoriesList}
+            />
+          </div>
+        )}
+
+        {sort === "top" && (
+          <div className="my-6">
+            <TopPicksComponent />
+          </div>
+        )}
+
+        {sort === "new" && (
+          <div className="my-6">
+            <NewArrivalsSection />
+          </div>
+        )}
+
+        {/* Product Grid (hide if sort is category, top, or new) */}
+        {sort === "default" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
+            {products.map((product) => (
+              <div key={product.id} className="border p-4 rounded-xl text-center">
+                {product.images.length ? (
+                  <img
+                    src={product.images[0]}
+                    alt={product.name}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                    No Image
+                  </div>
+                )}
+                <p className="text-sm font-semibold mt-2">{product.name}</p>
+                <p className="text-[#16689A] font-bold mt-1">
+                  ${parseFloat(product.regular_price).toFixed(2)}
+                </p>
+                <Link href={`/details/${encodeURIComponent(product.name)}`}>
+                  <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+                    SELECT OPTIONS 
+                  </button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

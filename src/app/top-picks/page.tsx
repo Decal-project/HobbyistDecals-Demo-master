@@ -14,19 +14,19 @@ const ITEMS_PER_PAGE = 12;
 const TopPicksPage = () => {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);  // New state for loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        setLoading(true);  // Set loading to true when fetch starts
+        setLoading(true);
         const res = await fetch("/api/featured");
         const data = await res.json();
         setFeatured(data);
       } catch (error) {
         console.error("Error fetching featured products:", error);
       } finally {
-        setLoading(false);  // Set loading to false after fetch is complete
+        setLoading(false);
       }
     };
 
@@ -60,15 +60,18 @@ const TopPicksPage = () => {
                 className="max-h-full max-w-full object-contain"
               />
             </div>
-            {/* Product Name as Link */}
-            <Link
-              href={`/details/${encodeURIComponent(item.name)}`}
-              className="text-sm font-medium text-center mt-2 text-blue-600 hover:underline"
-            >
+            {/* Product Name as Text */}
+            <p className="text-sm font-medium text-center mt-2 text-gray-800">
               {item.name}
+            </p>
+            <p className="text-[#16689A] font-bold mt-1">From $9.90</p>
+            <div className="flex-grow"></div>
+            {/* Select Options Button */}
+            <Link href={`/details/${encodeURIComponent(item.name)}`}>
+              <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+                Select Options
+              </button>
             </Link>
-            <p className="text-blue-600 font-bold mt-1">From $9.90</p>
-            <div className="flex-grow"></div> {/* Ensures the button stays at the bottom */}
           </div>
         ))}
       </div>

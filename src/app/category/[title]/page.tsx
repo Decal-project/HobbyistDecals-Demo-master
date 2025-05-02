@@ -71,7 +71,7 @@ const CategoryPage = () => {
                 </h2>
                 <Link href={`/details/${encodedName}`}>
                   <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
-                    Select Options
+                    SELECT OPTIONS
                   </button>
                 </Link>
               </div>

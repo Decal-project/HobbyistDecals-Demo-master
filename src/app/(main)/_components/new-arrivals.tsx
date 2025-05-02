@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // Import Link for navigation
+import Link from "next/link";
 
 type Product = {
   id: number;
   name: string;
   images: string[];
+  regular_price: number;
 };
 
 const NewArrivalsSection = () => {
@@ -60,15 +61,17 @@ const NewArrivalsSection = () => {
                 className="max-h-full max-w-full object-contain"
               />
             </div>
-            {/* Product Name as Link */}
-            <Link
-              href={`/details/${encodeURIComponent(item.name)}`}
-              className="text-sm font-medium text-center mt-2 text-blue-600 hover:underline"
-            >
-              {item.name}
+            {/* Product Name as Text */}
+            <p className="text-sm font-medium text-center mt-2 text-gray-800">{item.name}</p>
+            <p className="text-[#16689A] font-bold mt-1">
+              From ${item.regular_price ? item.regular_price.toFixed(2) : "N/A"}
+            </p>
+            <div className="flex-grow"></div> {/* Push button to bottom */}
+            <Link href={`/details/${encodeURIComponent(item.name)}`}>
+              <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+                Select Options
+              </button>
             </Link>
-            <p className="text-blue-600 font-bold mt-1">From $9.90</p>
-            <div className="flex-grow"></div> {/* Push the button to the bottom */}
           </div>
         ))}
       </div>

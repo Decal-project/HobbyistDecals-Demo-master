@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -52,7 +52,10 @@ const CategoryPage = () => {
             const encodedName = encodeURIComponent(product.name);
 
             return (
-              <div key={product.id} className="border rounded-lg p-2 hover:shadow-md transition">
+              <div
+                key={product.id}
+                className="border rounded-lg p-2 flex flex-col items-center hover:shadow-md transition"
+              >
                 <Image
                   src={imageSrc}
                   alt={product.name}
@@ -60,13 +63,17 @@ const CategoryPage = () => {
                   height={300}
                   className="w-full h-[200px] object-contain rounded"
                 />
-                <Link
-                  href={`/details/${encodedName}`}
-                  className="block text-center text-blue-600 hover:underline mt-2 text-sm font-semibold"
-                >
+                <p className="text-sm font-semibold mt-2 text-center text-gray-800">
                   {product.name}
+                </p>
+                <h2 className="text-sm font-bold text-[#16689A] mt-1 text-center">
+                  {product.regular_price || "From $9.90"}
+                </h2>
+                <Link href={`/details/${encodedName}`}>
+                  <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+                    Select Options
+                  </button>
                 </Link>
-                <h2 className="text-sm font-semibold mt-1 text-center">{product.regular_price}</h2>
               </div>
             );
           })}

@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
 
 interface CartItem {
@@ -47,6 +48,27 @@ export default function CartProducts({ onTotalChange }: Props) {
 
   const subtotal = (item: CartItem) => item.price * item.quantity;
 
+  const handleSaveToDB = async () => {
+    try {
+      const res = await fetch('/api/cart/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cartItems,
+          shippingAmount: 10.0, // Example shipping amount, adjust accordingly
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to save cart');
+      alert('Cart saved to database!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save cart.');
+    }
+  };
+
   return (
     <div className="w-full md:w-2/3 p-4">
       <h1 className="text-2xl font-bold mb-4">Cart</h1>
@@ -89,6 +111,13 @@ export default function CartProducts({ onTotalChange }: Props) {
             />
             <button className="border px-4 py-1 bg-gray-100 hover:bg-gray-200">Apply coupon</button>
           </div>
+
+          <button
+            onClick={handleSaveToDB}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Save Cart to Database
+          </button>
         </>
       )}
     </div>

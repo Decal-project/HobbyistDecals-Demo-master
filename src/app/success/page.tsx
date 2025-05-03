@@ -1,10 +1,19 @@
+// src/app/success/page.tsx
+
+import { Metadata } from 'next'
 import pool from '@/lib/db'
 
-export default async function SuccessPage({
-  searchParams,
-}: {
-  searchParams: { session_id?: string }
-}) {
+export const metadata: Metadata = {
+  title: 'Order Success',
+}
+
+interface SuccessPageProps {
+  searchParams: {
+    session_id?: string
+  }
+}
+
+export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const session_id = searchParams.session_id
 
   if (!session_id) {
@@ -28,7 +37,9 @@ export default async function SuccessPage({
 
     return (
       <div className="max-w-2xl mx-auto p-6 text-center bg-white shadow rounded mt-10">
-        <h1 className="text-3xl font-bold text-green-600 mb-4">🎉 Congratulations, {billingName}!</h1>
+        <h1 className="text-3xl font-bold text-green-600 mb-4">
+          🎉 Congratulations, {billingName}!
+        </h1>
         <p className="text-lg mb-4">Thank you for your order.</p>
         <p className="text-xl font-semibold">Total Paid: ${formattedTotalAmount}</p>
         <p className="mt-6 text-gray-700">

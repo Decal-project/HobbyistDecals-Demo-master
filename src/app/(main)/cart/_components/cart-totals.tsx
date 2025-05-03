@@ -1,12 +1,25 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import Select from 'react-select';
+import React, { useState } from 'react'
+import Select from 'react-select'
+import { useRouter } from 'next/navigation'
+
+// reuse this interface if you have it already in CartProducts.tsx
+interface CartItem {
+  sku: string
+  name: string
+  price: number
+  media: string
+  scale: string
+  variation: string
+  quantity: number
+  image: string
+}
 
 type CartTotalsProps = {
-  subtotal: number;
-  shipping: number; // Default fallback shipping
-};
+  subtotal: number
+  shipping: number
+}
 
 const countries = [
   "Afghanistan", "Åland Islands", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla",
@@ -33,175 +46,155 @@ const countries = [
 
 const indianStates = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh",
-  "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", 
-  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
-  "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli", "Daman and Diu", 
+  "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+  "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli", "Daman and Diu",
   "Delhi", "Lakshadweep", "Pondicherry(Puducherry)"
 ];
 
-const countryOptions = countries.map((country) => ({ label: country, value: country }));
-const stateOptions = indianStates.map((state) => ({ label: state, value: state }));
+const countryOptions = countries.map((c) => ({ label: c, value: c }))
+const stateOptions   = indianStates.map((s) => ({ label: s, value: s }))
 
-const CartTotals: React.FC<CartTotalsProps> = ({ subtotal, shipping }) => {
-  const [showShippingForm, setShowShippingForm] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<{ label: string; value: string } | null>(null);
-  const [selectedState, setSelectedState] = useState<{ label: string; value: string } | null>(null);
-  const [shippingRate, setShippingRate] = useState<number>(shipping);
-  const [loading, setLoading] = useState(false);
+export default function CartTotals({ subtotal, shipping }: CartTotalsProps) {
+  const router = useRouter()
+  const [showForm, setShowForm]          = useState(false)
+  const [country, setCountry]            = useState<{ label: string; value: string } | null>(null)
+  const [state, setState]                = useState<{ label: string; value: string } | null>(null)
+  const [city, setCity]                  = useState('')
+  const [pinCode, setPinCode]            = useState('')
+  const [rate, setRate]                  = useState(shipping)
+  const [loading, setLoading]            = useState(false)
 
-  const total = subtotal + shippingRate;
-
-  const handleUpdateShipping = async () => {
-    if (!selectedCountry) return;
-
-    setLoading(true);
-    try {
-      const res = await fetch('/api/shipping-rate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          country: selectedCountry.value,
-          state: selectedCountry.value === 'India' ? selectedState?.value : undefined
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setShippingRate(data.rate);
-      } else {
-        console.error('Rate fetch error:', data.message);
-        alert(data.message || 'Could not update shipping.');
-      }
-    } catch (error) {
-      console.error('Fetch failed:', error);
-      alert('Something went wrong while updating shipping.');
-    } finally {
-      setLoading(false);
+  const calculateAndSave = async () => {
+    if (!country) {
+      alert('Please select a country')
+      return
     }
-  };
+    setLoading(true)
+    try {
+      // 1) fetch shipping rate
+      const shipRes = await fetch('/api/shipping-rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          country: country.value,
+          state:   state?.value || '',
+          city,
+          pinCode,
+        }),
+      })
+      if (!shipRes.ok) throw new Error('Rate lookup failed')
+      const { rate: newRate } = await shipRes.json()
+      setRate(newRate)
+
+      // 2) get cartItems from localStorage
+      const cartItems: CartItem[] = JSON.parse(localStorage.getItem('cart') || '[]')
+      if (cartItems.length === 0) {
+        alert('Your cart is empty')
+        return
+      }
+
+      // 3) save to backend (/api/cart/save)
+      const saveRes = await fetch('/api/cart/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shippingAmount: newRate,
+          cartItems,
+        }),
+      })
+      if (!saveRes.ok) throw new Error('Save failed')
+      const { cartId } = await saveRes.json()
+      console.log('Saved cart ID:', cartId)
+      alert('Cart & shipping saved!')
+    } catch (e) {
+      console.error(e)
+      alert((e as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="w-full max-w-sm border border-gray-200 rounded-md p-6 bg-white">
-      <h2 className="text-lg font-semibold mb-6">Cart Totals</h2>
+    <div className="w-full md:w-1/2 p-6">
+      <h2 className="text-xl font-semibold mb-4">Summary</h2>
 
-      {/* Subtotal */}
-      <div className="flex justify-between mb-6">
-        <span className="text-gray-700 font-semibold">Subtotal</span>
-        <span className="text-gray-800 font-semibold">${subtotal.toFixed(2)}</span>
+      <div className="flex justify-between mb-2">
+        <span>Subtotal</span>
+        <span>${subtotal.toFixed(2)}</span>
       </div>
 
-      {/* Shipping */}
-      <div className="mb-6">
-        <div className="flex justify-between items-start mb-1">
-          <span className="text-gray-700 font-semibold">Shipping</span>
-          <span className="text-gray-800 font-semibold">
-            Flat rate: <span className="font-bold">${shippingRate.toFixed(2)}</span>
-          </span>
-        </div>
-        <p className="text-sm text-gray-500 leading-relaxed">
-          Shipping options will be updated during checkout.
-        </p>
-        <button
-          onClick={() => setShowShippingForm(!showShippingForm)}
-          className="text-sm text-blue-600 underline mt-1"
-        >
-          Calculate shipping
-        </button>
-
-        {showShippingForm && (
-          <div className="mt-6 space-y-4">
-            {/* Country */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Country / region
-              </label>
-              <Select
-                options={countryOptions}
-                value={selectedCountry}
-                onChange={(val) => {
-                  setSelectedCountry(val);
-                  setSelectedState(null); // Reset state if country changes
-                }}
-                placeholder="Select a country / region..."
-                isSearchable
-                styles={{
-                  container: (provided) => ({ ...provided, fontSize: '0.875rem' }),
-                  menu: (provided) => ({ ...provided, zIndex: 9999 }),
-                }}
-              />
-            </div>
-
-            {/* State (only for India) */}
-            {selectedCountry?.value === 'India' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  State <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  options={stateOptions}
-                  value={selectedState}
-                  onChange={setSelectedState}
-                  placeholder="Select a state..."
-                  isSearchable
-                  styles={{
-                    container: (provided) => ({ ...provided, fontSize: '0.875rem' }),
-                    menu: (provided) => ({ ...provided, zIndex: 9999 }),
-                  }}
-                />
-              </div>
-            )}
-
-            {/* City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Town / City <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full border rounded px-3 py-2"
-                required
-              />
-            </div>
-
-            {/* ZIP */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Postcode / ZIP <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full border rounded px-3 py-2"
-                required
-              />
-            </div>
-
-            {/* Update Button */}
-            <button
-              onClick={handleUpdateShipping}
-              disabled={
-                !selectedCountry || (selectedCountry.value === 'India' && !selectedState) || loading
-              }
-              className="mt-2 border border-blue-400 text-gray-600 font-semibold px-6 py-2 rounded hover:bg-blue-50 transition disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update'}
-            </button>
-          </div>
-        )}
+      <div className="flex justify-between mb-2">
+        <span>Shipping</span>
+        <span>${rate.toFixed(2)}</span>
       </div>
 
-      {/* Total */}
-      <div className="flex justify-between text-base font-semibold mb-6">
+      <div className="flex justify-between font-bold mb-4">
         <span>Total</span>
-        <span>${total.toFixed(2)}</span>
+        <span>${(subtotal + rate).toFixed(2)}</span>
       </div>
 
-      <button className="w-full bg-[#0074a5] hover:bg-[#005d87] text-white font-semibold py-3 rounded-md transition">
+      <button
+        onClick={() => setShowForm((v) => !v)}
+        className="w-full bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300"
+      >
+        Calculate & Save Shipping
+      </button>
+
+      {showForm && (
+        <div className="mt-4 space-y-3">
+          <Select
+            options={countryOptions}
+            value={country}
+            onChange={(v) => {
+              setCountry(v)
+              setState(null)
+              setRate(0)
+            }}
+            placeholder="Country"
+          />
+
+          {country?.value === 'India' && (
+            <Select
+              options={stateOptions}
+              value={state}
+              onChange={setState}
+              placeholder="State"
+            />
+          )}
+
+          <input
+            type="text"
+            placeholder="City"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+
+          <input
+            type="text"
+            placeholder="Pin Code"
+            value={pinCode}
+            onChange={(e) => setPinCode(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+
+          <button
+            onClick={calculateAndSave}
+            disabled={loading}
+            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+          >
+            {loading ? 'Working…' : 'Calculate & Save'}
+          </button>
+        </div>
+      )}
+
+      <button
+        onClick={() => router.push('/checkout')}
+        className="w-full bg-green-500 text-white py-2 rounded mt-4 hover:bg-green-600"
+      >
         Proceed to Checkout
       </button>
     </div>
-  );
-};
-
-export default CartTotals;
+  )
+}

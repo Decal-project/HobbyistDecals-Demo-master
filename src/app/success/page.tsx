@@ -1,7 +1,10 @@
-import { redirect } from 'next/navigation'
 import pool from '@/lib/db'
 
-export default async function SuccessPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
   const session_id = searchParams.session_id
 
   if (!session_id || typeof session_id !== 'string') {

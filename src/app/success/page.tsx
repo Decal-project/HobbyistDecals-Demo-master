@@ -1,17 +1,10 @@
-import { Metadata } from 'next'
 import pool from '@/lib/db'
 
-interface Props {
-  searchParams: {
-    session_id?: string
-  }
-}
-
-export const metadata: Metadata = {
-  title: 'Order Success',
-}
-
-export default async function SuccessPage({ searchParams }: Props) {
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: { session_id?: string }
+}) {
   const session_id = searchParams.session_id
 
   if (!session_id) {

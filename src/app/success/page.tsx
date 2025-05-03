@@ -5,14 +5,13 @@ export const metadata: Metadata = {
   title: 'Order Success',
 }
 
-interface PageProps {
-  searchParams: {
-    session_id?: string
-  }
-}
-
-export default async function SuccessPage({ searchParams }: PageProps) {
-  const session_id = searchParams?.session_id
+// ✅ Correctly typed Next.js App Router component
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>
+}) {
+  const session_id = typeof searchParams?.session_id === 'string' ? searchParams.session_id : undefined
 
   if (!session_id) {
     return <p>Session ID is missing.</p>

@@ -5,13 +5,13 @@ export const metadata: Metadata = {
   title: 'Order Success',
 }
 
-// ✅ Correctly typed Next.js App Router component
+// Next.js automatically handles the typing for searchParams in the App Router
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>
+  searchParams: { session_id?: string }
 }) {
-  const session_id = typeof searchParams?.session_id === 'string' ? searchParams.session_id : undefined
+  const session_id = searchParams?.session_id
 
   if (!session_id) {
     return <p>Session ID is missing.</p>

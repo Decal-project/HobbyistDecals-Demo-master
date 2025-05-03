@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import pool from '@/lib/db'
 
-// Optional: for SEO
 export const metadata: Metadata = {
   title: 'Order Success',
 }
@@ -20,7 +19,6 @@ export default async function SuccessPage({ searchParams }: PageProps) {
   }
 
   try {
-    // Fetch the order details from the database based on the `session_id`
     const result = await pool.query(
       'SELECT billing_first_name, billing_last_name, total_amount FROM checkout_orders WHERE stripe_session_id = $1',
       [session_id]
@@ -32,8 +30,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
 
     const order = result.rows[0]
     const billingName = `${order.billing_first_name} ${order.billing_last_name}`
-    let totalAmount = parseFloat(order.total_amount)
-
+    const totalAmount = parseFloat(order.total_amount)
     const formattedTotalAmount = isNaN(totalAmount) ? '0.00' : totalAmount.toFixed(2)
 
     return (

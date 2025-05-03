@@ -1,7 +1,19 @@
+import { Metadata } from 'next'
 import pool from '@/lib/db'
 
-export default async function SuccessPage({ searchParams }: { searchParams: { session_id: string } }) {
-  const { session_id } = searchParams
+// Optional: for SEO
+export const metadata: Metadata = {
+  title: 'Order Success',
+}
+
+interface PageProps {
+  searchParams: {
+    session_id?: string
+  }
+}
+
+export default async function SuccessPage({ searchParams }: PageProps) {
+  const session_id = searchParams?.session_id
 
   if (!session_id) {
     return <p>Session ID is missing.</p>
@@ -20,12 +32,8 @@ export default async function SuccessPage({ searchParams }: { searchParams: { se
 
     const order = result.rows[0]
     const billingName = `${order.billing_first_name} ${order.billing_last_name}`
-    let totalAmount = order.total_amount
+    let totalAmount = parseFloat(order.total_amount)
 
-    // Ensure totalAmount is a valid number (parse it if it's not)
-    totalAmount = parseFloat(totalAmount)
-
-    // Ensure totalAmount is a valid number before using .toFixed()
     const formattedTotalAmount = isNaN(totalAmount) ? '0.00' : totalAmount.toFixed(2)
 
     return (

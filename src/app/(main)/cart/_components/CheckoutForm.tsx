@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react'
+import React, { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface AddressFields {
@@ -102,7 +102,6 @@ export default function CheckoutForm() {
     }
 
     const payload = {
-      // billing fields
       billing_first_name:   formData.billing.firstName,
       billing_last_name:    formData.billing.lastName,
       billing_company_name: formData.billing.company,
@@ -114,7 +113,6 @@ export default function CheckoutForm() {
       billing_phone:        formData.billing.phone,
       billing_email:        formData.billing.email,
 
-      // shipping fields
       ship_to_different_address: formData.shipToDifferent,
       shipping_first_name:       formData.shipping.firstName,
       shipping_last_name:        formData.shipping.lastName,
@@ -127,11 +125,10 @@ export default function CheckoutForm() {
       shipping_phone:            formData.shipping.phone,
       shipping_email:            formData.shipping.email,
 
-      // other
       order_notes:    formData.orderNotes,
       payment_method: formData.paymentMethod,
       total_amount:   total,
-      cart_id:        cart?.id,  // optional
+      cart_id:        cart?.id,
     }
 
     try {

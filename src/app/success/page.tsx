@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Order Success',
 }
 
-// Next.js automatically handles the typing for searchParams in the App Router
+// Next.js handles the typing for `searchParams` automatically
 export default async function SuccessPage({
   searchParams,
 }: {

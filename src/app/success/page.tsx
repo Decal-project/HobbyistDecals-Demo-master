@@ -1,26 +1,14 @@
-// src/app/success/page.tsx
-
-import { Metadata } from 'next'
 import pool from '@/lib/db'
 
-export const metadata: Metadata = {
-  title: 'Order Success',
-}
-
-interface SuccessPageProps {
-  searchParams: {
-    session_id?: string
-  }
-}
-
-export default async function SuccessPage({ searchParams }: SuccessPageProps) {
-  const session_id = searchParams.session_id
+export default async function SuccessPage({ searchParams }: { searchParams: { session_id: string } }) {
+  const { session_id } = searchParams
 
   if (!session_id) {
     return <p>Session ID is missing.</p>
   }
 
   try {
+    // Fetch the order details from the database based on the `session_id`
     const result = await pool.query(
       'SELECT billing_first_name, billing_last_name, total_amount FROM checkout_orders WHERE stripe_session_id = $1',
       [session_id]
@@ -32,14 +20,17 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
     const order = result.rows[0]
     const billingName = `${order.billing_first_name} ${order.billing_last_name}`
-    const totalAmount = parseFloat(order.total_amount)
+    let totalAmount = order.total_amount
+
+    // Ensure totalAmount is a valid number (parse it if it's not)
+    totalAmount = parseFloat(totalAmount)
+
+    // Ensure totalAmount is a valid number before using .toFixed()
     const formattedTotalAmount = isNaN(totalAmount) ? '0.00' : totalAmount.toFixed(2)
 
     return (
       <div className="max-w-2xl mx-auto p-6 text-center bg-white shadow rounded mt-10">
-        <h1 className="text-3xl font-bold text-green-600 mb-4">
-          🎉 Congratulations, {billingName}!
-        </h1>
+        <h1 className="text-3xl font-bold text-green-600 mb-4">🎉 Congratulations, {billingName}!</h1>
         <p className="text-lg mb-4">Thank you for your order.</p>
         <p className="text-xl font-semibold">Total Paid: ${formattedTotalAmount}</p>
         <p className="mt-6 text-gray-700">

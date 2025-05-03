@@ -1,14 +1,24 @@
+import { Metadata } from 'next'
 import pool from '@/lib/db'
 
-export default async function SuccessPage({ searchParams }: { searchParams: { session_id: string } }) {
-  const { session_id } = searchParams
+interface Props {
+  searchParams: {
+    session_id?: string
+  }
+}
+
+export const metadata: Metadata = {
+  title: 'Order Success',
+}
+
+export default async function SuccessPage({ searchParams }: Props) {
+  const session_id = searchParams.session_id
 
   if (!session_id) {
     return <p>Session ID is missing.</p>
   }
 
   try {
-    // Fetch the order details from the database based on the `session_id`
     const result = await pool.query(
       'SELECT billing_first_name, billing_last_name, total_amount FROM checkout_orders WHERE stripe_session_id = $1',
       [session_id]
@@ -20,12 +30,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: { se
 
     const order = result.rows[0]
     const billingName = `${order.billing_first_name} ${order.billing_last_name}`
-    let totalAmount = order.total_amount
-
-    // Ensure totalAmount is a valid number (parse it if it's not)
-    totalAmount = parseFloat(totalAmount)
-
-    // Ensure totalAmount is a valid number before using .toFixed()
+    const totalAmount = parseFloat(order.total_amount)
     const formattedTotalAmount = isNaN(totalAmount) ? '0.00' : totalAmount.toFixed(2)
 
     return (

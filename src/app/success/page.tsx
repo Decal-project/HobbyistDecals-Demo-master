@@ -1,10 +1,11 @@
+import { redirect } from 'next/navigation'
 import pool from '@/lib/db'
 
-export default async function SuccessPage({ searchParams }: { searchParams: Record<string, string> }) {
+export default async function SuccessPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const session_id = searchParams.session_id
 
-  if (!session_id) {
-    return <p>Session ID is missing.</p>
+  if (!session_id || typeof session_id !== 'string') {
+    return <p>Session ID is missing or invalid.</p>
   }
 
   try {

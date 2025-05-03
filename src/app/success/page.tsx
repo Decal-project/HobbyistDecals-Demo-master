@@ -1,9 +1,6 @@
-import pool from '@/lib/db'
+// ./src/app/success/page.tsx
 
-interface ThankYouData {
-  billingName: string
-  totalAmount: number
-}
+import pool from '@/lib/db'
 
 export default async function SuccessPage({ searchParams }: { searchParams: { session_id: string } }) {
   const { session_id } = searchParams

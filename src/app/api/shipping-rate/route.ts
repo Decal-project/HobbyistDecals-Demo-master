@@ -4,20 +4,20 @@ import pool from "@/lib/db";
 // POST: Get shipping rate by country
 export async function POST(req: NextRequest) {
   try {
-    const { country } = await req.json();
-    console.log("Received country:", country);
+    const { country, state } = await req.json();
+    console.log("Received country:", country);  // You can remove this after confirming the behavior
 
     // Validate input
-    if (!country || typeof country !== "string") {
+    if (!country || typeof country !== "string" || country.trim().length === 0) {
       console.log("Invalid country input");
       return NextResponse.json({ message: "Invalid country" }, { status: 400 });
     }
 
-    // Query shipping rate for given country (case-insensitive)
+    // Query shipping rate for the given country (case-insensitive)
     let query = `SELECT "Total_usd" FROM shipping_rates WHERE "Country" ILIKE $1 LIMIT 1`;
     let result = await pool.query(query, [country]);
 
-    // If not found, fallback to "Others"
+    // If no result is found, fallback to "Others"
     if (result.rows.length === 0) {
       console.warn(`Shipping rate not found for ${country}, falling back to 'Others'`);
       query = `SELECT "Total_usd" FROM shipping_rates WHERE "Country" = 'Others' LIMIT 1`;
@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
     const rate = parseFloat(result.rows[0].Total_usd.replace('$', ''));
     console.log(`Shipping rate for ${country || "Others"}: ${rate}`);
     return NextResponse.json({ rate });
-
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("❌ Shipping rate error:", error.stack || error.message);

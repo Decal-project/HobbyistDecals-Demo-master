@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 
 type Product = {
-  regular_price: number;
+  regular_price: string;
   images: string[];
   attribute_1_values: string;
   attribute_2_values: string;
@@ -34,7 +34,6 @@ const ProductDetailPage = () => {
       try {
         const res = await fetch(`/api/product/details?name=${title}`);
         const data = await res.json();
-        console.log("Fetched product:", data);
         setProduct(data);
       } catch (err) {
         console.error("Failed to load product", err);
@@ -80,7 +79,7 @@ const ProductDetailPage = () => {
   // Lookup image based on SKU from product.sku_images
   useEffect(() => {
     if (!product) return;
-
+ 
     const sku = generateSKU();
     if (!sku || sku === "SKU not found") {
       setSkuImage(null);
@@ -114,7 +113,7 @@ const ProductDetailPage = () => {
       {/* Product Info */}
       <div className="w-full md:w-1/2">
         <h1 className="text-2xl font-semibold mb-2">{product.name}</h1>
-        <p className="text-xl text-black-600 font-bold mb-4">${product.regular_price}</p>
+        <p className="text-xl text-blue-600 font-bold mb-4">${product.regular_price}</p>
 
         <div className="space-y-4 mb-6">
           {/* Media Dropdown */}
@@ -192,12 +191,36 @@ const ProductDetailPage = () => {
 
         {/* Buttons */}
         <div className="flex gap-4 mb-8">
-          <button className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
-            Add to Cart
-          </button>
-          <button className="bg-purple-300 text-white px-6 py-2 rounded hover:bg-purple-400">
-            Buy Now
-          </button>
+          
+          <button
+  className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
+  onClick={() => {
+    console.log("Add to Cart clicked"); 
+    if (!selectedMedia || !selectedScale || !quantity) {
+      alert("Please select all options and quantity.");
+      return;
+    }
+
+    const newCartItem = {
+      name: product.name,
+      price: product.regular_price,
+      media: selectedMedia,
+      scale: selectedScale,
+      variation: selectedVariation,
+      quantity,
+      sku: generateSKU(),
+      image: skuImage || fallbackImage,
+    };
+
+    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    existingCart.push(newCartItem);
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    alert("Item added to cart!");
+  }}
+>
+  Add to Cart
+</button>
+
         </div>
 
         {/* Description */}

@@ -1,17 +1,6 @@
-import { type Metadata } from 'next'
 import pool from '@/lib/db'
 
-export const metadata: Metadata = {
-  title: 'Order Success',
-}
-
-interface PageProps {
-  searchParams: {
-    session_id?: string
-  }
-}
-
-export default async function SuccessPage({ searchParams }: PageProps) {
+export default async function SuccessPage({ searchParams }: { searchParams: Record<string, string> }) {
   const session_id = searchParams.session_id
 
   if (!session_id) {
@@ -30,10 +19,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
 
     const order = result.rows[0]
     const billingName = `${order.billing_first_name} ${order.billing_last_name}`
-    let totalAmount = order.total_amount
-
-    // Ensure totalAmount is a valid number
-    totalAmount = parseFloat(totalAmount)
+    const totalAmount = parseFloat(order.total_amount)
     const formattedTotalAmount = isNaN(totalAmount) ? '0.00' : totalAmount.toFixed(2)
 
     return (

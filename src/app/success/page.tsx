@@ -1,10 +1,5 @@
 import pool from '@/lib/db'
 
-interface ThankYouData {
-  billingName: string
-  totalAmount: number
-}
-
 export default async function SuccessPage({ searchParams }: { searchParams: { session_id: string } }) {
   const { session_id } = searchParams
 

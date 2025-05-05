@@ -67,7 +67,13 @@ const ShopPage: React.FC = () => {
           <select
             className="border px-3 py-1 rounded-md"
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={(e) => {
+              setSort(e.target.value);
+              window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+              });
+            }}
           >
             <option value="default">DEFAULT SORTING</option>
             <option value="category">Sort By Category</option>

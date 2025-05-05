@@ -1,100 +1,173 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import FacebookOutlinedIcon from "@mui/icons-material/FacebookOutlined";
+import XIcon from "@mui/icons-material/X";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import PinterestIcon from "@mui/icons-material/Pinterest";
 import Link from "next/link";
 
-type Product = {
-  id: number;
-  name: string;
-  images: string[];
-};
+const FooterComponent = () => {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
 
-const ITEMS_PER_PAGE = 12;
+  const handleSubscribe = async () => {
+    try {
+      console.log("Submitting email:", email); // Log the email being sent
+      const res = await fetch("/api/subscribers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
-const NewArrivalsPage = () => {
-  const [featured, setFeatured] = useState<Product[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      
+      setMessage(data.message);
+      setEmail(""); // Reset email field after submission
 
-  useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/featured");
-        const data = await res.json();
-        setFeatured(data);
-      } catch (error) {
-        console.error("Error fetching featured products:", error);
-      } finally {
-        setLoading(false);
+      // Scroll to the top part after subscription
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setMessage(error.message || "Something went wrong. Try again later.");
+      } else {
+        setMessage("Something went wrong. Try again later.");
       }
-    };
-
-    fetchFeatured();
-  }, []);
-
-  const totalPages = Math.ceil(featured.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = featured.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  if (loading) {
-    return <div className="p-6 text-lg">Loading products...</div>;
-  }
+    }
+  };
 
   return (
-    <div className="p-6 max-w-full mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-center">
-        Discover Our Latest Hobbyist Decals – New Arrivals with Top-Quality Designs
-      </h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {currentItems.map((item, i) => (
-          <div
-            key={i}
-            className="bg-gray-50 rounded-lg p-4 flex flex-col items-center shadow-sm h-full"
-          >
-            <div className="w-full h-48 flex items-center justify-center bg-white p-2">
-              <img
-                src={item.images?.[0] || "/placeholder.jpg"}
-                alt={item.name}
-                className="max-h-full max-w-full object-contain"
-              />
+    <div className="min-h-min w-full flex items-center justify-center pb-1 pt-10 bg-black">
+      <div className="w-[90%] flex flex-col items-center justify-center gap-12">
+        <div className="w-full flex flex-row items-start justify-between gap-8">
+          {/* About Us */}
+          <div className="flex-1 flex flex-col items-start justify-center gap-6">
+            <h2 className="uppercase text-base text-white font-semibold">About Us</h2>
+            <div className="flex flex-col items-start justify-center gap-4">
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/" legacyBehavior>HobbyistDecals</Link>
+              </p>
+              <p className="capitalize text-white text-base text-nowrap">Our Gallery</p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/about-us/our-media" legacyBehavior>Our Media</Link>
+              </p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/about-us/faq" legacyBehavior>FAQ</Link>
+              </p>
             </div>
-            {/* Product Name as Text */}
-            <p className="text-sm font-medium text-center mt-2 text-gray-800">{item.name}</p>
-            <p className="text-[#16689A] font-bold mt-1">From $9.90</p>
-            <div className="flex-grow"></div>
-            {/* Select Options Button */}
-            <Link href={`/details/${encodeURIComponent(item.name)}`}>
-              <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
-                SELECT OPTIONS
-              </button>
-            </Link>
           </div>
-        ))}
-      </div>
 
-      {/* Pagination */}
-      <div className="flex justify-center mt-8 space-x-2">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              setCurrentPage(i + 1);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className={`w-8 h-8 rounded-full ${
-              currentPage === i + 1
-                ? "bg-[#16689A] text-white"
-                : "bg-white text-gray-700 border"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
+          {/* Resources */}
+          <div className="flex-1 flex flex-col items-start justify-center gap-6">
+            <h2 className="uppercase text-base text-white font-semibold">Resources</h2>
+            <div className="flex flex-col items-start justify-center gap-4">
+              <p className="capitalize text-white text-base text-nowrap">Blogs</p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/decal-shop" legacyBehavior>Shop</Link>
+              </p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/contact-us" legacyBehavior>Contact Us</Link>
+              </p>
+            </div>
+          </div>
+
+          {/* Policies */}
+          <div className="flex-1 flex flex-col items-start justify-center gap-6">
+            <h2 className="uppercase text-base text-white font-semibold">Our Policy</h2>
+            <div className="flex flex-col items-start justify-center gap-4">
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/about-us/our-policies/shipping" legacyBehavior>Shipping Policy</Link>
+              </p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/about-us/our-policies/replacement" legacyBehavior>Replacement Policy</Link>
+              </p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/about-us/our-policies/gdpr" legacyBehavior>GDPR policy</Link>
+              </p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/about-us/our-policies/terms-and-conditions" legacyBehavior>Terms and Conditions</Link>
+              </p>
+            </div>
+          </div>
+
+          {/* Newsletter */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-8">
+            <div className="w-full flex flex-col items-center justify-center gap-4">
+              <h2 className="w-full uppercase text-white font-semibold text-base text-start text-nowrap">
+                Get 10% off your first purchase!
+              </h2>
+              <p className="text-white text-base leading-7 text-wrap">
+                Special offers for subscribers. Don&apos;t miss out on exclusive deals.
+              </p>
+              <div className="w-full flex flex-row items-center justify-center border bg-primary rounded-xl px-[0.7rem] py-2 border-border gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="text-white border-none outline-none w-full rounded-md text-base bg-transparent placeholder:text-white"
+                  placeholder="Enter your email"
+                />
+              </div>
+              <button
+                onClick={handleSubscribe}
+                className="bg-[#16689A] text-white text-sm font-semibold px-5 py-2.5 rounded-lg shadow-md cursor-pointer transition-colors active:bg-red-600"
+              >
+                I&apos;m in!
+              </button>
+              {message && <p className="text-white text-sm mt-2 text-center">{message}</p>}
+            </div>
+
+            {/* Social Icons */}
+            <div className="w-full flex flex-row items-center justify-center gap-3">
+              <a href="https://www.facebook.com/HobbyistDecal/" target="_blank" rel="noopener noreferrer">
+                <FacebookOutlinedIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+              </a>
+              <a href="https://www.instagram.com/hobbyist_decals_shop/" target="_blank" rel="noopener noreferrer">
+                <InstagramIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+              </a>
+              <a href="https://api.whatsapp.com/send/?phone=919137320348" target="_blank" rel="noopener noreferrer">
+                <WhatsAppIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+              </a>
+              <a href="https://in.pinterest.com/hobbyist_decals/" target="_blank" rel="noopener noreferrer">
+                <PinterestIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+              </a>
+              <a href="https://x.com/HobbyistDecals" target="_blank" rel="noopener noreferrer">
+                <XIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Bottom */}
+        <div className="w-full flex flex-col items-center justify-center gap-1">
+          <div className="w-full h-[0.5px] bg-border"></div>
+          <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-12">
+            <p className="text-center lg:text-start text-base text-white">
+              &copy; 2024 Hobbyist Decals. All rights reserved.
+            </p>
+            <p className="text-center lg:text-end text-white">
+              Powered by{" "}
+              <Link
+                href="https://nexainnov.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                NexaInnov Solutions
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default NewArrivalsPage;
+export default FooterComponent;

@@ -28,12 +28,6 @@ const FooterComponent = () => {
       
       setMessage(data.message);
       setEmail(""); // Reset email field after submission
-
-      // Scroll to the top part after subscription
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
     } catch (error: unknown) {
       if (error instanceof Error) {
         setMessage(error.message || "Something went wrong. Try again later.");

@@ -28,7 +28,7 @@ const FooterComponent = () => {
       
       setMessage(data.message);
       setEmail(""); // Reset email field after submission
-    } catch (error: any) {
+    } catch (error: Error) {
       setMessage(error.message || "Something went wrong. Try again later.");
     }
   };

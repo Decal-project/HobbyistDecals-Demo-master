@@ -28,12 +28,8 @@ const FooterComponent = () => {
       
       setMessage(data.message);
       setEmail(""); // Reset email field after submission
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setMessage(error.message || "Something went wrong. Try again later.");
-      } else {
-        setMessage("An unexpected error occurred.");
-      }
+    } catch (error: any) {
+      setMessage(error.message || "Something went wrong. Try again later.");
     }
   };
 
@@ -45,7 +41,9 @@ const FooterComponent = () => {
           <div className="flex-1 flex flex-col items-start justify-center gap-6">
             <h2 className="uppercase text-base text-white font-semibold">About Us</h2>
             <div className="flex flex-col items-start justify-center gap-4">
-              <p className="capitalize text-white text-base text-nowrap">HobbyistDecals</p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/" legacyBehavior>HobbyistDecals</Link>
+              </p>
               <p className="capitalize text-white text-base text-nowrap">Our Gallery</p>
               <p className="capitalize text-white text-base text-nowrap">
                 <Link href="/about-us/our-media" legacyBehavior>Our Media</Link>
@@ -61,7 +59,9 @@ const FooterComponent = () => {
             <h2 className="uppercase text-base text-white font-semibold">Resources</h2>
             <div className="flex flex-col items-start justify-center gap-4">
               <p className="capitalize text-white text-base text-nowrap">Blogs</p>
-              <p className="capitalize text-white text-base text-nowrap">Shop</p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/decal-shop" legacyBehavior>Shop</Link>
+              </p>
               <p className="capitalize text-white text-base text-nowrap">
                 <Link href="/contact-us" legacyBehavior>Contact Us</Link>
               </p>

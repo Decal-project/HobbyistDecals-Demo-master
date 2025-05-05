@@ -28,18 +28,20 @@ const FooterComponent = () => {
       
       setMessage(data.message);
       setEmail(""); // Reset email field after submission
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setMessage(error.message || "Something went wrong. Try again later.");
-      } else {
-        setMessage("Something went wrong. Try again later.");
-      }
+    } catch (error: any) {
+      setMessage(error.message || "Something went wrong. Try again later.");
     }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo(0, 0);
   };
 
   return (
     <div className="min-h-min w-full flex items-center justify-center pb-1 pt-10 bg-black">
       <div className="w-[90%] flex flex-col items-center justify-center gap-12">
+        <div id="top"></div> {/* Add this at the very top part of your component */}
+
         <div className="w-full flex flex-row items-start justify-between gap-8">
           {/* About Us */}
           <div className="flex-1 flex flex-col items-start justify-center gap-6">
@@ -63,11 +65,9 @@ const FooterComponent = () => {
             <h2 className="uppercase text-base text-white font-semibold">Resources</h2>
             <div className="flex flex-col items-start justify-center gap-4">
               <p className="capitalize text-white text-base text-nowrap">Blogs</p>
-              <div id="top">
-                <p className="capitalize text-white text-base text-nowrap">
-                  <Link href="/decal-shop" legacyBehavior>Shop</Link>
-                </p>
-              </div>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/decal-shop" legacyBehavior onClick={scrollToTop}>Shop</Link>
+              </p>
               <p className="capitalize text-white text-base text-nowrap">
                 <Link href="/contact-us" legacyBehavior>Contact Us</Link>
               </p>

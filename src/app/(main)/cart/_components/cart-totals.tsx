@@ -1,10 +1,10 @@
+
 'use client'
 
 import React, { useState } from 'react'
 import Select from 'react-select'
 import { useRouter } from 'next/navigation'
 
-// reuse this interface if you have it already in CartProducts.tsx
 interface CartItem {
   sku: string
   name: string
@@ -52,18 +52,23 @@ const indianStates = [
   "Delhi", "Lakshadweep", "Pondicherry(Puducherry)"
 ];
 
+
 const countryOptions = countries.map((c) => ({ label: c, value: c }))
-const stateOptions   = indianStates.map((s) => ({ label: s, value: s }))
+const stateOptions = indianStates.map((s) => ({ label: s, value: s }))
 
 export default function CartTotals({ subtotal, shipping }: CartTotalsProps) {
   const router = useRouter()
-  const [showForm, setShowForm]          = useState(false)
-  const [country, setCountry]            = useState<{ label: string; value: string } | null>(null)
-  const [state, setState]                = useState<{ label: string; value: string } | null>(null)
-  const [city, setCity]                  = useState('')
-  const [pinCode, setPinCode]            = useState('')
-  const [rate, setRate]                  = useState(shipping)
-  const [loading, setLoading]            = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [country, setCountry] = useState<{ label: string; value: string } | null>(null)
+  const [state, setState] = useState<{ label: string; value: string } | null>(null)
+  const [city, setCity] = useState('')
+  const [pinCode, setPinCode] = useState('')
+  const [rate, setRate] = useState(shipping)
+  const [loading, setLoading] = useState(false)
+
+  const [couponCode, setCouponCode] = useState('')
+  const [discountPercent, setDiscountPercent] = useState<number>(0)
+  const [couponMessage, setCouponMessage] = useState('')
 
   const calculateAndSave = async () => {
     if (!country) {
@@ -72,13 +77,12 @@ export default function CartTotals({ subtotal, shipping }: CartTotalsProps) {
     }
     setLoading(true)
     try {
-      // 1) fetch shipping rate
       const shipRes = await fetch('/api/shipping-rate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           country: country.value,
-          state:   state?.value || '',
+          state: state?.value || '',
           city,
           pinCode,
         }),
@@ -87,22 +91,22 @@ export default function CartTotals({ subtotal, shipping }: CartTotalsProps) {
       const { rate: newRate } = await shipRes.json()
       setRate(newRate)
 
-      // 2) get cartItems from localStorage
       const cartItems: CartItem[] = JSON.parse(localStorage.getItem('cart') || '[]')
       if (cartItems.length === 0) {
         alert('Your cart is empty')
         return
       }
 
-      // 3) save to backend (/api/cart/save)
       const saveRes = await fetch('/api/cart/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           shippingAmount: newRate,
           cartItems,
+          discountAmount, // Include discountAmount here
         }),
       })
+      
       if (!saveRes.ok) throw new Error('Save failed')
       const { cartId } = await saveRes.json()
       console.log('Saved cart ID:', cartId)
@@ -114,6 +118,33 @@ export default function CartTotals({ subtotal, shipping }: CartTotalsProps) {
       setLoading(false)
     }
   }
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponMessage('Enter a coupon code')
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/coupons?code=${encodeURIComponent(couponCode)}`)
+      const data = await res.json()
+
+      if (!res.ok) {
+        setDiscountPercent(0)
+        setCouponMessage(data.error || 'Invalid coupon')
+        return
+      }
+
+      setDiscountPercent(data.discount_percent)
+      setCouponMessage(`Coupon applied! ${data.discount_percent}% off`)
+    } catch (error) {
+      console.error('Coupon error:', error)
+      setCouponMessage('Something went wrong')
+    }
+  }
+
+  const discountAmount = subtotal * (discountPercent / 100)
+  const total = subtotal + rate - discountAmount
 
   return (
     <div className="w-full md:w-1/2 p-6">
@@ -129,9 +160,35 @@ export default function CartTotals({ subtotal, shipping }: CartTotalsProps) {
         <span>${rate.toFixed(2)}</span>
       </div>
 
+      {discountPercent > 0 && (
+        <div className="flex justify-between mb-2 text-green-600">
+          <span>Discount ({discountPercent}%)</span>
+          <span>- ${discountAmount.toFixed(2)}</span>
+        </div>
+      )}
+
       <div className="flex justify-between font-bold mb-4">
         <span>Total</span>
-        <span>${(subtotal + rate).toFixed(2)}</span>
+        <span>${total.toFixed(2)}</span>
+      </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Enter coupon code"
+          value={couponCode}
+          onChange={(e) => setCouponCode(e.target.value)}
+          className="w-full border p-2 rounded mb-2"
+        />
+        <button
+          onClick={applyCoupon}
+          className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600"
+        >
+          Apply Coupon
+        </button>
+        {couponMessage && (
+          <p className="text-sm mt-2 text-gray-700">{couponMessage}</p>
+        )}
       </div>
 
       <button

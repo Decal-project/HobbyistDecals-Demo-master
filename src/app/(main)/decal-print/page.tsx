@@ -312,7 +312,7 @@ const BulkDecals = () => {
             >
               info@hobbyistdecals.com
             </a>{" "}
-            or call on Teams: Search{" "}
+            or chat on WhatsApp: Search{" "}
             <span className="font-bold">“Hobbyist Decals”</span> (
             <span className="font-semibold">Id: live:.cid.686f9448dc2ad63a</span>
             ), <span className="font-semibold">(10am – 7pm **IST**)</span>. Let

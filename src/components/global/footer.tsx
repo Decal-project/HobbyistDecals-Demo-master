@@ -46,9 +46,11 @@ const FooterComponent = () => {
             <h2 className="uppercase text-base text-white font-semibold">About Us</h2>
             <div className="flex flex-col items-start justify-center gap-4">
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/" legacyBehavior>HobbyistDecals</Link>
+                <Link href="/hobbyist-decals" legacyBehavior>HobbyistDecals</Link>
               </p>
-              <p className="capitalize text-white text-base text-nowrap">Our Gallery</p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/our-gallery" legacyBehavior>Our Gallery</Link>
+              </p>
               <p className="capitalize text-white text-base text-nowrap">
                 <Link href="/about-us/our-media" legacyBehavior>Our Media</Link>
               </p>

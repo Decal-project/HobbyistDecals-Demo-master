@@ -27,7 +27,7 @@ const benefits = [
 ];
 
 export default function WhyChooseUs() {
-  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null); // <-- all closed initially
 
   const toggleAccordion = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
@@ -48,7 +48,7 @@ export default function WhyChooseUs() {
               onClick={() => toggleAccordion(index)}
               className={`flex justify-between items-center px-8 py-4 cursor-pointer transition-colors duration-300 ${
                 activeIndex === index
-                  ? 'bg-[#1275A3] text-white'
+                  ? 'bg-[#16689A] text-white'
                   : 'bg-white hover:bg-gray-50'
               }`}
             >

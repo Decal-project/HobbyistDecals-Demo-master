@@ -1,4 +1,3 @@
-// app/api/cart/save/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 
@@ -9,15 +8,17 @@ const pool = new Pool({
 
 export async function POST(req: NextRequest) {
   try {
-    const { cartItems, shippingAmount } = await req.json()
+    const { cartItems, shippingAmount, discountAmount } = await req.json()
 
+    // Validate incoming payload
     if (
       !Array.isArray(cartItems) ||
       typeof shippingAmount !== 'number' ||
-      shippingAmount < 0
+      shippingAmount < 0 ||
+      (discountAmount !== undefined && (typeof discountAmount !== 'number' || discountAmount < 0))
     ) {
       return NextResponse.json(
-        { error: 'Invalid payload' },
+        { error: 'Invalid payload, ensure shippingAmount and discountAmount are non-negative numbers' },
         { status: 400 }
       )
     }
@@ -26,16 +27,45 @@ export async function POST(req: NextRequest) {
     try {
       await client.query('BEGIN')
 
-      // 1) create the cart and store shipping_amount
-      const insertCart   = await client.query< { id: number } >(
-        `INSERT INTO carts (shipping_amount)
-         VALUES ($1)
+      // Calculate the total amount
+      let totalAmount = 0
+      for (const item of cartItems) {
+        const { price, quantity } = item
+        if (typeof price !== 'number' || typeof quantity !== 'number' || price < 0 || quantity < 1) {
+          return NextResponse.json({ error: 'Invalid cart item data' }, { status: 400 })
+        }
+        totalAmount += price * quantity
+      }
+
+      // Add shipping and subtract discount
+      totalAmount += shippingAmount
+      totalAmount -= discountAmount || 0
+
+      // Ensure total amount is not negative
+      if (totalAmount < 0) {
+        return NextResponse.json({ error: 'Total amount cannot be negative' }, { status: 400 })
+      }
+
+      // Debugging: Log values
+      console.log('Inserting cart with values:', {
+        shippingAmount,
+        totalAmount,
+        discountAmount
+      })
+
+      // 1) Create the cart and store shipping_amount, total_amount, and discount_amount
+      const insertCart = await client.query<{ id: number }>(
+        `INSERT INTO carts (shipping_amount, total_amount, discount_amount)
+         VALUES ($1, $2, $3)
          RETURNING id`,
-        [shippingAmount]
+        [shippingAmount, totalAmount, discountAmount || 0]
       )
+
+      console.log('Insert result:', insertCart.rows)
+
       const cartId = insertCart.rows[0].id
 
-      // 2) insert each cart_item
+      // 2) Insert each cart_item
       const itemStmt = `
         INSERT INTO cart_items
           (cart_id, sku, name, price, media, scale, variation, quantity, image)
@@ -53,8 +83,6 @@ export async function POST(req: NextRequest) {
           quantity,
           image,
         } = item
-
-        // you may wish to validate each field here...
 
         await client.query(itemStmt, [
           cartId,
@@ -78,7 +106,7 @@ export async function POST(req: NextRequest) {
       await client.query('ROLLBACK')
       console.error('Transaction error:', err)
       return NextResponse.json(
-        { error: 'Failed to save cart' },
+        { error: 'Failed to save cart due to a server issue' },
         { status: 500 }
       )
     } finally {

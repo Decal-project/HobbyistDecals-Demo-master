@@ -23,14 +23,24 @@ export default function CartProducts({ onTotalChange }: Props) {
   useEffect(() => {
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
-      const items = JSON.parse(storedCart).map((item: any) => ({
-        ...item,
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-      }));
-      setCartItems(items);
-      const total = calculateFinalTotal(items);
-      onTotalChange(total);
+      try {
+        const parsed = JSON.parse(storedCart) as Partial<CartItem>[];
+        const items: CartItem[] = parsed.map((item) => ({
+          name: item.name ?? '',
+          price: Number(item.price ?? 0),
+          media: item.media ?? '',
+          scale: item.scale ?? '',
+          variation: item.variation ?? '',
+          quantity: Number(item.quantity ?? 1),
+          sku: item.sku ?? '',
+          image: item.image ?? '',
+        }));
+        setCartItems(items);
+        const total = calculateFinalTotal(items);
+        onTotalChange(total);
+      } catch (err) {
+        console.error('Failed to parse cart:', err);
+      }
     }
   }, []);
 
@@ -49,8 +59,7 @@ export default function CartProducts({ onTotalChange }: Props) {
   };
 
   const calculateFinalTotal = (items: CartItem[]) => {
-    const subtotal = items.reduce((sum, item) => sum + getItemSubtotal(item), 0);
-    return subtotal;
+    return items.reduce((sum, item) => sum + getItemSubtotal(item), 0);
   };
 
   const handleQuantityChange = (index: number, newQuantity: number) => {
@@ -80,7 +89,7 @@ export default function CartProducts({ onTotalChange }: Props) {
         },
         body: JSON.stringify({
           cartItems,
-          shippingAmount: 10.0, // Static shipping amount
+          shippingAmount: 10.0,
         }),
       });
 

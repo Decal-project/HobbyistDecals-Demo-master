@@ -23,19 +23,43 @@ export default function CartProducts({ onTotalChange }: Props) {
   useEffect(() => {
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
-      const items = JSON.parse(storedCart);
+      const items = JSON.parse(storedCart).map((item: any) => ({
+        ...item,
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+      }));
       setCartItems(items);
-      const total = items.reduce((sum: number, item: CartItem) => sum + item.price * item.quantity, 0);
+      const total = calculateFinalTotal(items);
       onTotalChange(total);
     }
   }, []);
+
+  const getDiscountRate = (quantity: number): number => {
+    if (quantity >= 7) return 0.3;
+    if (quantity >= 5) return 0.2;
+    if (quantity >= 3) return 0.1;
+    return 0;
+  };
+
+  const getItemSubtotal = (item: CartItem): number => {
+    const rate = getDiscountRate(item.quantity);
+    const totalPrice = item.price * item.quantity;
+    const discountedTotal = totalPrice * (1 - rate);
+    return discountedTotal;
+  };
+
+  const calculateFinalTotal = (items: CartItem[]) => {
+    const subtotal = items.reduce((sum, item) => sum + getItemSubtotal(item), 0);
+    return subtotal;
+  };
 
   const handleQuantityChange = (index: number, newQuantity: number) => {
     const updatedItems = [...cartItems];
     updatedItems[index].quantity = newQuantity;
     setCartItems(updatedItems);
     localStorage.setItem('cart', JSON.stringify(updatedItems));
-    onTotalChange(updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0));
+    const total = calculateFinalTotal(updatedItems);
+    onTotalChange(total);
   };
 
   const handleRemove = (index: number) => {
@@ -43,10 +67,9 @@ export default function CartProducts({ onTotalChange }: Props) {
     updatedItems.splice(index, 1);
     setCartItems(updatedItems);
     localStorage.setItem('cart', JSON.stringify(updatedItems));
-    onTotalChange(updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0));
+    const total = calculateFinalTotal(updatedItems);
+    onTotalChange(total);
   };
-
-  const subtotal = (item: CartItem) => item.price * item.quantity;
 
   const handleSaveToDB = async () => {
     try {
@@ -57,7 +80,7 @@ export default function CartProducts({ onTotalChange }: Props) {
         },
         body: JSON.stringify({
           cartItems,
-          shippingAmount: 10.0, // Example shipping amount, adjust accordingly
+          shippingAmount: 10.0, // Static shipping amount
         }),
       });
 
@@ -76,45 +99,61 @@ export default function CartProducts({ onTotalChange }: Props) {
         <p>Your cart is empty.</p>
       ) : (
         <>
-          {cartItems.map((item, index) => (
-            <div key={index} className="flex items-center justify-between border p-4 mb-4">
-              <button
-                onClick={() => handleRemove(index)}
-                className="text-red-500 text-xl font-bold mr-4"
-              >
-                ×
-              </button>
-              <img src={item.image} alt={item.name} className="w-16 h-16 object-contain mr-4" />
-              <div className="flex-1">
-                <p className="font-semibold">{item.name}</p>
-                <p className="text-sm text-gray-500">
-                  {item.scale}, {item.variation}
-                </p>
-              </div>
-              <p className="w-20 text-right">${item.price}</p>
-              <input
-                type="number"
-                className="w-16 border ml-4 text-center"
-                value={item.quantity}
-                min="1"
-                onChange={(e) => handleQuantityChange(index, parseInt(e.target.value))}
-              />
-              <p className="w-20 text-right font-semibold ml-4">${subtotal(item)}</p>
-            </div>
-          ))}
+          {cartItems.map((item, index) => {
+            const discountedTotal = getItemSubtotal(item);
 
-          <div className="mt-6 flex gap-2">
-            <input
-              type="text"
-              placeholder="Coupon code"
-              className="border px-2 py-1 w-64"
-            />
-            <button className="border px-4 py-1 bg-gray-100 hover:bg-gray-200">Apply coupon</button>
+            return (
+              <div key={index} className="flex items-center justify-between border p-4 mb-4">
+                <button
+                  onClick={() => handleRemove(index)}
+                  className="text-red-500 text-xl font-bold mr-4"
+                >
+                  ×
+                </button>
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-16 h-16 object-contain mr-4"
+                />
+                <div className="flex-1">
+                  <p className="font-semibold">{item.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {item.scale}, {item.variation}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Price: ${item.price.toFixed(2)}
+                  </p>
+                  {getDiscountRate(item.quantity) > 0 && (
+                    <p className="text-xs text-green-600">
+                      Discount applied: {Math.round(getDiscountRate(item.quantity) * 100)}%
+                    </p>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  className="w-16 border ml-4 text-center"
+                  value={item.quantity}
+                  min="1"
+                  onChange={(e) => handleQuantityChange(index, parseInt(e.target.value))}
+                />
+                <div className="text-right ml-4 w-32">
+                  <p className="font-semibold">
+                    ${discountedTotal.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="mt-4">
+            <p className="font-semibold">
+              Subtotal: ${cartItems.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2)}
+            </p>
           </div>
 
           <button
             onClick={handleSaveToDB}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="mt-4 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-blue-600"
           >
             Save Cart to Database
           </button>

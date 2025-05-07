@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
 type Product = {
@@ -18,6 +18,7 @@ type Product = {
 
 const ProductDetailPage = () => {
   const { title } = useParams();
+  const router = useRouter(); // ✅ Initialize router
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,9 +48,9 @@ const ProductDetailPage = () => {
 
   const mediaOptions = product?.attribute_1_values?.split(",").map((item) => item.trim()) || [];
   const scaleOptions = product?.attribute_2_values?.split(",").map((item) => item.trim()) || [];
-  const variationOptions = product?.attribute_3_values
-  ?.split(",")
-  .map((item) => item.trim().split(":")[0].toUpperCase()) || [];
+  const variationOptions =
+    product?.attribute_3_values?.split(",").map((item) => item.trim().split(":")[0].toUpperCase()) || [];
+
   const generateSKU = () => {
     if (!product || !product.images || product.images.length === 0) return "SKU not found";
 
@@ -76,10 +77,10 @@ const ProductDetailPage = () => {
     return `${mediaPrefix}-${baseSKU}${scalePart ? `-${scalePart}` : ""}${variationPart}`;
   };
 
-  // Lookup image based on SKU from product.sku_images
+  // Update SKU image when options change
   useEffect(() => {
     if (!product) return;
- 
+
     const sku = generateSKU();
     if (!sku || sku === "SKU not found") {
       setSkuImage(null);
@@ -150,7 +151,7 @@ const ProductDetailPage = () => {
             </select>
           </div>
 
-          {/* Variation/Colour Dropdown */}
+          {/* Variation Dropdown */}
           {product.attribute_3_name && (
             <div>
               <label className="block font-medium mb-1">{product.attribute_3_name}</label>
@@ -189,38 +190,66 @@ const ProductDetailPage = () => {
           <p>7 or more Qty: 30% Off</p>
         </div>
 
-        {/* Buttons */}
+        {/* Action Buttons */}
         <div className="flex gap-4 mb-8">
-          
+          {/* Add to Cart Button */}
           <button
-  className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
-  onClick={() => {
-    console.log("Add to Cart clicked"); 
-    if (!selectedMedia || !selectedScale || !quantity) {
-      alert("Please select all options and quantity.");
-      return;
-    }
+            className="bg-[#16689A] text-white px-6 py-2 rounded hover:bg-black"
+            onClick={() => {
+              if (!selectedMedia || !selectedScale || !quantity) {
+                alert("Please select all options and quantity.");
+                return;
+              }
 
-    const newCartItem = {
-      name: product.name,
-      price: product.regular_price,
-      media: selectedMedia,
-      scale: selectedScale,
-      variation: selectedVariation,
-      quantity,
-      sku: generateSKU(),
-      image: skuImage || fallbackImage,
-    };
+              const newCartItem = {
+                name: product.name,
+                price: product.regular_price,
+                media: selectedMedia,
+                scale: selectedScale,
+                variation: selectedVariation,
+                quantity,
+                sku: generateSKU(),
+                image: skuImage || fallbackImage,
+              };
 
-    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    existingCart.push(newCartItem);
-    localStorage.setItem("cart", JSON.stringify(existingCart));
-    alert("Item added to cart!");
-  }}
->
-  Add to Cart
-</button>
+              const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+              existingCart.push(newCartItem);
+              localStorage.setItem("cart", JSON.stringify(existingCart));
+              alert("Item added to cart!");
+            }}
+          >
+            Add to Cart
+          </button>
 
+          {/* Buy Now Button */}
+          <button
+            className="bg-[#16689A] text-white px-6 py-2 rounded hover:bg-black"
+            onClick={() => {
+              if (!selectedMedia || !selectedScale || !quantity) {
+                alert("Please select all options and quantity.");
+                return;
+              }
+
+              const newCartItem = {
+                name: product.name,
+                price: product.regular_price,
+                media: selectedMedia,
+                scale: selectedScale,
+                variation: selectedVariation,
+                quantity,
+                sku: generateSKU(),
+                image: skuImage || fallbackImage,
+              };
+
+              const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+              existingCart.push(newCartItem);
+              localStorage.setItem("cart", JSON.stringify(existingCart));
+
+              router.push("/cart"); 
+            }}
+          >
+            Buy Now
+          </button>
         </div>
 
         {/* Description */}
@@ -240,4 +269,3 @@ const ProductDetailPage = () => {
 };
 
 export default ProductDetailPage;
-

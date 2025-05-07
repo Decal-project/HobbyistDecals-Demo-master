@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, FormEvent } from 'react'
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface AddressFields {
@@ -35,6 +35,7 @@ interface CartItem {
 interface Cart {
   id: number
   shipping_amount: number
+  discount_amount: number // Add discount_amount to Cart type
 }
 
 export default function CheckoutForm() {
@@ -78,7 +79,8 @@ export default function CheckoutForm() {
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const shippingAmt = cart?.shipping_amount ?? 0
-  const total = subtotal + shippingAmt
+  const discountAmt = cart?.discount_amount ?? 0 // Get the discount amount
+  const total = subtotal + shippingAmt - discountAmt // Subtract the discount amount
 
   const handleField = (
     section: 'billing' | 'shipping',
@@ -102,6 +104,7 @@ export default function CheckoutForm() {
     }
 
     const payload = {
+      // billing fields
       billing_first_name:   formData.billing.firstName,
       billing_last_name:    formData.billing.lastName,
       billing_company_name: formData.billing.company,
@@ -113,6 +116,7 @@ export default function CheckoutForm() {
       billing_phone:        formData.billing.phone,
       billing_email:        formData.billing.email,
 
+      // shipping fields
       ship_to_different_address: formData.shipToDifferent,
       shipping_first_name:       formData.shipping.firstName,
       shipping_last_name:        formData.shipping.lastName,
@@ -125,10 +129,11 @@ export default function CheckoutForm() {
       shipping_phone:            formData.shipping.phone,
       shipping_email:            formData.shipping.email,
 
+      // other
       order_notes:    formData.orderNotes,
       payment_method: formData.paymentMethod,
       total_amount:   total,
-      cart_id:        cart?.id,
+      cart_id:        cart?.id,  // optional
     }
 
     try {
@@ -247,8 +252,7 @@ export default function CheckoutForm() {
               type="checkbox"
               checked={formData.shipToDifferent}
               onChange={() =>
-                setFormData(f => ({ ...f, shipToDifferent: !f.shipToDifferent }))
-              }
+                setFormData(f => ({ ...f, shipToDifferent: !f.shipToDifferent }))}
               className="mr-2"
             />
             Ship to a different address?
@@ -338,6 +342,10 @@ export default function CheckoutForm() {
                 <div className="flex justify-between pt-2">
                   <span>Shipping</span>
                   <span>${shippingAmt.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between pt-2">
+                  <span>Discount</span>
+                  <span>-${discountAmt.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold pt-4 border-t">
                   <span>Total</span>

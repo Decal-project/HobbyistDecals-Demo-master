@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react'
+import React, { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface AddressFields {
@@ -35,7 +35,7 @@ interface CartItem {
 interface Cart {
   id: number
   shipping_amount: number
-  discount_amount: number // Add discount_amount to Cart type
+  discount_amount: number
 }
 
 export default function CheckoutForm() {
@@ -79,8 +79,8 @@ export default function CheckoutForm() {
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const shippingAmt = cart?.shipping_amount ?? 0
-  const discountAmt = cart?.discount_amount ?? 0 // Get the discount amount
-  const total = subtotal + shippingAmt - discountAmt // Subtract the discount amount
+  const discountAmt = cart?.discount_amount ?? 0
+  const total = subtotal + shippingAmt - discountAmt
 
   const handleField = (
     section: 'billing' | 'shipping',
@@ -104,36 +104,33 @@ export default function CheckoutForm() {
     }
 
     const payload = {
-      // billing fields
-      billing_first_name:   formData.billing.firstName,
-      billing_last_name:    formData.billing.lastName,
+      billing_first_name: formData.billing.firstName,
+      billing_last_name: formData.billing.lastName,
       billing_company_name: formData.billing.company,
-      billing_country:      formData.billing.country,
+      billing_country: formData.billing.country,
       billing_street_address: formData.billing.address,
-      billing_city:         formData.billing.city,
-      billing_state:        formData.billing.state,
-      billing_postal_code:  formData.billing.postalCode,
-      billing_phone:        formData.billing.phone,
-      billing_email:        formData.billing.email,
+      billing_city: formData.billing.city,
+      billing_state: formData.billing.state,
+      billing_postal_code: formData.billing.postalCode,
+      billing_phone: formData.billing.phone,
+      billing_email: formData.billing.email,
 
-      // shipping fields
       ship_to_different_address: formData.shipToDifferent,
-      shipping_first_name:       formData.shipping.firstName,
-      shipping_last_name:        formData.shipping.lastName,
-      shipping_company_name:     formData.shipping.company,
-      shipping_country:          formData.shipping.country,
-      shipping_street_address:   formData.shipping.address,
-      shipping_city:             formData.shipping.city,
-      shipping_state:            formData.shipping.state,
-      shipping_postal_code:      formData.shipping.postalCode,
-      shipping_phone:            formData.shipping.phone,
-      shipping_email:            formData.shipping.email,
+      shipping_first_name: formData.shipping.firstName,
+      shipping_last_name: formData.shipping.lastName,
+      shipping_company_name: formData.shipping.company,
+      shipping_country: formData.shipping.country,
+      shipping_street_address: formData.shipping.address,
+      shipping_city: formData.shipping.city,
+      shipping_state: formData.shipping.state,
+      shipping_postal_code: formData.shipping.postalCode,
+      shipping_phone: formData.shipping.phone,
+      shipping_email: formData.shipping.email,
 
-      // other
-      order_notes:    formData.orderNotes,
+      order_notes: formData.orderNotes,
       payment_method: formData.paymentMethod,
-      total_amount:   total,
-      cart_id:        cart?.id,  // optional
+      total_amount: total,
+      cart_id: cart?.id,
     }
 
     try {
@@ -144,16 +141,13 @@ export default function CheckoutForm() {
       })
       const json = await res.json()
 
-      if (!res.ok) {
-        throw new Error(json.error || 'Checkout failed')
-      }
+      if (!res.ok) throw new Error(json.error || 'Checkout failed')
 
       if (formData.paymentMethod === 'stripe' && json.url) {
         window.location.href = json.url
       } else {
         router.push('/thank-you')
       }
-      
     } catch (err) {
       console.error('Checkout error', err)
       alert((err as Error).message)

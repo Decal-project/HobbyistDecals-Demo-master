@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import BrowsePanel from "@/components/global/browse-panel";
 import Masonry from 'react-masonry-css';
-import { X, ZoomIn, ZoomOut } from 'lucide-react';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 
 const GalleryPage = () => {
   const totalImages = 52;
@@ -13,8 +13,7 @@ const GalleryPage = () => {
   const [fullImageSrc, setFullImageSrc] = useState('');
   const [fullImageAlt, setFullImageAlt] = useState('');
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  
   const [zoom, setZoom] = useState(1);
 
   const imageList = Array.from({ length: totalImages }, (_, i) => `img${i + 1}.jpg`);

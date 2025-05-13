@@ -12,11 +12,13 @@ export default function ClientLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname(); // can be null on initial render
+  const pathname = usePathname();
+
+  // Safe fallback in case pathname is null
+  const currentPath = pathname ?? "";
 
   const isAdminRoute =
-    (pathname?.startsWith("/adminDashboard") ?? false) ||
-    pathname === "/admin-login";
+    currentPath.startsWith("/adminDashboard") || currentPath === "/admin-login";
 
   return (
     <>

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./(main)/_components/providers";
 import ClientLayout from "./(main)/_components/client-layout";
+import ChatbotIcon from "./(main)/_components/chatbotIcon"; // Import the ChatbotIcon component
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         <Providers>
           <ClientLayout>{children}</ClientLayout>
+          <ChatbotIcon /> {/* Render the ChatbotIcon component here */}
         </Providers>
       </body>
     </html>

@@ -5,7 +5,7 @@ import NavbarComponent from "@/components/global/navbar";
 import FooterComponent from "@/components/global/footer";
 import GetinTouch from "@/components/global/get-in-touch";
 import PopupModal from "@/components/global/PopupModal";
-import ScrollToTopButton from "@/components/global/ScrollToTopButton"; 
+import ScrollToTopButton from "@/components/global/ScrollToTopButton";
 
 export default function ClientLayout({
   children,
@@ -28,12 +28,12 @@ export default function ClientLayout({
       )}
       {!isAdminRoute && <NavbarComponent />}
       {!isAdminRoute && <PopupModal />}
-      
+
       {children}
 
       {!isAdminRoute && <GetinTouch />}
       {!isAdminRoute && <FooterComponent />}
-      {!isAdminRoute && <ScrollToTopButton />} 
+      {!isAdminRoute && <ScrollToTopButton />}
     </>
   );
 }

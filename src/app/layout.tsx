@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ChatbotIcon from "./(main)/_components/chatbotIcon";
 
 // Client-only hooks and components
 import { usePathname } from "next/navigation";
@@ -52,7 +51,6 @@ function LayoutWrapper({ children }: { children: ReactNode }) {
       {!isAdminRoute && <GetinTouch />}
       {!isAdminRoute && <FooterComponent />}
       {!isAdminRoute && <ScrollToTopButton />}
-      <ChatbotIcon />
     </SessionProvider>
   );
 }

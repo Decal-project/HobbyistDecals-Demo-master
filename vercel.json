@@ -1,19 +1,13 @@
 {
-    "functions": {
-      "src/app/server/chatbot_api.py": {
-        "runtime": "python3.12" 
-      }
-    },
-    "builds": [
-      {
-        "src": "src/app/server/chatbot_api.py",
-        "use": "@vercel/python"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/api/chat", 
-        "dest": "src/app/server/chatbot_api.py"
-      }
-    ]
-  }
+  "functions": {
+    "src/app/server/chatbot_api.py": {
+      "runtime": "python3.12"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/chat",
+      "dest": "src/app/server/chatbot_api.py"
+    }
+  ]
+}

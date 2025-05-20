@@ -1,6 +1,9 @@
-import { notFound } from "next/navigation";
-import Image from "next/image";
-import BrowsePanel from "@/components/global/browse-panel";
+'use client';
+
+import { notFound, useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import BrowsePanel from '@/components/global/browse-panel';
 
 type Blog = {
   id: number;
@@ -12,15 +15,9 @@ type Blog = {
   published_at: string;
 };
 
-type BlogDetailPageProps = {
-  params: {
-    id: string;
-  };
-};
-
 async function getBlog(id: string): Promise<Blog | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${id}`, {
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!res.ok) return null;
@@ -29,7 +26,7 @@ async function getBlog(id: string): Promise<Blog | null> {
 
 async function getRecentBlogs(): Promise<Blog[]> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs`, {
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!res.ok) return [];
@@ -44,11 +41,11 @@ function formatContent(content: string): string {
 
   const applyBold = (text: string) =>
     text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<strong>$1</strong>");
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<strong>$1</strong>');
 
   const isSpecialHeading = (line: string) =>
-    ["Why Choose HobbyistDecals?", "Shipping and Return Policy"].includes(line);
+    ['Why Choose HobbyistDecals?', 'Shipping and Return Policy'].includes(line);
 
   for (let i = 0; i < lines.length; i++) {
     const trimmed = lines[i].trim();
@@ -56,7 +53,7 @@ function formatContent(content: string): string {
 
     if (isSpecialHeading(trimmed)) {
       if (inList) {
-        formattedLines.push(`<div class="space-y-2">${listItems.join("")}</div>`);
+        formattedLines.push(`<div class="space-y-2">${listItems.join('')}</div>`);
         listItems = [];
         inList = false;
       }
@@ -84,35 +81,55 @@ function formatContent(content: string): string {
       }
     } else {
       if (inList) {
-        formattedLines.push(`<div class="space-y-2">${listItems.join("")}</div>`);
+        formattedLines.push(`<div class="space-y-2">${listItems.join('')}</div>`);
         listItems = [];
         inList = false;
       }
 
-      if (trimmed !== "") {
+      if (trimmed !== '') {
         formattedLines.push(`<p>${applyBold(trimmed)}</p>`);
       }
     }
   }
 
   if (inList) {
-    formattedLines.push(`<div class="space-y-2">${listItems.join("")}</div>`);
+    formattedLines.push(`<div class="space-y-2">${listItems.join('')}</div>`);
   }
 
-  return formattedLines.join("\n");
+  return formattedLines.join('\n');
 }
 
-export default async function BlogDetail({ params }: BlogDetailPageProps) {
-  const { id } = params;
+export default function BlogDetail() {
+  const params = useParams();
+  const id = params?.id as string;
 
-  const [blog, recentBlogs] = await Promise.all([
-    getBlog(id),
-    getRecentBlogs(),
-  ]);
+  const [blog, setBlog] = useState<Blog | null>(null);
+  const [recentBlogs, setRecentBlogs] = useState<Blog[]>([]);
+  const [formattedContent, setFormattedContent] = useState<string>('');
 
-  if (!blog) return notFound();
+  useEffect(() => {
+    if (!id) return;
 
-  const formattedContent = formatContent(blog.content);
+    const fetchData = async () => {
+      const [fetchedBlog, fetchedRecent] = await Promise.all([
+        getBlog(id),
+        getRecentBlogs(),
+      ]);
+
+      if (!fetchedBlog) {
+        notFound();
+        return;
+      }
+
+      setBlog(fetchedBlog);
+      setFormattedContent(formatContent(fetchedBlog.content));
+      setRecentBlogs(fetchedRecent);
+    };
+
+    fetchData();
+  }, [id]);
+
+  if (!blog) return <div>Loading...</div>;
 
   const recommendedBlogs = recentBlogs
     .filter((b) => b.id !== blog.id)
@@ -126,7 +143,7 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10">
-        {/* Left Column – Blog Content */}
+        {/* Blog Content */}
         <div>
           <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
 
@@ -143,7 +160,7 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
             dangerouslySetInnerHTML={{ __html: formattedContent }}
           />
 
-          {/* About the Author */}
+          {/* Author Info */}
           <div className="mt-12">
             <h2 className="text-2xl font-semibold border-b inline-block mb-4">
               About the Author
@@ -161,9 +178,8 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
           </div>
         </div>
 
-        {/* Right Column – Sidebar */}
+        {/* Sidebar */}
         <aside className="hidden lg:block sticky top-20 self-start h-fit">
-          {/* Search Box */}
           <div className="mb-6">
             <label htmlFor="search" className="block font-semibold mb-2">
               Search
@@ -181,7 +197,6 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
             </div>
           </div>
 
-          {/* Recent Posts */}
           <div className="border-t border-b py-4 text-center font-semibold tracking-wide">
             RECENT POSTS
           </div>
@@ -201,7 +216,7 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
         </aside>
       </div>
 
-      {/* You may also like these */}
+      {/* Recommended Blogs */}
       <div className="mt-5 px-4 lg:px-12">
         <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
           You may also like these

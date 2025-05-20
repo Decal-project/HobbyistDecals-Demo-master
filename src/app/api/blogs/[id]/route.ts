@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
-export async function GET(request: Request, context: Params) {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     const result = await pool.query(
       `SELECT id, title, content, author_name, cover_image_url, category_name, published_at

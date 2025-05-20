@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import BrowsePanel from "@/components/global/browse-panel";
+import type { PageProps } from "next/types";
 
 type Blog = {
   id: number;
@@ -29,6 +30,7 @@ async function getRecentBlogs(): Promise<Blog[]> {
 }
 
 function formatContent(content: string): string {
+  // ... your formatting code unchanged ...
   const lines = content.split(/\r?\n/);
   const formattedLines: string[] = [];
   let inList = false;
@@ -91,19 +93,16 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-interface BlogDetailProps {
-  params: {
-    id: string;
-  };
+interface Params {
+  id: string;
 }
 
-export default async function BlogDetail({ params }: BlogDetailProps) {
+// Correct typing here: use generic PageProps<Params>
+export default async function BlogDetail({ params }: PageProps<Params>) {
   const blog = await getBlog(params.id);
-
   if (!blog) return notFound();
 
   const recentBlogs = await getRecentBlogs();
-
   const formattedContent = formatContent(blog.content);
 
   const recommendedBlogs = recentBlogs

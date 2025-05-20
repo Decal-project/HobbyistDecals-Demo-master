@@ -91,19 +91,18 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-type Props = {
+type PageParams = {
   params: {
     id: string;
   };
 };
 
-export default async function BlogDetail({ params }: Props) {
-  const [blog, recentBlogs] = await Promise.all([
-    getBlog(params.id),
-    getRecentBlogs(),
-  ]);
+export default async function BlogDetail({ params }: PageParams) {
+  const blog = await getBlog(params.id);
 
   if (!blog) return notFound();
+
+  const recentBlogs = await getRecentBlogs();
 
   const formattedContent = formatContent(blog.content);
 

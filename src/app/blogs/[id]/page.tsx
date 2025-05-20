@@ -12,10 +12,17 @@ type Blog = {
   published_at: string;
 };
 
+interface Props {
+  params: {
+    id: string;
+  };
+}
+
 async function getBlog(id: string): Promise<Blog | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${id}`, {
     cache: "no-store",
   });
+
   if (!res.ok) return null;
   return res.json();
 }
@@ -24,12 +31,12 @@ async function getRecentBlogs(): Promise<Blog[]> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs`, {
     cache: "no-store",
   });
+
   if (!res.ok) return [];
   return res.json();
 }
 
 function formatContent(content: string): string {
-  // ... formatting code as before ...
   const lines = content.split(/\r?\n/);
   const formattedLines: string[] = [];
   let inList = false;
@@ -53,12 +60,14 @@ function formatContent(content: string): string {
         listItems = [];
         inList = false;
       }
+
       formattedLines.push(`<div class="mt-10 mb-4 text-xl font-semibold">${trimmed}</div>`);
       continue;
     }
 
     if (numberedLine) {
       inList = true;
+
       if (!numberedLine[2] && i + 1 < lines.length && lines[i + 1].trim()) {
         const nextLine = lines[++i].trim();
         listItems.push(
@@ -79,6 +88,7 @@ function formatContent(content: string): string {
         listItems = [];
         inList = false;
       }
+
       if (trimmed !== "") {
         formattedLines.push(`<p>${applyBold(trimmed)}</p>`);
       }
@@ -92,19 +102,14 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-interface Params {
-  id: string;
-}
-
-interface Props {
-  params: Params;
-}
-
 export default async function BlogDetail({ params }: Props) {
-  const blog = await getBlog(params.id);
+  const [blog, recentBlogs] = await Promise.all([
+    getBlog(params.id),
+    getRecentBlogs(),
+  ]);
+
   if (!blog) return notFound();
 
-  const recentBlogs = await getRecentBlogs();
   const formattedContent = formatContent(blog.content);
 
   const recommendedBlogs = recentBlogs
@@ -119,6 +124,7 @@ export default async function BlogDetail({ params }: Props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10">
+        {/* Left Column – Blog Content */}
         <div>
           <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
 
@@ -135,6 +141,7 @@ export default async function BlogDetail({ params }: Props) {
             dangerouslySetInnerHTML={{ __html: formattedContent }}
           />
 
+          {/* About the Author */}
           <div className="mt-12">
             <h2 className="text-2xl font-semibold border-b inline-block mb-4">
               About the Author
@@ -152,7 +159,9 @@ export default async function BlogDetail({ params }: Props) {
           </div>
         </div>
 
+        {/* Right Column – Sidebar */}
         <aside className="hidden lg:block sticky top-20 self-start h-fit">
+          {/* Search Box */}
           <div className="mb-6">
             <label htmlFor="search" className="block font-semibold mb-2">
               Search
@@ -170,6 +179,7 @@ export default async function BlogDetail({ params }: Props) {
             </div>
           </div>
 
+          {/* Recent Posts */}
           <div className="border-t border-b py-4 text-center font-semibold tracking-wide">
             RECENT POSTS
           </div>
@@ -189,6 +199,7 @@ export default async function BlogDetail({ params }: Props) {
         </aside>
       </div>
 
+      {/* You may also like these */}
       <div className="mt-5 px-4 lg:px-12">
         <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
           You may also like these

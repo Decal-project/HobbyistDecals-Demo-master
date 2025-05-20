@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET(req: Request, context) {
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     const blogId = parseInt(id, 10);
     if (isNaN(blogId)) {

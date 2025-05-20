@@ -1,18 +1,12 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
-
-type Context = {
-  params: {
-    id: string;
-  };
-};
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import pool from "@/lib/db";
 
 export async function GET(
-  req: NextRequest,  // typed param
-  context: Context
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  const id = context.params.id;
+  const { id } = params;
 
   try {
     const result = await pool.query(

@@ -96,8 +96,15 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-export default async function BlogDetail({ params }: any) {
+type Props = {
+  params: {
+    id: string;
+  };
+};
+
+export default async function BlogDetail({ params }: Props) {
   const { id } = params;
+
   const [blog, recentBlogs] = await Promise.all([getBlog(id), getRecentBlogs()]);
 
   if (!blog) {
@@ -211,7 +218,9 @@ export default async function BlogDetail({ params }: any) {
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h3 className="text-base font-semibold text-gray-800">{item.title}</h3>
+                <h3 className="text-base font-semibold text-gray-800">
+                  {item.title}
+                </h3>
               </div>
             </a>
           ))}

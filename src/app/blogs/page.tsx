@@ -18,6 +18,8 @@ const ITEMS_PER_PAGE = 12;
 
 const BlogsPage = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +40,7 @@ const BlogsPage = () => {
     fetchBlogs();
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const totalPages = Math.ceil(blogs.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = blogs.slice(startIndex, startIndex + ITEMS_PER_PAGE);

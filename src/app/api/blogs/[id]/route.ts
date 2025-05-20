@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import pool from '@/lib/db'; // Make sure this exports your configured PG pool
 
 export async function GET(
   request: Request,
@@ -21,7 +21,7 @@ export async function GET(
 
     return NextResponse.json(result.rows[0]);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching blog by id:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

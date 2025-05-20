@@ -12,12 +12,6 @@ type Blog = {
   published_at: string;
 };
 
-interface BlogDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
 async function getBlog(id: string): Promise<Blog | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${id}`, {
     cache: "no-store",
@@ -102,7 +96,12 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-export default async function BlogDetail({ params }: BlogDetailPageProps) {
+// ✅ THIS IS THE CORRECT PARAM SIGNATURE
+export default async function BlogDetail({
+  params,
+}: {
+  params: { id: string };
+}) {
   const [blog, recentBlogs] = await Promise.all([
     getBlog(params.id),
     getRecentBlogs(),
@@ -124,7 +123,6 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10">
-        {/* Left Column – Blog Content */}
         <div>
           <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
 
@@ -141,7 +139,6 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
             dangerouslySetInnerHTML={{ __html: formattedContent }}
           />
 
-          {/* About the Author */}
           <div className="mt-12">
             <h2 className="text-2xl font-semibold border-b inline-block mb-4">
               About the Author
@@ -159,9 +156,7 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
           </div>
         </div>
 
-        {/* Right Column – Sidebar */}
         <aside className="hidden lg:block sticky top-20 self-start h-fit">
-          {/* Search Box */}
           <div className="mb-6">
             <label htmlFor="search" className="block font-semibold mb-2">
               Search
@@ -179,7 +174,6 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
             </div>
           </div>
 
-          {/* Recent Posts */}
           <div className="border-t border-b py-4 text-center font-semibold tracking-wide">
             RECENT POSTS
           </div>
@@ -199,7 +193,6 @@ export default async function BlogDetail({ params }: BlogDetailPageProps) {
         </aside>
       </div>
 
-      {/* You may also like these */}
       <div className="mt-5 px-4 lg:px-12">
         <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
           You may also like these

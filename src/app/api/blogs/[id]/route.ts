@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { NextRequest as NextRequestType } from 'next/server'; // for typing only
 import pool from '@/lib/db';
 
 type Context = {

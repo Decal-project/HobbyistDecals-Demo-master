@@ -1,13 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
+import { NextResponse } from 'next/server';
+import pool from '@/lib/db';
 
-export async function GET(request: NextRequest) {
+// Correct type for route segment params
+type Params = {
+  params: {
+    id: string;
+  };
+};
+
+export async function GET(_request: Request, { params }: Params) {
   try {
-    // Extract 'id' param from the URL pathname
-    const { pathname } = new URL(request.url);
-    // pathname example: /api/blogs/123
-    const pathSegments = pathname.split("/");
-    const id = pathSegments[pathSegments.length - 1];
+    const { id } = params;
 
     const result = await pool.query(
       `SELECT id, title, content, author_name, cover_image_url, category_name, published_at
@@ -17,12 +20,12 @@ export async function GET(request: NextRequest) {
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ message: "Not found" }, { status: 404 });
+      return new NextResponse('Not found', { status: 404 });
     }
 
     return NextResponse.json(result.rows[0]);
   } catch (error) {
-    console.error("Database error:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    console.error('Error fetching blog post:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

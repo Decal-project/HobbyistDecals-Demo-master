@@ -12,12 +12,6 @@ type Blog = {
   published_at: string;
 };
 
-interface Props {
-  params: {
-    id: string;
-  };
-}
-
 async function getBlog(id: string): Promise<Blog | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${id}`, {
     cache: "no-store",
@@ -102,7 +96,7 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-export default async function BlogDetail({ params }: Props) {
+export default async function BlogDetail({ params }: { params: { id: string } }) {
   const [blog, recentBlogs] = await Promise.all([
     getBlog(params.id),
     getRecentBlogs(),
@@ -198,33 +192,32 @@ export default async function BlogDetail({ params }: Props) {
           </ul>
         </aside>
       </div>
-
       {/* You may also like these */}
-      <div className="mt-5 px-4 lg:px-12">
-        <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
-          You may also like these
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {recommendedBlogs.map((item) => (
-            <a
-              href={`/blogs/${item.id}`}
-              key={item.id}
-              className="block bg-white hover:shadow-lg rounded-lg overflow-hidden transition-shadow"
-            >
-              <img
-                src={item.cover_image_url}
-                alt={item.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-base font-semibold text-gray-800">
-                  {item.title}
-                </h3>
-              </div>
-            </a>
-          ))}
+        <div className="mt-5 px-4 lg:px-12">
+            <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
+              You may also like these
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {recommendedBlogs.map((item) => (
+                <a
+                  href={`/blogs/${item.id}`}
+                  key={item.id}
+                  className="block bg-white hover:shadow-lg rounded-lg overflow-hidden transition-shadow"
+                >
+                  <img
+                    src={item.cover_image_url}
+                    alt={item.title}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="text-base font-semibold text-gray-800">
+                      {item.title}
+                    </h3>
+                  </div>
+                </a>
+              ))}
+            </div>
         </div>
-      </div>
     </>
   );
 }

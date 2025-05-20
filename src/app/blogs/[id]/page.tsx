@@ -96,13 +96,18 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-export default async function BlogDetail({ params }: { params: { id: string } }) {
-  const [blog, recentBlogs] = await Promise.all([
-    getBlog(params.id),
-    getRecentBlogs(),
-  ]);
+type Props = {
+  params: {
+    id: string;
+  };
+};
 
-  if (!blog) return notFound();
+export default async function BlogDetail({ params }: Props) {
+  const [blog, recentBlogs] = await Promise.all([getBlog(params.id), getRecentBlogs()]);
+
+  if (!blog) {
+    notFound();
+  }
 
   const formattedContent = formatContent(blog.content);
 
@@ -137,9 +142,7 @@ export default async function BlogDetail({ params }: { params: { id: string } })
 
           {/* About the Author */}
           <div className="mt-12">
-            <h2 className="text-2xl font-semibold border-b inline-block mb-4">
-              About the Author
-            </h2>
+            <h2 className="text-2xl font-semibold border-b inline-block mb-4">About the Author</h2>
             <div className="flex items-center bg-gray-100 p-4 rounded-lg space-x-4">
               <Image
                 src="https://hobbyistdecals.com/wp-content/uploads/al_opt_content/IMAGE/hobbyistdecals.com/wp-content/uploads/2024/06/Hobbiyst-Logo-Icon-3-300x96.png.bv_resized_desktop.png.bv.webp"
@@ -167,9 +170,7 @@ export default async function BlogDetail({ params }: { params: { id: string } })
                 className="flex-1 border border-gray-300 px-3 py-2 rounded-l-md focus:outline-none"
                 placeholder="Search..."
               />
-              <button className="bg-gray-800 text-white px-4 py-2 rounded-r-md">
-                Search
-              </button>
+              <button className="bg-gray-800 text-white px-4 py-2 rounded-r-md">Search</button>
             </div>
           </div>
 
@@ -181,10 +182,7 @@ export default async function BlogDetail({ params }: { params: { id: string } })
           <ul className="mt-4 space-y-4 text-l">
             {recentBlogs.slice(0, 5).map((item) => (
               <li key={item.id}>
-                <a
-                  href={`/blogs/${item.id}`}
-                  className="text-gray-800 hover:text-[#16689A]"
-                >
+                <a href={`/blogs/${item.id}`} className="text-gray-800 hover:text-[#16689A]">
                   {item.title}
                 </a>
               </li>
@@ -192,32 +190,25 @@ export default async function BlogDetail({ params }: { params: { id: string } })
           </ul>
         </aside>
       </div>
+
       {/* You may also like these */}
-        <div className="mt-5 px-4 lg:px-12">
-            <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
-              You may also like these
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {recommendedBlogs.map((item) => (
-                <a
-                  href={`/blogs/${item.id}`}
-                  key={item.id}
-                  className="block bg-white hover:shadow-lg rounded-lg overflow-hidden transition-shadow"
-                >
-                  <img
-                    src={item.cover_image_url}
-                    alt={item.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <h3 className="text-base font-semibold text-gray-800">
-                      {item.title}
-                    </h3>
-                  </div>
-                </a>
-              ))}
-            </div>
+      <div className="mt-5 px-4 lg:px-12">
+        <h2 className="text-2xl font-semibold mb-6 border-b inline-block">You may also like these</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {recommendedBlogs.map((item) => (
+            <a
+              href={`/blogs/${item.id}`}
+              key={item.id}
+              className="block bg-white hover:shadow-lg rounded-lg overflow-hidden transition-shadow"
+            >
+              <img src={item.cover_image_url} alt={item.title} className="w-full h-48 object-cover" />
+              <div className="p-4">
+                <h3 className="text-base font-semibold text-gray-800">{item.title}</h3>
+              </div>
+            </a>
+          ))}
         </div>
+      </div>
     </>
   );
 }

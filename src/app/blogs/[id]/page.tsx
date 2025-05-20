@@ -37,9 +37,7 @@ function formatContent(content: string): string {
   let listItems: string[] = [];
 
   const applyBold = (text: string) =>
-    text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<strong>$1</strong>");
+    text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\*(.*?)\*/g, "<strong>$1</strong>");
 
   const isSpecialHeading = (line: string) =>
     ["Why Choose HobbyistDecals?", "Shipping and Return Policy"].includes(line);
@@ -96,14 +94,12 @@ function formatContent(content: string): string {
   return formattedLines.join("\n");
 }
 
-// ✅ THIS IS THE CORRECT PARAM SIGNATURE
-export default async function BlogDetail({
-  params,
-}: {
-  params: { id: string };
-}) {
+// ✅ No param typing here — safest fallback
+export default async function BlogDetail(props: any) {
+  const id = props?.params?.id;
+
   const [blog, recentBlogs] = await Promise.all([
-    getBlog(params.id),
+    getBlog(id),
     getRecentBlogs(),
   ]);
 

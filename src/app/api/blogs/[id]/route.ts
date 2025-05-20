@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET(
-  req: Request,
-  context: { params: { id: string } }
-) {
+export async function GET(req: Request, context) {
   try {
     const { id } = context.params;
 

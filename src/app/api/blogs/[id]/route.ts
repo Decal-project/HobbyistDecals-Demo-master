@@ -1,21 +1,13 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-type Params = {
-  params: {
-    id: string;
-  };
-};
-
-// Next.js route handlers must export named functions like GET
 export async function GET(
   req: Request,
-  { params }: Params
-): Promise<NextResponse> {
+  context: { params: { id: string } }
+) {
   try {
-    const { id } = params;
+    const { id } = context.params;
 
-    // Ensure ID is a valid integer to avoid SQL injection or runtime errors
     const blogId = parseInt(id, 10);
     if (isNaN(blogId)) {
       return new NextResponse('Invalid blog ID', { status: 400 });

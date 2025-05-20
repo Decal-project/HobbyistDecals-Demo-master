@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest as NextRequestType } from 'next/server'; // for typing only
 import pool from '@/lib/db';
 
-// Correct function signature for dynamic routes in Next.js App Router
+type Context = {
+  params: {
+    id: string;
+  };
+};
+
 export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
+  req: NextRequestType,
+  context: Context
 ) {
   const id = context.params.id;
 

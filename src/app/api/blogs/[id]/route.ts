@@ -1,14 +1,14 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
-
+export async function GET(request: NextRequest) {
   try {
+    // Extract 'id' param from the URL pathname
+    const { pathname } = new URL(request.url);
+    // pathname example: /api/blogs/123
+    const pathSegments = pathname.split("/");
+    const id = pathSegments[pathSegments.length - 1];
+
     const result = await pool.query(
       `SELECT id, title, content, author_name, cover_image_url, category_name, published_at
        FROM blogs

@@ -2,7 +2,6 @@
 
 import { notFound, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import BrowsePanel from '@/components/global/browse-panel';
 
@@ -17,27 +16,21 @@ type Blog = {
 };
 
 async function getBlog(id: string): Promise<Blog | null> {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${id}`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${id}`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) return null;
+  return res.json();
 }
 
 async function getRecentBlogs(): Promise<Blog[]> {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    return res.json();
-  } catch {
-    return [];
-  }
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) return [];
+  return res.json();
 }
 
 function formatContent(content: string): string {
@@ -64,12 +57,14 @@ function formatContent(content: string): string {
         listItems = [];
         inList = false;
       }
+
       formattedLines.push(`<div class="mt-10 mb-4 text-xl font-semibold">${trimmed}</div>`);
       continue;
     }
 
     if (numberedLine) {
       inList = true;
+
       if (!numberedLine[2] && i + 1 < lines.length && lines[i + 1].trim()) {
         const nextLine = lines[++i].trim();
         listItems.push(
@@ -90,6 +85,7 @@ function formatContent(content: string): string {
         listItems = [];
         inList = false;
       }
+
       if (trimmed !== '') {
         formattedLines.push(`<p>${applyBold(trimmed)}</p>`);
       }
@@ -152,13 +148,10 @@ export default function BlogDetail() {
           <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
 
           {blog.cover_image_url && (
-            <Image
+            <img
               src={blog.cover_image_url}
               alt={blog.title}
-              width={1200}
-              height={480}
               className="w-full h-80 object-cover rounded-lg mb-6"
-              priority
             />
           )}
 
@@ -211,9 +204,12 @@ export default function BlogDetail() {
           <ul className="mt-4 space-y-4 text-l">
             {recentBlogs.slice(0, 5).map((item) => (
               <li key={item.id}>
-                <Link href={`/blogs/${item.id}`} className="text-gray-800 hover:text-[#16689A]">
+                <a
+                  href={`/blogs/${item.id}`}
+                  className="text-gray-800 hover:text-[#16689A]"
+                >
                   {item.title}
-                </Link>
+                </a>
               </li>
             ))}
           </ul>
@@ -227,22 +223,22 @@ export default function BlogDetail() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {recommendedBlogs.map((item) => (
-            <Link
+            <a
               href={`/blogs/${item.id}`}
               key={item.id}
               className="block bg-white hover:shadow-lg rounded-lg overflow-hidden transition-shadow"
             >
-              <Image
+              <img
                 src={item.cover_image_url}
                 alt={item.title}
-                width={400}
-                height={300}
-                className="object-cover"
+                className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h3 className="text-base font-semibold text-gray-800">{item.title}</h3>
+                <h3 className="text-base font-semibold text-gray-800">
+                  {item.title}
+                </h3>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
       </div>

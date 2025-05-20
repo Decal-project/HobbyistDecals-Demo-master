@@ -1,14 +1,13 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params;
-
   try {
+    const { id } = params;
+
     const result = await pool.query(
       `SELECT id, title, content, author_name, cover_image_url, category_name, published_at
        FROM blogs

@@ -16,7 +16,6 @@ async function getBlog(id: string): Promise<Blog | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${id}`, {
     cache: "no-store",
   });
-
   if (!res.ok) return null;
   return res.json();
 }
@@ -25,7 +24,6 @@ async function getRecentBlogs(): Promise<Blog[]> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs`, {
     cache: "no-store",
   });
-
   if (!res.ok) return [];
   return res.json();
 }
@@ -54,14 +52,12 @@ function formatContent(content: string): string {
         listItems = [];
         inList = false;
       }
-
       formattedLines.push(`<div class="mt-10 mb-4 text-xl font-semibold">${trimmed}</div>`);
       continue;
     }
 
     if (numberedLine) {
       inList = true;
-
       if (!numberedLine[2] && i + 1 < lines.length && lines[i + 1].trim()) {
         const nextLine = lines[++i].trim();
         listItems.push(
@@ -82,7 +78,6 @@ function formatContent(content: string): string {
         listItems = [];
         inList = false;
       }
-
       if (trimmed !== "") {
         formattedLines.push(`<p>${applyBold(trimmed)}</p>`);
       }
@@ -103,13 +98,12 @@ type Props = {
 };
 
 export default async function BlogDetail({ params }: Props) {
-  const { id } = params;
+  const [blog, recentBlogs] = await Promise.all([
+    getBlog(params.id),
+    getRecentBlogs(),
+  ]);
 
-  const [blog, recentBlogs] = await Promise.all([getBlog(id), getRecentBlogs()]);
-
-  if (!blog) {
-    notFound();
-  }
+  if (!blog) return notFound();
 
   const formattedContent = formatContent(blog.content);
 
@@ -200,7 +194,7 @@ export default async function BlogDetail({ params }: Props) {
         </aside>
       </div>
 
-      {/* You may also like these */}
+      {/* Recommended blogs */}
       <div className="mt-5 px-4 lg:px-12">
         <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
           You may also like these

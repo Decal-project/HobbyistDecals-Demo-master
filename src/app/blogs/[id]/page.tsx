@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import BrowsePanel from "@/components/global/browse-panel";
-import type { PageProps } from "next/types";
 
 type Blog = {
   id: number;
@@ -30,7 +29,7 @@ async function getRecentBlogs(): Promise<Blog[]> {
 }
 
 function formatContent(content: string): string {
-  // ... your formatting code unchanged ...
+  // ... formatting code as before ...
   const lines = content.split(/\r?\n/);
   const formattedLines: string[] = [];
   let inList = false;
@@ -97,8 +96,11 @@ interface Params {
   id: string;
 }
 
-// Correct typing here: use generic PageProps<Params>
-export default async function BlogDetail({ params }: PageProps<Params>) {
+interface Props {
+  params: Params;
+}
+
+export default async function BlogDetail({ params }: Props) {
   const blog = await getBlog(params.id);
   if (!blog) return notFound();
 
@@ -117,7 +119,6 @@ export default async function BlogDetail({ params }: PageProps<Params>) {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10">
-        {/* Left Column – Blog Content */}
         <div>
           <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
 
@@ -134,7 +135,6 @@ export default async function BlogDetail({ params }: PageProps<Params>) {
             dangerouslySetInnerHTML={{ __html: formattedContent }}
           />
 
-          {/* About the Author */}
           <div className="mt-12">
             <h2 className="text-2xl font-semibold border-b inline-block mb-4">
               About the Author
@@ -152,9 +152,7 @@ export default async function BlogDetail({ params }: PageProps<Params>) {
           </div>
         </div>
 
-        {/* Right Column – Sidebar */}
         <aside className="hidden lg:block sticky top-20 self-start h-fit">
-          {/* Search Box */}
           <div className="mb-6">
             <label htmlFor="search" className="block font-semibold mb-2">
               Search
@@ -172,7 +170,6 @@ export default async function BlogDetail({ params }: PageProps<Params>) {
             </div>
           </div>
 
-          {/* Recent Posts */}
           <div className="border-t border-b py-4 text-center font-semibold tracking-wide">
             RECENT POSTS
           </div>
@@ -192,7 +189,6 @@ export default async function BlogDetail({ params }: PageProps<Params>) {
         </aside>
       </div>
 
-      {/* Recommended blogs */}
       <div className="mt-5 px-4 lg:px-12">
         <h2 className="text-2xl font-semibold mb-6 border-b inline-block">
           You may also like these

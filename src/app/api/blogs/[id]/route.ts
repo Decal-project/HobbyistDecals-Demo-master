@@ -1,16 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-// Correct type for route segment params
-type Params = {
-  params: {
-    id: string;
-  };
-};
-
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
   try {
-    const { id } = params;
+    const { id } = context.params;
 
     const result = await pool.query(
       `SELECT id, title, content, author_name, cover_image_url, category_name, published_at
@@ -25,7 +18,7 @@ export async function GET(_request: Request, { params }: Params) {
 
     return NextResponse.json(result.rows[0]);
   } catch (error) {
-    console.error('Error fetching blog post:', error);
+    console.error('Error fetching blog:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

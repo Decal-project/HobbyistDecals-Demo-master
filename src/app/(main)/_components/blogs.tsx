@@ -1,54 +1,82 @@
-import { blogs } from "@/lib/constants";
-import Link from "next/link";
-import React from "react";
-import Image from "next/image";
-import { Calendar, Clock } from "lucide-react";
+"use client";
 
-const BlogsComponent = () => {
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+type Blog = {
+  id: number;
+  title: string;
+  content: string;
+  author_name: string;
+  cover_image_url: string;
+  category_name: string;
+  status: string;
+  published_at: string;
+};
+
+const BlogsSection = () => {
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await fetch("/api/blogs");
+        const data = await res.json();
+        setBlogs(data.slice(0, 6)); // latest 6
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
+
+  const handleViewMoreClick = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    router.push("/blogs");
+  };
+
   return (
-    <div className="w-full min-h-[400px] p-4 flex flex-col items-start justify-center gap-6 bg-white">
-      <h2 className="capitalize text-xl text-black font-semibold">
-        Latest Blogs
-      </h2>
-      <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {blogs.map((item, index) => (
-          <Link
-            href={item.href}
-            key={index}
-            className="h-[325px] w-full flex flex-col items-center justify-center bg-primary overflow-hidden rounded-xl"
-          >
-            <Image
-              src={item.img}
-              alt={index.toString()}
-              width={0}
-              height={0}
-              unoptimized
-              quality={100}
-              draggable="false"
-              className="h-[200px] w-full object-cover flex-shrink-0"
-            />
-            <div className="flex-1 w-full flex flex-col items-start justify-between gap-4 px-3 py-4">
-              <p className="w-full text-base text-start leading-6 line-clamp-2 truncate">
-                {item.title}
-              </p>
-              <div className="w-full flex flex-row items-center justify-between gap-2">
-                <div className="flex flex-row items-center gap-1">
-                  <Calendar className="!h-5 !w-5 text-grey" />
-                  <p className="text-sm text-grey capitalize">
-                    November 13, 2024
-                  </p>
-                </div>
-                <div className="flex flex-row items-center gap-1">
-                  <Clock className="!h-5 !w-5 text-grey" />
-                  <p className="text-sm text-grey capitalize">6 min read</p>
-                </div>
-              </div>
+    <div className="w-full max-w-7xl bg-white rounded-lg p-4 shadow-md mx-auto mt-8">
+      <div className="flex justify-between items-center mb-4 border-b pb-2">
+        <h2 className="text-xl font-bold text-gray-800">
+          Explore Our Latest Blogs – Tips, Stories & Updates
+        </h2>
+        <span
+          onClick={handleViewMoreClick}
+          className="text-sm text-[#16689A] font-semibold cursor-pointer hover:underline"
+        >
+          VIEW MORE →
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {blogs.map((blog) => (
+          <div key={blog.id} className="bg-gray-50 rounded-lg overflow-hidden shadow-sm flex flex-col">
+            <div className="h-40 w-full overflow-hidden">
+              <img
+                src={blog.cover_image_url || "/blog-placeholder.jpg"}
+                alt={blog.title}
+                className="w-full h-full object-cover"
+              />
             </div>
-          </Link>
+            <div className="p-4 flex flex-col flex-grow">
+              <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{blog.title}</h3>
+              <p className="text-sm text-gray-500 mt-1">By {blog.author_name} • {new Date(blog.published_at).toLocaleDateString()}</p>
+              <div className="flex-grow"></div>
+              <Link href={`/blogs/${blog.id}`}>
+                <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+                  READ MORE
+                </button>
+              </Link>
+            </div>
+          </div>
         ))}
       </div>
     </div>
   );
 };
 
-export default BlogsComponent;
+export default BlogsSection;

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
 type Context = {
@@ -8,7 +9,7 @@ type Context = {
 };
 
 export async function GET(
-  req: NextRequestType,
+  req: NextRequest,  // typed param
   context: Context
 ) {
   const id = context.params.id;

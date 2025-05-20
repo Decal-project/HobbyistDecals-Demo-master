@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db'; // your postgres connection
+import pool from '@/lib/db';
 
-interface Params {
-  params: { id: string };
-}
-
-export async function GET(request: Request, { params }: Params) {
-  const { id } = params;
+export async function GET(request: Request, context: { params: { id: string } }) {
+  const { id } = context.params;
 
   try {
     const result = await pool.query(

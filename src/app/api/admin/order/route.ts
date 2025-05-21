@@ -1,6 +1,30 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+// Define types for clarity and type safety
+type OrderItem = {
+  id: number;
+  name: string;
+  quantity: number;
+  price: number;
+};
+
+type GroupedOrder = {
+  orderId: number;
+  customerName: string;
+  totalAmount: number;
+  createdAt: string;
+  billingAddress: {
+    country: string;
+    streetAddress: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    phone: string;
+  };
+  items: OrderItem[];
+};
+
 export async function GET() {
   try {
     const { rows: orders } = await pool.query(`
@@ -25,7 +49,7 @@ export async function GET() {
       ORDER BY o.created_at DESC
     `);
 
-    const groupedOrders: Record<number, any> = {};
+    const groupedOrders: Record<number, GroupedOrder> = {};
 
     for (const row of orders) {
       const {

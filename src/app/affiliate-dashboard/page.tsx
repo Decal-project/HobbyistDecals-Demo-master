@@ -42,22 +42,11 @@ export default function AffiliateDashboard() {
     visitCount: 0,
   });
   const [paymentEmail, setPaymentEmail] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
+  // Removed userId and isSaved since unused
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/affiliate/user")
-      .then((res) => res.json())
-      .then((data) => {
-        setUserId(data.userId);
-        console.log("Fetched User ID:", data.userId);
-      })
-      .catch((err) => {
-        console.error("Error loading user data:", err);
-      });
-  }, []);
+  // Removed unused userId fetch
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,7 +71,7 @@ export default function AffiliateDashboard() {
         }
 
         if (tab === "affiliate-links") {
-          fetchAffiliateData(); // replace with your new function
+          fetchAffiliateData();
         }
 
         if (tab === "visits") {
@@ -95,8 +84,9 @@ export default function AffiliateDashboard() {
           const paymentData = data as PaymentEmailResponse;
           setPaymentEmail(paymentData.paymentEmail || "");
         }
-      } catch (error) {
-        console.error("Error loading data:", error);
+      } catch (err) {
+        console.error("Error loading data:", err);
+        setError("Failed to load data.");
       }
     };
 
@@ -105,8 +95,10 @@ export default function AffiliateDashboard() {
 
   const fetchAffiliateData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/affiliate/links?id=1");
+      if (!res.ok) throw new Error("Failed to fetch affiliate data");
       const data = await res.json();
       setLinks((prev) => ({
         ...prev,
@@ -115,9 +107,9 @@ export default function AffiliateDashboard() {
         trackingLink: data.trackingLink || "",
         visitCount: data.visitCount || 0,
       }));
-      if (data.code) setIsSaved(true);
-    } catch {
+    } catch (err) {
       setError("Failed to load affiliate data");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -134,16 +126,18 @@ export default function AffiliateDashboard() {
         body: JSON.stringify({ website, destinationUrl, code }),
       });
 
+      if (!res.ok) throw new Error("Failed to save affiliate data");
+
       const data = await res.json();
       setLinks((prev) => ({
         ...prev,
         trackingLink: data.trackingLink,
       }));
 
-      setIsSaved(true);
       alert("Links updated!");
-    } catch (error) {
+    } catch (err) {
       setError("Failed to save affiliate data");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -158,8 +152,8 @@ export default function AffiliateDashboard() {
       });
       const data = await res.json();
       alert(res.ok ? "Email updated!" : data.error || "Failed to update email.");
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       alert("Error updating email.");
     }
   };
@@ -176,8 +170,8 @@ export default function AffiliateDashboard() {
       });
 
       window.open(`/redirect?code=${encodeURIComponent(links.code)}`, "_blank");
-    } catch (error) {
-      console.error("Failed to track click:", error);
+    } catch (err) {
+      console.error("Failed to track click:", err);
     }
   };
 
@@ -293,7 +287,6 @@ export default function AffiliateDashboard() {
                       <td className="p-2 border">{visit.landing_url}</td>
                       <td className="p-2 border">
                         {new Date(visit.date).toLocaleString()}
-
                       </td>
                     </tr>
                   ))}

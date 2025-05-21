@@ -52,11 +52,12 @@ export default function AdminDashboard() {
           >
             🔐 Admin User Roles
           </button>
+          {/* New Blogs Section */}
           <button
-            onClick={() => router.push("/admin-login")}
-            className="py-3 bg-blue-700 rounded hover:bg-red-600 transition"
+            onClick={() => router.push("/adminDashboard/blogs/list")}
+            className="py-3 bg-blue-700 rounded hover:bg-blue-600 transition"
           >
-            🔒 Logout
+            📝 Manage Blogs
           </button>
         </nav>
       </aside>
@@ -67,7 +68,7 @@ export default function AdminDashboard() {
           title="🤝 Manage Affiliates"
           color="blue"
           options={[
-            { label: "📝 Approve Requests", href: "/adminDashboard/affiliates/requests" },
+            { label: "📝 Approve Requests", href: "/adminDashboard/affiliates/approve" },
             { label: "✅ Approved Requests", href: "/adminDashboard/affiliates/approved" },
             { label: "💸 Commissions", href: "/adminDashboard/affiliates/commissions" },
             { label: "👀 Visits", href: "/adminDashboard/affiliates/visits" },
@@ -133,6 +134,16 @@ export default function AdminDashboard() {
             },
           ]}
         />
+        {/* New Blogs Dashboard Card */}
+        <DashboardCard
+          title="📝 Manage Blogs"
+          color="teal"
+          options={[
+            { label: "➕ Create Blog Post", href: "/adminDashboard/blogs/create" },
+            { label: "✏️ Edit Blog Posts", href: "/adminDashboard/blogs/edit" },
+            { label: "📃 View Blog List", href: "/adminDashboard/blogs/list" },
+          ]}
+        />
       </main>
     </div>
   );
@@ -156,6 +167,7 @@ export default function AdminDashboard() {
       red: "text-red-900 border-red-200",
       indigo: "text-indigo-900 border-indigo-200",
       gray: "text-gray-900 border-gray-300",
+      teal: "text-teal-900 border-teal-200", // new color
     };
 
     const buttonColorMap: Record<string, string> = {
@@ -166,6 +178,7 @@ export default function AdminDashboard() {
       red: "bg-red-600 hover:bg-red-800",
       indigo: "bg-indigo-600 hover:bg-indigo-800",
       gray: "bg-gray-600 hover:bg-gray-800",
+      teal: "bg-teal-600 hover:bg-teal-800", // new color
     };
 
     return (

@@ -1,10 +1,9 @@
-// app/api/affiliate/user/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";  // your NextAuth config
+import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   // 1. Get session
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) {
@@ -14,7 +13,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 2. Look up the affiliate_user by their email (or however you link them)
+  // 2. Look up the affiliate_user by their email
   const { rows } = await pool.query(
     "SELECT id, affiliate_code FROM affiliate_users WHERE email = $1",
     [session.user.email]

@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     await writeFile(imagePath, buffer);
     const coverImageUrl = `/uploads/${imageName}`;
 
-    // Insert into the PostgreSQL database
+    // Insert into PostgreSQL database
     await pool.query(
       `INSERT INTO blogs (title, content, author_name, category_name, status, published_at, cover_image_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -44,10 +44,14 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ message: "Blog created successfully", coverImageUrl });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Blog creation error:", error);
+
+    // Safely handle error message if available
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
     return NextResponse.json(
-      { message: "Something went wrong", error: error.message },
+      { message: "Something went wrong", error: errorMessage },
       { status: 500 }
     );
   }

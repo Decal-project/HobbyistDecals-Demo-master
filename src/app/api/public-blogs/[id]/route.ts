@@ -1,15 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 
+// Configure PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// ✅ Correct App Router API signature
 export async function GET(
-  req: Request,
-  context: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  const id = Number(context.params.id);
+  const id = Number(params.id);
 
   if (isNaN(id)) {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });

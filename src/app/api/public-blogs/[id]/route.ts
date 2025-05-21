@@ -7,9 +7,9 @@ const pool = new Pool({
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const id = Number(params.id); // params is now properly awaited by Next.js runtime
+  const id = Number(context.params.id);
 
   if (isNaN(id)) {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });

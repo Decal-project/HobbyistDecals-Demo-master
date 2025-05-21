@@ -16,7 +16,10 @@ type Stats = {
 
 type AffiliateLinks = {
   website: string;
+  destinationUrl: string;
+  code: string;
   trackingLink: string;
+  visitCount: number;
 };
 
 type PaymentEmailResponse = {
@@ -32,11 +35,17 @@ export default function AffiliateDashboard() {
     earnings: 0,
   });
   const [links, setLinks] = useState<AffiliateLinks>({
-    website: "",
+    website: "https://hobbyist-decals.vercel.app/",
+    destinationUrl: "",
+    code: "",
     trackingLink: "",
+    visitCount: 0,
   });
   const [paymentEmail, setPaymentEmail] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     fetch("/api/affiliate/user")
@@ -51,17 +60,6 @@ export default function AffiliateDashboard() {
   }, []);
 
   useEffect(() => {
-    if (userId) {
-      const trackingLink = `https://hobbyist-decals.vercel.app/?ref=${userId}`;
-      console.log("Generated Tracking Link:", trackingLink);
-      setLinks((prev) => ({
-        ...prev,
-        trackingLink,
-      }));
-    }
-  }, [userId]);
-
-  useEffect(() => {
     const fetchData = async () => {
       try {
         const fetchAndParse = async (url: string) => {
@@ -70,7 +68,6 @@ export default function AffiliateDashboard() {
           const text = await res.text();
 
           if (!res.ok) throw new Error(text || `Request failed for ${url}`);
-
           if (text.trim() === "" || !contentType?.includes("application/json")) {
             console.warn(`Empty or invalid JSON from ${url}`);
             return {};
@@ -85,8 +82,7 @@ export default function AffiliateDashboard() {
         }
 
         if (tab === "affiliate-links") {
-          const data = await fetchAndParse("/api/affiliate/links");
-          setLinks(data as AffiliateLinks);
+          fetchAffiliateData(); // replace with your new function
         }
 
         if (tab === "visits") {
@@ -107,17 +103,49 @@ export default function AffiliateDashboard() {
     fetchData();
   }, [tab]);
 
-  const updateAffiliateLinks = async () => {
+  const fetchAffiliateData = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("/api/affiliate/links", {
+      const res = await fetch("/api/affiliate/links?id=1");
+      const data = await res.json();
+      setLinks((prev) => ({
+        ...prev,
+        destinationUrl: data.destinationUrl || prev.website,
+        code: data.code || "",
+        trackingLink: data.trackingLink || "",
+        visitCount: data.visitCount || 0,
+      }));
+      if (data.code) setIsSaved(true);
+    } catch {
+      setError("Failed to load affiliate data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const save = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { website, destinationUrl, code } = links;
+      const res = await fetch("/api/affiliate/links?id=1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(links),
+        body: JSON.stringify({ website, destinationUrl, code }),
       });
-      alert(res.ok ? "Links updated!" : "Failed to update links.");
+
+      const data = await res.json();
+      setLinks((prev) => ({
+        ...prev,
+        trackingLink: data.trackingLink,
+      }));
+
+      setIsSaved(true);
+      alert("Links updated!");
     } catch (error) {
-      console.error(error);
-      alert("Error updating links.");
+      setError("Failed to save affiliate data");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,35 +164,89 @@ export default function AffiliateDashboard() {
     }
   };
 
+  const handleLinkClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    try {
+      await fetch("/api/track-click", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: links.code }),
+      });
+
+      window.open(`/redirect?code=${encodeURIComponent(links.code)}`, "_blank");
+    } catch (error) {
+      console.error("Failed to track click:", error);
+    }
+  };
+
   const renderContent = () => {
     switch (tab) {
       case "affiliate-links":
         return (
           <div className="space-y-4">
-            <div>
-              <label className="block">Your Website:</label>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded px-4 py-2"
-                value={links.website}
-                onChange={(e) => setLinks({ ...links, website: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block">Your Tracking Link:</label>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded px-4 py-2"
-                value={links.trackingLink}
-                readOnly
-              />
-            </div>
-            <button
-              onClick={updateAffiliateLinks}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Update Links
-            </button>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : (
+              <>
+                <div>
+                  <label className="block">Your Website:</label>
+                  <input
+                    type="text"
+                    className="mt-1 block w-full border border-gray-300 rounded px-4 py-2"
+                    value={links.website}
+                    onChange={(e) =>
+                      setLinks({ ...links, website: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block">Affiliate Code:</label>
+                  <input
+                    type="text"
+                    className="mt-1 block w-full border border-gray-300 rounded px-4 py-2"
+                    value={links.code}
+                    onChange={(e) =>
+                      setLinks({ ...links, code: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block">Destination URL:</label>
+                  <input
+                    type="text"
+                    className="mt-1 block w-full border border-gray-300 rounded px-4 py-2"
+                    value={links.destinationUrl}
+                    onChange={(e) =>
+                      setLinks({ ...links, destinationUrl: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block">Tracking Link:</label>
+                  <a
+                    href="#"
+                    onClick={handleLinkClick}
+                    className="text-blue-600 underline break-all"
+                  >
+                    {links.trackingLink}
+                  </a>
+                </div>
+                <div>
+                  <label className="block">Total Visits:</label>
+                  <p className="text-lg font-medium">{links.visitCount}</p>
+                </div>
+                <button
+                  onClick={save}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Save & Generate Link
+                </button>
+              </>
+            )}
           </div>
         );
 
@@ -211,6 +293,7 @@ export default function AffiliateDashboard() {
                       <td className="p-2 border">{visit.landing_url}</td>
                       <td className="p-2 border">
                         {new Date(visit.date).toLocaleString()}
+
                       </td>
                     </tr>
                   ))}
@@ -235,48 +318,47 @@ export default function AffiliateDashboard() {
             </div>
             <button
               onClick={updatePaymentEmail}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             >
-              Update Email
+              Save Payment Email
             </button>
           </div>
         );
 
       default:
-        return (
-          <div className="text-gray-500">
-            This section is under construction.
-          </div>
-        );
+        return <div>Select a tab to view content.</div>;
     }
   };
 
-  const navItems = [
-    { label: "Dashboard", value: "dashboard" },
-    { label: "Affiliate Links", value: "affiliate-links" },
-    { label: "Visits", value: "visits" },
-    { label: "Creatives", value: "creatives" },
-    { label: "Payouts", value: "payouts" },
-    { label: "Settings", value: "settings" },
-  ];
-
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Affiliate Panel</h1>
-      <div className="flex space-x-6 border-b mb-6 pb-2 text-gray-600">
-        {navItems.map((item) => (
-          <button
-            key={item.value}
-            onClick={() => setTab(item.value)}
-            className={`hover:text-black font-medium ${
-              tab === item.value ? "border-b-2 border-black text-black" : ""
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+    <div className="flex">
+      <div className="w-1/4 bg-gray-100 p-6 space-y-4">
+        <button
+          className="w-full py-2 px-4 text-left"
+          onClick={() => setTab("dashboard")}
+        >
+          Dashboard
+        </button>
+        <button
+          className="w-full py-2 px-4 text-left"
+          onClick={() => setTab("affiliate-links")}
+        >
+          Affiliate Links
+        </button>
+        <button
+          className="w-full py-2 px-4 text-left"
+          onClick={() => setTab("visits")}
+        >
+          Visits
+        </button>
+        <button
+          className="w-full py-2 px-4 text-left"
+          onClick={() => setTab("settings")}
+        >
+          Settings
+        </button>
       </div>
-      {renderContent()}
+      <div className="w-3/4 p-6">{renderContent()}</div>
     </div>
   );
 }

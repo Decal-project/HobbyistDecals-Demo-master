@@ -1,8 +1,22 @@
+// src/app/api/affiliate/links/[id]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
-  const userId = context.params.id;
+// Helper to extract ID from dynamic route
+const getIdFromRequest = (request: NextRequest): string | null => {
+  const url = request.nextUrl;
+  const pathnameParts = url.pathname.split("/");
+  const id = pathnameParts[pathnameParts.length - 1];
+  return id || null;
+};
+
+export async function GET(request: NextRequest) {
+  const userId = getIdFromRequest(request);
+
+  if (!userId) {
+    return NextResponse.json({ error: "User ID not provided" }, { status: 400 });
+  }
 
   try {
     const { rows } = await pool.query(
@@ -37,18 +51,25 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function POST(request: NextRequest, context: { params: { id: string } }) {
-  const userId = context.params.id;
-  const { destinationUrl, code } = await request.json();
+export async function POST(request: NextRequest) {
+  const userId = getIdFromRequest(request);
 
-  if (!destinationUrl || !code) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  if (!userId) {
+    return NextResponse.json({ error: "User ID not provided" }, { status: 400 });
   }
 
-  const baseWebsite = "https://hobbyist-decals.vercel.app";
-  const trackingLink = `${baseWebsite}/api/affiliate/track/${encodeURIComponent(code)}?redirect=${encodeURIComponent(destinationUrl)}`;
-
   try {
+    const { destinationUrl, code } = await request.json();
+
+    if (!destinationUrl || !code) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    const baseWebsite = "https://hobbyist-decals.vercel.app";
+    const trackingLink = `${baseWebsite}/api/affiliate/track/${encodeURIComponent(
+      code
+    )}?redirect=${encodeURIComponent(destinationUrl)}`;
+
     await pool.query(
       `
       INSERT INTO affiliate_links (user_id, website, destination_url, code, tracking_link)

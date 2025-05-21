@@ -42,6 +42,18 @@ const BlogsPage = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = blogs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
   if (loading) {
     return <div className="p-6 text-lg text-center">Loading blogs...</div>;
   }
@@ -54,7 +66,10 @@ const BlogsPage = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {currentItems.map((blog) => (
-          <div key={blog.id} className="bg-gray-50 rounded-lg overflow-hidden shadow-sm flex flex-col">
+          <div
+            key={blog.id}
+            className="bg-gray-50 rounded-lg overflow-hidden shadow-sm flex flex-col"
+          >
             <div className="h-40 w-full overflow-hidden">
               <img
                 src={blog.cover_image_url || "/blog-placeholder.jpg"}
@@ -63,7 +78,9 @@ const BlogsPage = () => {
               />
             </div>
             <div className="p-4 flex flex-col flex-grow">
-              <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{blog.title}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+                {blog.title}
+              </h3>
               <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -95,6 +112,29 @@ const BlogsPage = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-8 gap-4">
+          <button
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -22,7 +22,7 @@ const BlogsSection = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const res = await fetch("/api/blogs");
+        const res = await fetch("/api/public-blogs");
         const data = await res.json();
         setBlogs(data.slice(0, 6)); // latest 6
       } catch (error) {
@@ -42,7 +42,7 @@ const BlogsSection = () => {
     <div className="w-full max-w-7xl bg-white rounded-lg p-4 shadow-md mx-auto mt-8">
       <div className="flex justify-between items-center mb-4 border-b pb-2">
         <h2 className="text-xl font-bold text-gray-800">
-          Explore Our Latest Blogs – Tips, Stories & Updates
+          Explore Our Latest Blogs 
         </h2>
         <span
           onClick={handleViewMoreClick}
@@ -64,7 +64,27 @@ const BlogsSection = () => {
             </div>
             <div className="p-4 flex flex-col flex-grow">
               <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{blog.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">By {blog.author_name} • {new Date(blog.published_at).toLocaleDateString()}</p>
+              <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"
+                  />
+                </svg>
+                {new Date(blog.published_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
               <div className="flex-grow"></div>
               <Link href={`/blogs/${blog.id}`}>
                 <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">

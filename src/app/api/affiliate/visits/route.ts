@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET(req: Request) {
+type VisitRow = {
+  landing_url: string;
+  visited_at: string | Date;
+};
+
+export async function GET() {
   try {
     const userId = 1;
 
@@ -13,9 +18,9 @@ export async function GET(req: Request) {
       [userId]
     );
 
-    const visits = result.rows.map((row: any) => ({
+    const visits = result.rows.map((row: VisitRow) => ({
       landing_url: row.landing_url,
-      date: new Date(row.visited_at).toISOString(), // ✅ Fix timestamp format
+      date: new Date(row.visited_at).toISOString(),
     }));
 
     return NextResponse.json(visits);

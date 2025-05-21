@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { Pool } from "pg";
 import { writeFile } from "fs/promises";
 import path from "path";
@@ -6,11 +6,14 @@ import { randomUUID } from "crypto";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const id = params.id;
+// Utility to extract blog ID from pathname
+const getIdFromUrl = (req: NextRequest): string => {
+  const segments = req.nextUrl.pathname.split("/");
+  return segments[segments.length - 1];
+};
+
+export async function PUT(req: NextRequest) {
+  const id = getIdFromUrl(req);
   const formData = await req.formData();
 
   const title = formData.get("title") as string;
@@ -34,19 +37,20 @@ export async function PUT(
 
   try {
     const client = await pool.connect();
+
     const query = `
       UPDATE blogs SET
         title = $1,
         content = $2,
         author_name = $3,
-        ${cover_image_url ? `cover_image_url = '${cover_image_url}',` : ""}
         category_name = $4,
         status = $5,
         published_at = $6
+        ${cover_image_url ? `, cover_image_url = $8` : ""}
       WHERE id = $7
     `;
 
-    await client.query(query, [
+    const values = [
       title,
       content,
       author_name,
@@ -54,9 +58,13 @@ export async function PUT(
       status,
       published_at,
       id,
-    ]);
+    ];
 
+    if (cover_image_url) values.push(cover_image_url);
+
+    await client.query(query, values);
     client.release();
+
     return NextResponse.json({ message: "Blog updated successfully" });
   } catch (error) {
     console.error("Error updating blog:", error);
@@ -64,11 +72,9 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function DELETE(req: NextRequest) {
+  const id = getIdFromUrl(req);
+
   try {
     const client = await pool.connect();
     await client.query("DELETE FROM blogs WHERE id = $1", [id]);

@@ -1,20 +1,21 @@
-import { NextResponse } from "next/server";
-import { Pool } from "pg";
+import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { Pool } from 'pg';
 
-// Setup PostgreSQL connection
+// PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Correct type signature for dynamic route handler in App Router
+// ✅ Correct dynamic route handler for Next.js App Router
 export async function GET(
-  request: Request,
-  context: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Record<string, string> }
 ) {
-  const blogId = Number(context.params.id);
+  const id = parseInt(params.id);
 
-  if (isNaN(blogId)) {
-    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+  if (isNaN(id)) {
+    return NextResponse.json({ error: 'Invalid blog ID' }, { status: 400 });
   }
 
   try {
@@ -35,16 +36,16 @@ export async function GET(
       LIMIT 1;
     `;
 
-    const result = await client.query(query, [blogId]);
+    const result = await client.query(query, [id]);
     client.release();
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
     }
 
-    return NextResponse.json(result.rows[0]);
+    return NextResponse.json(result.rows[0], { status: 200 });
   } catch (error) {
-    console.error("Error fetching blog:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('Error fetching blog:', error);
+    return NextResponse.json({ error: 'Failed to fetch blog' }, { status: 500 });
   }
 }

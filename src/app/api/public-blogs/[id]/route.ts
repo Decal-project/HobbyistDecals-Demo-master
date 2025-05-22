@@ -1,19 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { Pool } from "pg";
 
-// Configure PostgreSQL connection
+// PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// ✅ Correct App Router API signature
+// ✅ Use `context: { params: { id: string } }` with the correct structure
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const id = Number(params.id);
+  const { id } = context.params;
+  const blogId = Number(id);
 
-  if (isNaN(id)) {
+  if (isNaN(blogId)) {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
   }
 
@@ -35,7 +37,7 @@ export async function GET(
       LIMIT 1;
     `;
 
-    const result = await client.query(query, [id]);
+    const result = await client.query(query, [blogId]);
     client.release();
 
     if (result.rows.length === 0) {
@@ -45,9 +47,6 @@ export async function GET(
     return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error("Error fetching blog:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch blog" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

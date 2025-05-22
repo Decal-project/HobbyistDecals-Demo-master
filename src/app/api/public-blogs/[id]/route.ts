@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 
+// Configure your database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
@@ -9,8 +10,7 @@ export async function GET(
   req: NextRequest,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params;
-  const blogId = Number(id);
+  const blogId = Number(context.params.id);
 
   if (isNaN(blogId)) {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
@@ -42,7 +42,7 @@ export async function GET(
     }
 
     return NextResponse.json(result.rows[0]);
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error fetching blog:", error);
     return NextResponse.json(
       { error: "Failed to fetch blog" },

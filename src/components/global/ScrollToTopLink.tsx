@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 type Props = {
@@ -10,7 +10,6 @@ type Props = {
 };
 
 export default function ScrollToTopLink({ href, children, className }: Props) {
-  const router = useRouter();
   const pathname = usePathname();
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {

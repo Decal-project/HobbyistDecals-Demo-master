@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
 import { Pool } from 'pg';
 
-// PostgreSQL connection pool
+// Initialize the PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// ✅ Correct dynamic route handler for Next.js App Router
+// This is the correct way to type the GET handler for a dynamic route
 export async function GET(
-  req: NextRequest,
-  { params }: { params: Record<string, string> }
+  req: Request,
+  context: { params: { id: string } }
 ) {
-  const id = parseInt(params.id);
+  const { id } = context.params;
+  const blogId = parseInt(id, 10);
 
-  if (isNaN(id)) {
+  if (isNaN(blogId)) {
     return NextResponse.json({ error: 'Invalid blog ID' }, { status: 400 });
   }
 
@@ -36,7 +36,7 @@ export async function GET(
       LIMIT 1;
     `;
 
-    const result = await client.query(query, [id]);
+    const result = await client.query(query, [blogId]);
     client.release();
 
     if (result.rows.length === 0) {

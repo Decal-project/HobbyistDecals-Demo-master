@@ -7,6 +7,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PinterestIcon from "@mui/icons-material/Pinterest";
 import Link from "next/link";
+import ScrollToTopLink from "@/components/global/ScrollToTopLink";
 
 const FooterComponent = () => {
   const [email, setEmail] = useState("");
@@ -65,13 +66,13 @@ const FooterComponent = () => {
             <h2 className="uppercase text-base text-white font-semibold">Resources</h2>
             <div className="flex flex-col items-start justify-center gap-4">
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/blogs" >Blogs</Link>
+                <ScrollToTopLink href="/blogs">Blogs</ScrollToTopLink>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/decal-shop" >Shop</Link>
+                <ScrollToTopLink href="/decal-shop">Shop</ScrollToTopLink>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/contact-us" >Contact Us</Link>
+                <ScrollToTopLink href="/contact-us">Contact Us</ScrollToTopLink>
               </p>
             </div>
           </div>

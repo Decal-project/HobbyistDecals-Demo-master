@@ -46,16 +46,16 @@ const FooterComponent = () => {
             <h2 className="uppercase text-base text-white font-semibold">About Us</h2>
             <div className="flex flex-col items-start justify-center gap-4">
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/hobbyist-decals" legacyBehavior>HobbyistDecals</Link>
+                <Link href="/hobbyist-decals" >HobbyistDecals</Link>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/our-gallery" legacyBehavior>Our Gallery</Link>
+                <Link href="/our-gallery" >Our Gallery</Link>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-media" legacyBehavior>Our Media</Link>
+                <Link href="/about-us/our-media" >Our Media</Link>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/faq" legacyBehavior>FAQ</Link>
+                <Link href="/about-us/faq" >FAQ</Link>
               </p>
             </div>
           </div>
@@ -64,12 +64,14 @@ const FooterComponent = () => {
           <div className="flex-1 flex flex-col items-start justify-center gap-6">
             <h2 className="uppercase text-base text-white font-semibold">Resources</h2>
             <div className="flex flex-col items-start justify-center gap-4">
-              <p className="capitalize text-white text-base text-nowrap">Blogs</p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/decal-shop" legacyBehavior>Shop</Link>
+                <Link href="/blogs" >Blogs</Link>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/contact-us" legacyBehavior>Contact Us</Link>
+                <Link href="/decal-shop" >Shop</Link>
+              </p>
+              <p className="capitalize text-white text-base text-nowrap">
+                <Link href="/contact-us" >Contact Us</Link>
               </p>
             </div>
           </div>
@@ -79,16 +81,16 @@ const FooterComponent = () => {
             <h2 className="uppercase text-base text-white font-semibold">Our Policy</h2>
             <div className="flex flex-col items-start justify-center gap-4">
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/shipping" legacyBehavior>Shipping Policy</Link>
+                <Link href="/about-us/our-policies/shipping" >Shipping Policy</Link>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/replacement" legacyBehavior>Replacement Policy</Link>
+                <Link href="/about-us/our-policies/replacement" >Replacement Policy</Link>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/gdpr" legacyBehavior>GDPR policy</Link>
+                <Link href="/about-us/our-policies/gdpr" >GDPR policy</Link>
               </p>
               <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/terms-and-conditions" legacyBehavior>Terms and Conditions</Link>
+                <Link href="/about-us/our-policies/terms-and-conditions" >Terms and Conditions</Link>
               </p>
             </div>
           </div>

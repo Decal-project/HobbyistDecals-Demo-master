@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { Pool } from "pg";
 
-// PostgreSQL connection pool
+// Setup PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// ✅ Use `context: { params: { id: string } }` with the correct structure
+// Correct type signature for dynamic route handler in App Router
 export async function GET(
-  _req: NextRequest,
+  request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params;
-  const blogId = Number(id);
+  const blogId = Number(context.params.id);
 
   if (isNaN(blogId)) {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });

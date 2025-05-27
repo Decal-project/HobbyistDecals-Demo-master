@@ -32,14 +32,15 @@ const SearchPage = () => {
         setLoading(true);
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: 'Unknown API error' }));
+          const errorData = await res.json().catch(() => ({ message: "Unknown API error" }));
           throw new Error(`HTTP error! status: ${res.status}, Message: ${errorData.error || errorData.message}`);
         }
         const data = await res.json();
         setResults(Array.isArray(data.results) ? data.results : []);
-      } catch (err: any) {
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
         console.error("Error fetching search results:", err);
-        setError(`Failed to load search results: ${err.message || 'Please try again.'}`);
+        setError(`Failed to load search results: ${errorMessage}`);
         setResults([]);
       } finally {
         setLoading(false);
@@ -51,13 +52,17 @@ const SearchPage = () => {
 
   return (
     <div className="p-4 container mx-auto">
-      <h1 className="text-2xl font-semibold mb-4 text-center">Search Results for "{query}"</h1>
+      <h1 className="text-2xl font-semibold mb-4 text-center">
+        Search Results for &quot;{query}&quot;
+      </h1>
 
       {loading && <p className="text-center text-gray-500">Loading...</p>}
       {error && <p className="text-center text-red-600">{error}</p>}
 
       {!loading && !error && results.length === 0 && (
-        <p className="text-center text-gray-500">No results found for "{query}".</p>
+        <p className="text-center text-gray-500">
+          No results found for &quot;{query}&quot;.
+        </p>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
@@ -65,10 +70,12 @@ const SearchPage = () => {
           <div key={product.id} className="border p-4 rounded-xl text-center">
             {product.image_url ? (
               <Image
-                src={product.image_url.startsWith('http') || product.image_url.startsWith('/')
-                  ? product.image_url
-                  : `/images/${product.image_url}`}
-                alt={product.name || 'Product Image'}
+                src={
+                  product.image_url.startsWith("http") || product.image_url.startsWith("/")
+                    ? product.image_url
+                    : `/images/${product.image_url}`
+                }
+                alt={product.name || "Product Image"}
                 width={300}
                 height={200}
                 className="w-full h-48 object-cover rounded-lg"
@@ -89,7 +96,6 @@ const SearchPage = () => {
               <p className="text-gray-500 font-bold mt-1">$NaN</p>
             )}
 
-            {/* ✅ SELECT OPTIONS link fixed to match ShopPage */}
             <Link href={`/details/${encodeURIComponent(product.name)}`}>
               <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
                 SELECT OPTIONS

@@ -139,6 +139,13 @@ const FooterComponent = () => {
               <a href="https://x.com/HobbyistDecals" target="_blank" rel="noopener noreferrer">
                 <XIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
               </a>
+              <a href="#" target="_blank" rel="noopener noreferrer">
+                <img
+                  src="/images/visa-icon.png"
+                  alt="Visa"
+                  className="w-[40px] h-[30px] object-contain hover:opacity-80 bg-white rounded p-1"
+                />
+              </a>
             </div>
           </div>
         </div>

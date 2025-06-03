@@ -33,14 +33,21 @@ const SearchClient = () => {
         setLoading(true);
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: 'Unknown API error' }));
+          const errorData = await res.json().catch(() => ({ message: "Unknown API error" }));
           throw new Error(`HTTP error! status: ${res.status}, Message: ${errorData.error || errorData.message}`);
         }
+
         const data = await res.json();
         setResults(Array.isArray(data.results) ? data.results : []);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching search results:", err);
-        setError(`Failed to load search results: ${err.message || 'Please try again.'}`);
+
+        if (err instanceof Error) {
+          setError(`Failed to load search results: ${err.message}`);
+        } else {
+          setError("Failed to load search results. Please try again.");
+        }
+
         setResults([]);
       } finally {
         setLoading(false);

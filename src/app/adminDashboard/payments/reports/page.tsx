@@ -15,8 +15,18 @@ import Link from 'next/link';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+// ✅ Define a type for a transaction
+interface Transaction {
+  id: number;
+  total_amount: string;
+  payment_method: string;
+  created_at: string;
+  weekday: string;
+  month: string;
+}
+
 export default function TransactionReportPage() {
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]); // ✅ Use typed state
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,7 +51,6 @@ export default function TransactionReportPage() {
     revenueByMonth[month] = (revenueByMonth[month] || 0) + parseFloat(tx.total_amount);
   });
 
-  // Sidebar options
   const sidebarOptions = [
     { label: '📊 View Transaction History', href: '/adminDashboard/payments/history' },
     { label: '⚠️ Failed Transactions', href: '/adminDashboard/payments/failed' },

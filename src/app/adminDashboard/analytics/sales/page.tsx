@@ -16,8 +16,18 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
+// Define TypeScript interfaces for API data
+interface AnalyticsData {
+  totalOrders: number;
+  totalRevenue: number;
+  totalItemsSold: number;
+  avgOrderValue: number;
+  salesByDate: Record<string, number>;
+  salesByPaymentMethod: Record<string, number>;
+}
+
 export default function SalesAnalyticsPage() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AnalyticsData | null>(null);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -48,9 +58,9 @@ export default function SalesAnalyticsPage() {
         {/* Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard title="Total Orders" value={data.totalOrders} />
-          <StatCard title="Total Revenue" value={`$${data.totalRevenue.toFixed(2)}`} />
+          <StatCard title="Total Revenue" value={`₹${data.totalRevenue.toFixed(2)} L`} />
           <StatCard title="Items Sold" value={data.totalItemsSold} />
-          <StatCard title="Avg. Order Value" value={`$${data.avgOrderValue.toFixed(2)}`} />
+          <StatCard title="Avg. Order Value" value={`₹${data.avgOrderValue.toFixed(2)}`} />
         </div>
 
         {/* Sales by Date (Line Chart) */}
@@ -93,6 +103,7 @@ export default function SalesAnalyticsPage() {
   );
 }
 
+// Stat Card Component
 function StatCard({ title, value }: { title: string; value: string | number }) {
   return (
     <div className="bg-white p-4 rounded shadow text-center">
@@ -102,6 +113,7 @@ function StatCard({ title, value }: { title: string; value: string | number }) {
   );
 }
 
+// Sidebar Component
 function Sidebar({
   title,
   options,

@@ -50,6 +50,7 @@
     "react-select": "^5.10.1",
     "react-slick": "^0.30.3",
     "request": "^2.88.2",
+    "resend": "^4.5.1",
     "slick-carousel": "^1.8.1",
     "stream-web": "^0.5.2",
     "stripe": "^18.1.0",

@@ -23,31 +23,31 @@ export default function AdminDashboard() {
             📦 Manage Products
           </button>
           <button
-            onClick={() => router.push("/adminDashboard/orders")}
+            onClick={() => router.push("/adminDashboard/orders/all")}
             className="py-3 bg-blue-700 rounded hover:bg-blue-600 transition"
           >
             📑 Manage Orders
           </button>
           <button
-            onClick={() => router.push("/adminDashboard/customers")}
+            onClick={() => router.push("/adminDashboard/customers/list")}
             className="py-3 bg-blue-700 rounded hover:bg-blue-600 transition"
           >
             👥 Customer Management
           </button>
           <button
-            onClick={() => router.push("/adminDashboard/payments")}
+            onClick={() => router.push("/adminDashboard/payments/reports")}
             className="py-3 bg-blue-700 rounded hover:bg-blue-600 transition"
           >
             💳 Payment & Transactions
           </button>
           <button
-            onClick={() => router.push("/adminDashboard/analytics")}
+            onClick={() => router.push("/adminDashboard/analytics/sales")}
             className="py-3 bg-blue-700 rounded hover:bg-blue-600 transition"
           >
             📈 Analytics & Reporting
           </button>
           <button
-            onClick={() => router.push("/adminDashboard/admin-users")}
+            onClick={() => router.push("/adminDashboard/admin-users/reset-password")}
             className="py-3 bg-blue-700 rounded hover:bg-blue-600 transition"
           >
             🔐 Admin User Roles
@@ -80,9 +80,8 @@ export default function AdminDashboard() {
           color="green"
           options={[
             { label: "➕ Add Product", href: "/adminDashboard/add-product" },
-            { label: "🛠️ Edit Product", href: "/adminDashboard/edit-product" },
-            { label: "🗑️ Delete Product", href: "/adminDashboard/delete-product" },
-            { label: "📋 View All Products", href: "/adminDashboard/view-products" },
+            { label: "🛠️ Edit Product", href: "/adminDashboard/add-product/edit" },
+            { label: "📋 View All Products", href: "/adminDashboard/add-product/list" },
           ]}
         />
         <DashboardCard
@@ -110,7 +109,7 @@ export default function AdminDashboard() {
           options={[
             { label: "📊 View Transaction History", href: "/adminDashboard/payments/history" },
             { label: "⚠️ Failed Transactions", href: "/adminDashboard/payments/failed" },
-            { label: "📈 Generate Sales Reports", href: "/adminDashboard/payments/reports" },
+            { label: "📈 Transaction Reports", href: "/adminDashboard/payments/reports" },
           ]}
         />
         <DashboardCard

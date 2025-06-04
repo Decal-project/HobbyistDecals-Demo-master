@@ -2,18 +2,43 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react"; // 👈 import icons
+import { Eye, EyeOff } from "lucide-react";
 
 const UserLoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // 👈 show/hide password state
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Logging in with email: ${email}`);
-    // Replace this with actual login logic (API call or authentication)
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+     if (res.ok) {
+  alert("Login successful!");
+  router.push("/profile"); // Redirect to profile page
+}
+ else {
+        alert(data.error || "Login failed");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,9 +82,10 @@ const UserLoginPage = () => {
 
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-[#16689A] text-white py-2 px-4 rounded-md hover:bg-[#12557F] transition-colors"
           >
-            Log In
+            {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
 

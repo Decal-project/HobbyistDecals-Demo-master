@@ -29,10 +29,13 @@ export async function POST(req: NextRequest) {
       { message: "User created successfully", user: result.rows[0] },
       { status: 201 }
     );
-  } catch (err: any) {
-    console.error("Signup error:", err);
+  } catch (err: unknown) {
+    // ✅ Type-safe error handling
+    const error = err instanceof Error ? err : new Error("Unknown error occurred");
+    console.error("Signup error:", error);
+
     return NextResponse.json(
-      { error: "Something went wrong", details: err.message },
+      { error: "Something went wrong", details: error.message },
       { status: 500 }
     );
   }

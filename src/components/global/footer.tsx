@@ -14,7 +14,6 @@ const FooterComponent = () => {
 
   const handleSubscribe = async () => {
     try {
-      console.log("Submitting email:", email); // Log the email being sent
       const res = await fetch("/api/subscribers", {
         method: "POST",
         headers: {
@@ -25,9 +24,9 @@ const FooterComponent = () => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-      
+
       setMessage(data.message);
-      setEmail(""); // Reset email field after submission
+      setEmail("");
     } catch (error: unknown) {
       if (error instanceof Error) {
         setMessage(error.message || "Something went wrong. Try again later.");
@@ -39,24 +38,16 @@ const FooterComponent = () => {
 
   return (
     <div className="min-h-min w-full flex items-center justify-center pb-1 pt-10 bg-black">
-      <div className="w-[90%] flex flex-col items-center justify-center gap-12">
-        <div className="w-full flex flex-row items-start justify-between gap-8">
+      <div className="w-[90%] flex flex-col items-center justify-center gap-4">
+        <div className="w-full flex flex-col lg:flex-row items-start justify-between gap-8">
           {/* About Us */}
           <div className="flex-1 flex flex-col items-start justify-center gap-6">
             <h2 className="uppercase text-base text-white font-semibold">About Us</h2>
             <div className="flex flex-col items-start justify-center gap-4">
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/hobbyist-decals" >HobbyistDecals</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/our-gallery" >Our Gallery</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-media" >Our Media</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/faq" >FAQ</Link>
-              </p>
+              <Link href="/hobbyist-decals" className="capitalize text-white text-base">HobbyistDecals</Link>
+              <Link href="/our-gallery" className="capitalize text-white text-base">Our Gallery</Link>
+              <Link href="/about-us/our-media" className="capitalize text-white text-base">Our Media</Link>
+              <Link href="/about-us/faq" className="capitalize text-white text-base">FAQ</Link>
             </div>
           </div>
 
@@ -64,15 +55,16 @@ const FooterComponent = () => {
           <div className="flex-1 flex flex-col items-start justify-center gap-6">
             <h2 className="uppercase text-base text-white font-semibold">Resources</h2>
             <div className="flex flex-col items-start justify-center gap-4">
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/blogs" >Blogs</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/decal-shop" >Shop</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/contact-us" >Contact Us</Link>
-              </p>
+              <Link href="/blogs" className="capitalize text-white text-base">Blogs</Link>
+              <Link href="/decal-shop" className="capitalize text-white text-base">Shop</Link>
+              <Link href="/contact-us" className="capitalize text-white text-base">Contact Us</Link>
+              <Link href="/contact-us" className="capitalize text-white text-base">Contact Us</Link>
+<Link
+  href="/feedback"
+  className="capitalize text-white text-base bg-[#16689A] px-3 py-1.5 rounded-md hover:bg-[#0f4d73] transition-colors text-center text-white font-medium"
+>
+  Write a Review
+</Link>
             </div>
           </div>
 
@@ -80,27 +72,17 @@ const FooterComponent = () => {
           <div className="flex-1 flex flex-col items-start justify-center gap-6">
             <h2 className="uppercase text-base text-white font-semibold">Our Policy</h2>
             <div className="flex flex-col items-start justify-center gap-4">
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/shipping" >Shipping Policy</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/replacement" >Replacement Policy</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/gdpr" >GDPR policy</Link>
-              </p>
-              <p className="capitalize text-white text-base text-nowrap">
-                <Link href="/about-us/our-policies/terms-and-conditions" >Terms and Conditions</Link>
-              </p>
+              <Link href="/about-us/our-policies/shipping" className="capitalize text-white text-base">Shipping Policy</Link>
+              <Link href="/about-us/our-policies/replacement" className="capitalize text-white text-base">Replacement Policy</Link>
+              <Link href="/about-us/our-policies/gdpr" className="capitalize text-white text-base">GDPR Policy</Link>
+              <Link href="/about-us/our-policies/terms-and-conditions" className="capitalize text-white text-base">Terms and Conditions</Link>
             </div>
           </div>
 
           {/* Newsletter */}
           <div className="flex-1 flex flex-col items-center justify-center gap-8">
             <div className="w-full flex flex-col items-center justify-center gap-4">
-              <h2 className="w-full uppercase text-white font-semibold text-base text-start text-nowrap">
-                Get 10% off your first purchase!
-              </h2>
+              <h2 className="w-full uppercase text-white font-semibold text-base text-start">Get 10% off your first purchase!</h2>
               <p className="text-white text-base leading-7 text-wrap">
                 Special offers for subscribers. Don&apos;t miss out on exclusive deals.
               </p>
@@ -121,50 +103,54 @@ const FooterComponent = () => {
               </button>
               {message && <p className="text-white text-sm mt-2 text-center">{message}</p>}
             </div>
+          </div>
+        </div>
 
-            {/* Social Icons */}
-            <div className="w-full flex flex-row items-center justify-center gap-3">
-              <a href="https://www.facebook.com/HobbyistDecal/" target="_blank" rel="noopener noreferrer">
-                <FacebookOutlinedIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
-              </a>
-              <a href="https://www.instagram.com/hobbyist_decals_shop/" target="_blank" rel="noopener noreferrer">
-                <InstagramIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
-              </a>
-              <a href="https://api.whatsapp.com/send/?phone=919137320348" target="_blank" rel="noopener noreferrer">
-                <WhatsAppIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
-              </a>
-              <a href="https://in.pinterest.com/hobbyist_decals/" target="_blank" rel="noopener noreferrer">
-                <PinterestIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
-              </a>
-              <a href="https://x.com/HobbyistDecals" target="_blank" rel="noopener noreferrer">
-                <XIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
-              </a>
-              <a href="#" target="_blank" rel="noopener noreferrer">
-                <img
-                  src="/images/visa-icon.png"
-                  alt="Visa"
-                  className="w-[40px] h-[30px] object-contain hover:opacity-80 bg-white rounded p-1"
-                />
-              </a>
+        {/* Payment Options & Social Icons Row */}
+        <div className="w-full flex flex-col md:flex-row items-center justify-between">
+          {/* Payment Options */}
+          <div className="flex flex-col items-start">
+            <h2 className="uppercase text-sm text-white font-semibold mb-2">Payment Options</h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <img src="/images/visa-icon.png" alt="Visa" className="w-14 h-8 object-contain bg-white rounded" />
+              <img src="/images/mastercard-icon.png" alt="Mastercard" className="w-14 h-8 object-contain bg-white rounded" />
+              <img src="/images/paypal-icon.png" alt="PayPal" className="w-14 h-8 object-contain bg-white rounded p-0.5" />
+              <img src="/images/googlepay-icon.png" alt="GPay" className="w-14 h-8 object-contain bg-white rounded" />
+              <img src="/images/applepay-icon.png" alt="ApplePay" className="w-14 h-8 object-contain bg-white rounded" />
+              <img src="/images/stripe-icon.png" alt="Stripe" className="w-14 h-8 object-contain bg-white rounded" />
             </div>
+          </div>
+
+          {/* Social Icons */}
+          <div className="flex items-center gap-4">
+            <a href="https://www.facebook.com/HobbyistDecal/" target="_blank" rel="noopener noreferrer">
+              <FacebookOutlinedIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+            </a>
+            <a href="https://www.instagram.com/hobbyist_decals_shop/" target="_blank" rel="noopener noreferrer">
+              <InstagramIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+            </a>
+            <a href="https://api.whatsapp.com/send/?phone=919137320348" target="_blank" rel="noopener noreferrer">
+              <WhatsAppIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+            </a>
+            <a href="https://in.pinterest.com/hobbyist_decals/" target="_blank" rel="noopener noreferrer">
+              <PinterestIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+            </a>
+            <a href="https://x.com/HobbyistDecals" target="_blank" rel="noopener noreferrer">
+              <XIcon className="text-white !w-[30px] !h-[30px] hover:text-blue" />
+            </a>
           </div>
         </div>
 
         {/* Footer Bottom */}
         <div className="w-full flex flex-col items-center justify-center gap-1">
           <div className="w-full h-[0.5px] bg-border"></div>
-          <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-12">
+          <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-4 pt-2">
             <p className="text-center lg:text-start text-base text-white">
               &copy; 2024 Hobbyist Decals. All rights reserved.
             </p>
             <p className="text-center lg:text-end text-white">
               Powered by{" "}
-              <Link
-                href="https://nexainnov.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
+              <Link href="https://nexainnov.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
                 NexaInnov Solutions
               </Link>
             </p>

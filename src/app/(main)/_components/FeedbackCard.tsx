@@ -7,7 +7,7 @@ type Feedback = {
   client_name: string;
   rating: number;
   review: string;
-  scale_model_images: string[] | null; // updated to array of strings
+  scale_model_images: string[] | null;
 };
 
 const FeedbackCard = () => {
@@ -92,7 +92,9 @@ const FeedbackCard = () => {
                 <div className="text-yellow-500 text-lg mb-2">
                   {'★'.repeat(item.rating)}{'☆'.repeat(5 - item.rating)}
                 </div>
-                <p className="text-gray-600 italic">"{item.review}"</p>
+                <p className="text-gray-600 italic">
+                  &ldquo;{item.review}&rdquo;
+                </p>
               </div>
             );
           })}

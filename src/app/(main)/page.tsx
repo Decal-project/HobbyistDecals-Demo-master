@@ -5,9 +5,10 @@ import UserBenefitsComponent from "@/components/global/user-benefits";
 import DecalListCarousalComponent from "@/components/global/decals-list-carousal";
 import { categoriesList } from "@/lib/constants";
 import BlogsComponent from "./_components/blogs";
-import YettoComponent from "./_components/yet-to";
 import NewArrivalsSection from "./_components/new-arrivals"; 
 import TopPicksComponent from "./_components/top-picks";
+import CustomDecal from "./_components/custom-decal";
+import PreOrders from "./_components/pre-orders";
 
 export default function Home() {
   return (
@@ -27,7 +28,10 @@ export default function Home() {
 
       <TopPicksComponent />
 
-      <YettoComponent />
+      <CustomDecal />
+
+      <PreOrders />
+
       <BlogsComponent />
     </div>
   );

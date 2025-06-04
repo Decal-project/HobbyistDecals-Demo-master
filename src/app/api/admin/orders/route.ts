@@ -1,9 +1,49 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+// Define a type for each row returned from the SQL query
+interface OrderItemRow {
+  order_id: number;
+  billing_first_name: string;
+  billing_last_name: string;
+  total_amount: number;
+  created_at: string;
+  billing_country: string;
+  billing_street_address: string;
+  billing_city: string;
+  billing_state: string;
+  billing_postal_code: string;
+  billing_phone: string;
+  item_id: number;
+  item_name: string;
+  quantity: number;
+  price: number;
+}
+
+interface GroupedOrder {
+  orderId: number;
+  customerName: string;
+  totalAmount: number;
+  createdAt: string;
+  billingAddress: {
+    country: string;
+    streetAddress: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    phone: string;
+  };
+  items: {
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
+  }[];
+}
+
 export async function GET() {
   try {
-    const { rows: orders } = await pool.query(`
+    const { rows: orders } = await pool.query<OrderItemRow>(`
       SELECT 
         o.id AS order_id, 
         o.billing_first_name, 
@@ -25,7 +65,7 @@ export async function GET() {
       ORDER BY o.created_at DESC
     `);
 
-    const groupedOrders: Record<number, any> = {};
+    const groupedOrders: Record<number, GroupedOrder> = {};
 
     for (const row of orders) {
       const {

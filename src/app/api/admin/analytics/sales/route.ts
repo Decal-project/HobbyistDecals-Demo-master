@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import  pool  from '@/lib/db';
+import pool from '@/lib/db';
 
 export async function GET() {
   try {
@@ -28,26 +28,26 @@ export async function GET() {
     // Average Order Value (AOV)
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // Sales by payment method (from checkout_orders)
+    // Sales by payment method
     const { rows: paymentRows } = await client.query(`
       SELECT payment_method, SUM(total_amount) AS total
       FROM checkout_orders
       GROUP BY payment_method
     `);
-    const salesByPaymentMethod = {};
-    paymentRows.forEach(row => {
+    const salesByPaymentMethod: Record<string, number> = {};
+    paymentRows.forEach((row: { payment_method: string; total: string }) => {
       salesByPaymentMethod[row.payment_method] = parseFloat(row.total);
     });
 
-    // Sales by Date (daily from checkout_orders)
+    // Sales by date
     const { rows: dateRows } = await client.query(`
       SELECT TO_CHAR(created_at::date, 'YYYY-MM-DD') AS day, SUM(total_amount) AS total
       FROM checkout_orders
       GROUP BY day
       ORDER BY day ASC
     `);
-    const salesByDate = {};
-    dateRows.forEach(row => {
+    const salesByDate: Record<string, number> = {};
+    dateRows.forEach((row: { day: string; total: string }) => {
       salesByDate[row.day] = parseFloat(row.total);
     });
 

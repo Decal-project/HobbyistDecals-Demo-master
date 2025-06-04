@@ -1,5 +1,8 @@
 'use client';
-import { useEffect, useState } from "react";
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface Order {
   orderId: number;
@@ -22,23 +25,24 @@ interface Order {
   }[];
 }
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
 });
 
 export default function AllOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch("/api/admin/orders");
+        const response = await fetch('/api/admin/orders');
         const data = await response.json();
         setOrders(data);
       } catch (error) {
-        console.error("Failed to fetch orders:", error);
+        console.error('Failed to fetch orders:', error);
       } finally {
         setLoading(false);
       }
@@ -46,6 +50,13 @@ export default function AllOrdersPage() {
 
     fetchOrders();
   }, []);
+
+  const links = [
+    { href: '/adminDashboard/orders/all', label: '📄 View All Orders' },
+    { href: '/adminDashboard/orders/refund', label: '🔄 Refund / Cancel Orders' },
+    { href: '/adminDashboard/orders/track', label: '📦 Track Shipment' },
+    { href: '/adminDashboard/orders/notes', label: '📝 Customer Notes' },
+  ];
 
   return (
     <div className="p-6 max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
@@ -55,18 +66,19 @@ export default function AllOrdersPage() {
           📑 Manage Orders
         </h2>
         <div className="flex flex-col gap-3">
-          <button className="bg-amber-700 hover:bg-amber-800 text-white py-2 px-4 rounded text-left flex items-center gap-2">
-            📄 View All Orders
-          </button>
-          <button className="bg-amber-700 hover:bg-amber-800 text-white py-2 px-4 rounded text-left flex items-center gap-2">
-            🔄 Refund / Cancel Orders
-          </button>
-          <button className="bg-amber-700 hover:bg-amber-800 text-white py-2 px-4 rounded text-left flex items-center gap-2">
-            📦 Track Shipment
-          </button>
-          <button className="bg-amber-700 hover:bg-amber-800 text-white py-2 px-4 rounded text-left flex items-center gap-2">
-            📝 Customer Notes
-          </button>
+          {links.map((link) => (
+            <Link key={link.href} href={link.href}>
+              <button
+                className={`w-full text-left flex items-center gap-2 py-2 px-4 rounded ${
+                  pathname === link.href
+                    ? 'bg-amber-900 text-white'
+                    : 'bg-amber-700 hover:bg-amber-800 text-white'
+                }`}
+              >
+                {link.label}
+              </button>
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -80,12 +92,12 @@ export default function AllOrdersPage() {
           <p>No orders found.</p>
         ) : (
           <div className="overflow-auto rounded shadow">
-            <table className="min-w-full table-auto border-collapse border border-gray-300 bg-white">
+            <table className="min-w-full table-auto border-collapse border border-gray-300 bg-white text-sm">
               <thead className="bg-gray-100 text-left">
                 <tr>
                   <th className="border px-4 py-2">Order ID</th>
                   <th className="border px-4 py-2">Customer</th>
-                  <th className="border px-4 py-2">Total ($)</th>
+                  <th className="border px-4 py-2">Total</th>
                   <th className="border px-4 py-2">Date</th>
                   <th className="border px-4 py-2">Billing Address</th>
                   <th className="border px-4 py-2">Items</th>
@@ -102,7 +114,7 @@ export default function AllOrdersPage() {
                     <td className="border px-4 py-2">
                       {new Date(order.createdAt).toLocaleString()}
                     </td>
-                    <td className="border px-4 py-2 text-sm whitespace-pre-wrap">
+                    <td className="border px-4 py-2 whitespace-pre-wrap">
                       {order.billingAddress.streetAddress}, {order.billingAddress.city},{" "}
                       {order.billingAddress.state} - {order.billingAddress.postalCode},<br />
                       {order.billingAddress.country}<br />
@@ -112,7 +124,8 @@ export default function AllOrdersPage() {
                       <ul className="list-disc ml-4 space-y-1">
                         {order.items.map((item) => (
                           <li key={item.id}>
-                            <span className="font-medium">{item.name}</span> — {item.quantity} × {currencyFormatter.format(item.price)}
+                            <span className="font-medium">{item.name}</span> — {item.quantity} ×{' '}
+                            {currencyFormatter.format(item.price)}
                           </li>
                         ))}
                       </ul>

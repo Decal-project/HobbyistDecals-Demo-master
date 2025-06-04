@@ -31,6 +31,7 @@ const AdminPasswordReset: React.FC = () => {
         setError(data.error || "Failed to reset password");
       }
     } catch (err) {
+      console.error("Password reset error:", err);
       setError("Network error");
     }
   };

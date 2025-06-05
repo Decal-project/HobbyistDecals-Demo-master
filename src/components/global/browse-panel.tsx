@@ -155,17 +155,17 @@ const BrowsePanelComponent = () => {
           </div>
 
           {isCategoriesDropdownOpen && (
-            <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-48 bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-2">
-              <ul className="flex flex-col gap-2">
+            <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-[800px] bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-4">
+              <ul className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {categories.map((category, index) => (
                   <li
                     key={index}
-                    className="px-4 py-2 hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 border-b border-gray-400 last:border-none"
+                    className="hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 rounded px-3 py-2"
                     onClick={() => setIsCategoriesDropdownOpen(false)}
                   >
-                  <Link href={`/category/${category.name}`} className="block w-full h-full">
-                    {category.name}
-                  </Link>
+                    <Link href={`/category/${category.name}`} className="block w-full h-full">
+                              {category.name}
+                            </Link>
                   </li>
                 ))}
               </ul>

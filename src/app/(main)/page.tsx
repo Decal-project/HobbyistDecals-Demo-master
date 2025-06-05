@@ -19,7 +19,7 @@ export default function Home() {
       <UserBenefitsComponent />
 
       <DecalListCarousalComponent
-        title="explore our wide range of high-quality decal categories"
+        title="explore wide range of high-quality decal categories"
         list={categoriesList}
       />
 

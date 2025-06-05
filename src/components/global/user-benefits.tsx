@@ -34,7 +34,7 @@ const UserBenefitsComponent = () => {
         />
         <div className="flex flex-col items-start justify-center gap-1">
           <h2 className="text-sm uppercase text-nowrap text-black">
-            hd printing (1200 to 1440 DPI)
+            hd printing (1440 to 720 DPI)
           </h2>
           <p className="text-sm text-grey">(CMYKLcLm + Metallic + White)</p>
         </div>

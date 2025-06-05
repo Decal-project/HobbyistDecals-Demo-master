@@ -52,7 +52,7 @@ const FeedbackCard = () => {
 
   return (
     <div className="w-full py-8">
-      <h2 className="text-2xl font-bold text-center mb-6">What Our Clients Say</h2>
+      <h2 className="text-2xl font-bold text-center mb-6">What Clients Say</h2>
       <div className="relative">
         <button
           onClick={() => scroll('left')}

@@ -42,7 +42,7 @@ const BlogsSection = () => {
     <div className="w-full max-w-7xl bg-white rounded-lg p-4 shadow-md mx-auto mt-8">
       <div className="flex justify-between items-center mb-4 border-b pb-2">
         <h2 className="text-xl font-bold text-gray-800">
-          Explore Our Latest Blogs 
+          Explore Latest Blogs 
         </h2>
         <span
           onClick={handleViewMoreClick}

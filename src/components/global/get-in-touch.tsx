@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import Image from 'next/image';
 
 export default function GetinTouch() {
     return (
@@ -14,13 +14,16 @@ export default function GetinTouch() {
           href="https://api.whatsapp.com/send/?phone=919137320348&text=Hello+HobbyistDecals%0D%0AI+need+a+help+with+HD+Decals%2C+https%3A%2F%2Fhobbyistdecals.com%2F&type=phone_number&app_absent=0"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-[#16689A] text-white text-lg px-5 py-3 rounded flex items-center space-x-2 hover:bg-black transition"
         >
-          <span className="text-xl"><WhatsAppIcon /></span>
-          <span>WhatsApp Chat</span>
+          <Image
+            src="/images/whatsapp-icon.jpg"
+            alt="WhatsApp Chat"
+            width={50}
+            height={50}
+          />
         </a>
 
-        <Link href="/contact-us" legacyBehavior>
+        <Link href="/contact-us">
             <button className="bg-[#16689A] text-white text-lg px-5 py-3 rounded flex items-center space-x-2 hover:bg-black transition">
                 <span>Contact Us</span>
             </button>

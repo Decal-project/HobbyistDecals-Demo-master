@@ -77,7 +77,7 @@ const BulkDecals = () => {
         <div>
           <h1 className="text-3xl font-bold mb-4">Customized Bulk Decals for Your Needs</h1>
           <p className="text-base mb-4 leading-relaxed">
-            At <span className="text-blue-600 font-semibold">HobbyistDecals</span>, we understand that sometimes you need more than just a few decals.
+            At <span className="text-[#16689A] font-semibold">HobbyistDecals</span>, we understand that sometimes you need more than just a few decals.
             We offer substantial discounts of up to 40% on bulk decal orders. This makes it more affordable to get the high-quality decals you need for your projects. A one-time decal design charge may apply depending on the quantity and complexity of the design.
           </p>
 
@@ -88,7 +88,7 @@ const BulkDecals = () => {
 
           <img src="/images/home-top-picks-advertisement.png" alt="Bulk Decals" className="w-full rounded-lg shadow-lg mb-6 w-[600px] h-[390px]" />
 
-          <div className="bg-[#16689A] text-white text-base font-semibold p-3 text-center rounded-xl">
+          <div className="bg-[#BEE2F3] text-black text-base font-semibold p-3 text-center rounded-xl">
             Our bulk decal services are ideal for:
           </div>
           <div className="border border-gray-300 p-4 bg-white rounded-xl text-sm leading-relaxed">
@@ -102,7 +102,7 @@ const BulkDecals = () => {
           </div>
 
           {/* How to Order Bulk Decals Section */}
-          <div className="bg-[#16689A] text-white text-base font-semibold p-3 mt-8 text-center rounded-xl">
+          <div className="bg-[#BEE2F3] text-black text-base font-semibold p-3 mt-8 text-center rounded-xl">
             How to Order Bulk Decals?
           </div>
           <div className="bg-gray-100 flex flex-wrap md:flex-nowrap border-b border-gray-300 rounded-xl mt-2">
@@ -112,7 +112,7 @@ const BulkDecals = () => {
                 onClick={() => setActiveTab(step.id)}
                 className={`flex-1 text-center py-3 px-4 text-sm font-semibold transition ${
                   activeTab === step.id
-                    ? "text-orange-600 border-b-4 border-orange-500 bg-white"
+                    ? "text-[#16689A] border-b-4 border-[#16689A] bg-white"
                     : "text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -130,22 +130,22 @@ const BulkDecals = () => {
           <div className="bg-gray-100 p-8 rounded-lg shadow-md w-full max-w-lg">
             <h2 className="text-2xl font-bold mb-4 text-center">Get a Quote:</h2>
             <p className="text-base text-center mb-4">
-              Enhance your projects with premium bulk decals <span className="font-semibold text-blue-600">HobbyistDecals</span> today!
+              Enhance your projects with premium bulk decals <span className="font-semibold text-[#16689A]">HobbyistDecals</span> today!
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-4">
               <input
-  type="text"
-  name="firstName"
-  placeholder="First Name *"
-  required
-  className="p-2 border rounded w-full"
-  value={formData.firstName}
-  onChange={handleChange}
-/>
+                type="text"
+                name="firstName"
+                placeholder="First Name *"
+                required
+                className="p-2 border rounded w-full"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
 
-                <input type="text" name="phone" placeholder="Phone" className="p-2 border rounded w-full" value={formData.phone} onChange={handleChange} />
+              <input type="text" name="phone" placeholder="Phone" className="p-2 border rounded w-full" value={formData.phone} onChange={handleChange} />
               </div>
               <input type="email" name="email" placeholder="Email Address *" required className="p-2 border rounded w-full"value={formData.email} onChange={handleChange} />
               <input type="text" name="subject" placeholder="Subject" className="p-2 border rounded w-full" value={formData.subject} onChange={handleChange} />
@@ -154,15 +154,15 @@ const BulkDecals = () => {
               <div>
                 <label className="block mb-2 text-sm font-medium">File Upload</label>
                 <input
-  ref={fileInputRef}
-  type="file"
-  onChange={handleFileChange}
-  className="w-full border rounded p-2"
-/>
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileChange}
+                  className="w-full border rounded p-2"
+                />
 
                 <p className="text-xs text-gray-500">Allowed: .jpg, .jpeg, .png, .pdf, .zip, etc.</p>
               </div>
-              <button type="submit" className="w-full bg-[#16689A] text-white py-2 rounded-lg hover:bg-blue-800 transition">
+              <button type="submit" className="w-full bg-[#BEE2F3] text-black py-2 rounded-lg hover:bg-blue-400 transition">
                 Submit
               </button>
             </form>
@@ -170,7 +170,7 @@ const BulkDecals = () => {
 
           {/* Why Choose Us */}
           <div className="md:col-span-2 w-full">
-            <div className="bg-[#16689A] text-white text-base font-semibold p-3 mt-10 text-center rounded-xl">
+            <div className="bg-[#BEE2F3] text-black text-base font-semibold p-3 mt-10 text-center rounded-xl">
               Why Choose HobbyistDecals?
             </div>
             <div className="border border-gray-300 p-5 bg-white rounded-xl space-y-2 text-sm leading-relaxed">
@@ -185,7 +185,7 @@ const BulkDecals = () => {
 
       {/* Footer CTA */}
       <div className="flex justify-center px-4 items-center w-full py-10">
-        <div className="bg-[#16689A] text-white py-6 px-9 rounded-3xl text-center max-w-7xl mx-auto">
+        <div className="bg-[#BEE2F3] text-black py-6 px-9 rounded-3xl text-center max-w-7xl mx-auto">
           <h2 className="text-xl font-bold mb-2">Get Started Today!</h2>
           <p className="text-sm md:text-base">
             Ready to take advantage of our bulk decal services? Email us at <a href="mailto:info@hobbyistdecals.com" className="font-bold underline">info@hobbyistdecals.com</a> or chat on WhatsApp:

@@ -12,7 +12,7 @@ export default function DesignProcess() {
   const [activeStep, setActiveStep] = useState(0);
   return (
     <div className="bg-white rounded-lg shadow-lg">
-      <h2 className="bg-[#16689A] text-white text-center p-4 rounded-t-lg text-2xl font-semibold">
+      <h2 className="bg-[#BEE2F3] text-black text-center p-4 rounded-t-lg text-2xl font-semibold">
         Our Custom Decal Design Process
       </h2>
       <div className="flex border-b">
@@ -20,7 +20,7 @@ export default function DesignProcess() {
           <button
             key={index}
             onClick={() => setActiveStep(index)}
-            className={`flex-1 p-4 text-center ${activeStep === index ? 'bg-white text-orange-600 font-semibold' : 'bg-gray-100 text-black'}`}
+            className={`flex-1 p-4 text-center ${activeStep === index ? 'bg-white text-[#16689A] font-semibold' : 'bg-gray-100 text-black'}`}
           >
             <strong>{step.title}</strong>
           </button>

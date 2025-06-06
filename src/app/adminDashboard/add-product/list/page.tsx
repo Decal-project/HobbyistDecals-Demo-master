@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 // Dummy SidebarIcon component, replace with your own icon or SVG
 function SidebarIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -39,8 +40,12 @@ export default function ProductList() {
         if (!res.ok) throw new Error('Failed to fetch products');
         const data = await res.json();
         setProducts(data.products);
-      } catch (err: any) {
-        setError(err.message || 'Unknown error');
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Unknown error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -62,24 +67,24 @@ export default function ProductList() {
         </div>
 
         <nav className="flex flex-col space-y-3 text-sm">
-          <a
+          <Link
             href="/adminDashboard/add-product"
             className="block px-3 py-2 rounded hover:bg-purple-700 transition"
           >
             ➕ Add Products
-          </a>
-          <a
+          </Link>
+          <Link
             href="/adminDashboard/add-product/edit"
             className="block px-3 py-2 rounded bg-purple-700"
           >
             🛠️ Edit and Delete Product
-          </a>
-          <a
+          </Link>
+          <Link
             href="/adminDashboard/add-product/list"
             className="block px-3 py-2 rounded hover:bg-purple-700 transition"
           >
             📋 List of Products
-          </a>
+          </Link>
         </nav>
       </aside>
 

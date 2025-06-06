@@ -66,7 +66,7 @@ const NavbarComponent = () => {
           />
           <button
             onClick={handleSearch}
-            className="bg-[#16689A] hover:bg-[#12557F] text-white p-3 rounded-r-full"
+            className="bg-[#BEE2F3] hover:bg-blue-400 text-black p-3 rounded-r-full"
           >
             <Search size={20} />
           </button>
@@ -77,7 +77,7 @@ const NavbarComponent = () => {
           {/* Login Button */}
           <button
             onClick={() => router.push("/user-login")}
-            className="flex flex-row items-center justify-center gap-1.5 bg-[#16689A] text-white px-4 py-2 rounded-md hover:bg-[#12557F] transition-colors duration-300"
+            className="flex flex-row items-center justify-center gap-1.5 bg-[#BEE2F3] text-black px-4 py-2 rounded-md hover:bg-blue-400 transition-colors duration-300"
           >
             <CircleUserRound className="w-5 h-5" />
             <span className="text-base font-medium">Login</span>

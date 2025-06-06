@@ -151,7 +151,7 @@ const GetAQuote = () => {
         <div>
           <label className="block font-semibold">File Upload</label>
           <div className="flex items-center gap-3">
-            <label className="bg-orange-600 text-white px-4 py-2 rounded-md cursor-pointer font-semibold">
+            <label className="bg-orange-500 text-white px-4 py-2 rounded-md cursor-pointer font-semibold">
               Choose a file
               <input
                 type="file"

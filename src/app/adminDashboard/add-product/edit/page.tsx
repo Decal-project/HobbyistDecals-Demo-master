@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 function SidebarIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -40,8 +41,9 @@ export default function ProductList() {
         if (!res.ok) throw new Error('Failed to fetch products');
         const data = await res.json();
         setProducts(data.products);
-      } catch (err: any) {
-        setError(err.message || 'Unknown error');
+      } catch (err: unknown) {
+        const error = err as Error;
+        setError(error.message || 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -58,7 +60,7 @@ export default function ProductList() {
       });
       if (!res.ok) throw new Error('Delete failed');
       setProducts((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
+    } catch {
       alert('Error deleting product.');
     } finally {
       setDeletingId(null);
@@ -83,15 +85,15 @@ export default function ProductList() {
           <h2 className="text-xl font-bold">Admin Panel</h2>
         </div>
         <nav className="flex flex-col space-y-3 text-sm">
-          <a href="/adminDashboard/add-product" className="block px-3 py-2 rounded hover:bg-purple-700">
+          <Link href="/adminDashboard/add-product" className="block px-3 py-2 rounded hover:bg-purple-700">
             ➕ Add Products
-          </a>
-          <a href="/adminDashboard/add-product/edit" className="block px-3 py-2 rounded bg-purple-700">
+          </Link>
+          <Link href="/adminDashboard/add-product/edit" className="block px-3 py-2 rounded bg-purple-700">
             🛠️ Edit and Delete Product
-          </a>
-          <a href="/adminDashboard/add-product/list" className="block px-3 py-2 rounded hover:bg-purple-700">
+          </Link>
+          <Link href="/adminDashboard/add-product/list" className="block px-3 py-2 rounded hover:bg-purple-700">
             📋 List of Products
-          </a>
+          </Link>
         </nav>
       </aside>
 
@@ -132,15 +134,15 @@ export default function ProductList() {
                 <h2 className="text-base font-medium mb-1">{product.name || 'Unnamed Product'}</h2>
                 <p className="text-sm text-gray-600 mb-1">SKU: {product.sku || 'N/A'}</p>
                 <p className="font-semibold text-gray-900 mb-2">
-                  Price: ${product.sale_price ?? product.regular_price ?? 'N/A'} 
+                  Price: ${product.sale_price ?? product.regular_price ?? 'N/A'}
                 </p>
                 <div className="flex space-x-2 mt-auto">
-                  <a
+                  <Link
                     href={`/adminDashboard/add-product/edit/${product.id}`}
                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
                     Edit
-                  </a>
+                  </Link>
                   <button
                     onClick={() => handleDelete(product.id)}
                     disabled={deletingId === product.id}

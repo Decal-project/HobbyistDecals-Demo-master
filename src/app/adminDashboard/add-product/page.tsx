@@ -1,7 +1,7 @@
 'use client';
 import { SidebarIcon } from 'lucide-react';
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import Link from 'next/link'; // Import Link from next/link
+import Link from 'next/link'; // Import Link for navigation
 
 const categoriesList = [
   "War Games Decals | Custom & Tactical Designs for WarGaming (14)",
@@ -87,22 +87,24 @@ export default function AddProduct() {
 
   const [images, setImages] = useState<FileList | null>(null);
 
+  // FIX: Restructured handleChange to be fully type-safe
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const target = e.target;
+    const name = target.name;
 
-    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+    if (target instanceof HTMLInputElement && target.type === 'checkbox') {
       setFormData(prev => ({
         ...prev,
-        [name]: e.target.checked,
+        [name]: target.checked,
       }));
-    } else if (e.target instanceof HTMLInputElement && e.target.type === 'file') {
-      setImages(e.target.files);
+    } else if (target instanceof HTMLInputElement && target.type === 'file') {
+      setImages(target.files);
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: value,
+        [name]: target.value,
       }));
     }
   };
@@ -228,15 +230,13 @@ export default function AddProduct() {
         </div>
 
         <nav className="flex flex-col space-y-3 text-sm">
-          {/* FIX: Replaced <a> with <Link> */}
+           {/* FIX: Replaced <a> with <Link> for Next.js navigation */}
           <Link href="/adminDashboard/add-product" className="block px-3 py-2 rounded hover:bg-purple-700 transition">
             ➕ Add Products
           </Link>
-          {/* FIX: Replaced <a> with <Link> */}
           <Link href="/adminDashboard/add-product/edit" className="block px-3 py-2 rounded bg-purple-700">
             🛠️ Edit and Delete Product
           </Link>
-          {/* FIX: Replaced <a> with <Link> */}
           <Link href="/adminDashboard/add-product/list" className="block px-3 py-2 rounded hover:bg-purple-700 transition">
             📋 List of Products
           </Link>
@@ -319,7 +319,7 @@ export default function AddProduct() {
                 <textarea
                   id={name}
                   name={name}
-                  value={formData[name as keyof typeof formData]}
+                  value={formData[name as keyof typeof formData] as string}
                   onChange={handleChange}
                   className="rounded border border-purple-400 p-2 text-purple-900"
                   rows={3}

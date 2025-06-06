@@ -113,7 +113,7 @@ export default function PopupModal() {
           />
           <button
             type="submit" // Changed to type="submit" for form handling
-            className="w-full bg-[#16689A] text-white py-2 rounded font-semibold hover:bg-[#12557F] transition-colors"
+            className="w-full bg-[#BEE2F3] text-black py-2 rounded font-semibold hover:bg-blue-400 transition-colors"
           >
             SIGN UP
           </button>

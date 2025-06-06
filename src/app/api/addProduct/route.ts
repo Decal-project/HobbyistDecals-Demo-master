@@ -6,11 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 
 // Helper functions
-function toBooleanInt(val: any): number {
+function toBooleanInt(val: string | number | boolean | null): number {
   return val === '1' || val === 1 || val === true || val === 'true' ? 1 : 0;
 }
 
-function toNumberOrNull(val: any): number | null {
+function toNumberOrNull(val: string | null): number | null {
   if (val === null || val === '' || val === undefined) return null;
   const n = Number(val);
   return isNaN(n) ? null : n;
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       getOrNull(formData, 'categories'),
       getOrNull(formData, 'tags'),
       getOrNull(formData, 'shipping_class'),
-      imagePath, // This is the image path saved
+      imagePath,
       toNumberOrNull(getOrNull(formData, 'download_limit')),
       toNumberOrNull(getOrNull(formData, 'download_expiry_days')),
       toNumberOrNull(getOrNull(formData, 'parent')),
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
       toBooleanInt(getOrNull(formData, 'attribute_3_global')),
     ];
 
-     const query = `
+    const query = `
       INSERT INTO products (
         id, type, sku, gtin, name, published, is_featured, visibility,
         short_description, description, date_sale_price_starts, date_sale_price_ends,
@@ -131,6 +131,7 @@ export async function POST(request: Request) {
         $50, $51, $52, $53
       )
     `;
+
     await pool.query(query, values);
 
     return NextResponse.json({ success: true, message: 'Product added successfully' }, { status: 201 });

@@ -10,13 +10,13 @@ export default function GetStartedCTA() {
       <p className="text-lg mb-4">
         Ready to create your custom decals? Contact HobbyistDecals now to discuss your project and receive a personalized quote. 
         Email us at{" "}
-        <a href="mailto:info@hobbyistdecals.com" className="font-bold underline text-white">
+        <a href="mailto:info@hobbyistdecals.com" className="font-bold underline text-black">
           info@hobbyistdecals.com
         </a>{" "}
         or chat on WhatsApp: Search{" "}
-        <span className="font-bold underline text-white">“Hobbyist Decals”</span>{" "}
-        (<span className="font-bold underline text-white">Id: live:.cid.686f9448dc2ad63a</span>){" "}
-        <span className="font-bold underline text-white">(10am – 7pm **IST**)</span>.
+        <span className="font-bold underline text-black">“Hobbyist Decals”</span>{" "}
+        (<span className="font-bold underline text-black">Id: live:.cid.686f9448dc2ad63a</span>){" "}
+        <span className="font-bold underline text-black">(10am – 7pm **IST**)</span>.
       </p>
 
       <p className="text-lg">

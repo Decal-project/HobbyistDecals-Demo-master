@@ -124,7 +124,7 @@ const BrowsePanelComponent = () => {
               className="object-contain"
             />
             <div className="w-full flex flex-row items-center justify-center gap-1">
-              <button className="capitalize font-semibold text-white text-base text-center bg-[#16689A] hover:bg-black rounded-2xl p-3">
+              <button className="capitalize font-semibold text-white text-base text-center bg-[#BEE2F3] hover:bg-black hover:text-white rounded-2xl p-3">
                 JoinToEarn
               </button>
             </div>

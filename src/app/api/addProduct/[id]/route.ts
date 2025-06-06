@@ -4,9 +4,9 @@ import pool from '@/lib/db';
 // GET /api/addProduct/[id]
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { id } = params;
   const parsedId = parseInt(id);
   if (isNaN(parsedId)) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
@@ -27,8 +27,11 @@ export async function GET(
 }
 
 // PUT /api/addProduct/[id]
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
   const parsedId = parseInt(id);
   if (isNaN(parsedId)) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
@@ -87,10 +90,12 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
   }
 }
 
-
-// DELETE /api/products/[id] - Delete product
-export async function DELETE(req: Request, context: { params: { id: string } }) {
-  const { id } = context.params;
+// DELETE /api/addProduct/[id]
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
   const parsedId = parseInt(id);
   if (isNaN(parsedId)) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });

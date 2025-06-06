@@ -53,7 +53,7 @@ export default function FAQAccordion() {
               onClick={() => toggleAccordion(index)}
               className={`flex justify-between items-center px-8 py-4 cursor-pointer transition-colors duration-300 ${
                 activeIndex === index
-                  ? "bg-[#1275A3] text-white"
+                  ? "bg-[#BEE2F3] text-black"
                   : "bg-white hover:bg-gray-50"
               }`}
             >

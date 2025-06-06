@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+// Helper to extract ID from request URL
+function extractIdFromUrl(url: string | null): number | null {
+  if (!url) return null;
+  const parts = url.split('/');
+  const idStr = parts[parts.length - 1];
+  const id = parseInt(idStr);
+  return isNaN(id) ? null : id;
+}
+
 // GET /api/addProduct/[id]
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
-  const { id } = params;
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
+export async function GET(req: NextRequest) {
+  const id = extractIdFromUrl(req.url);
+  if (!id) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
   }
 
   try {
-    const result = await pool.query('SELECT * FROM products WHERE id = $1', [parsedId]);
+    const result = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -27,13 +32,9 @@ export async function GET(
 }
 
 // PUT /api/addProduct/[id]
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
-  const { id } = params;
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
+export async function PUT(req: NextRequest) {
+  const id = extractIdFromUrl(req.url);
+  if (!id) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
   }
 
@@ -80,7 +81,7 @@ export async function PUT(
       attribute_1_name, attribute_1_values, attribute_1_visible, attribute_1_global,
       attribute_2_name, attribute_2_values, attribute_2_visible, attribute_2_global,
       attribute_3_name, attribute_3_values, attribute_3_visible, attribute_3_global,
-      parsedId
+      id
     ]);
 
     return NextResponse.json({ success: true, message: 'Product updated successfully' });
@@ -91,18 +92,14 @@ export async function PUT(
 }
 
 // DELETE /api/addProduct/[id]
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
-  const { id } = params;
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
+export async function DELETE(req: NextRequest) {
+  const id = extractIdFromUrl(req.url);
+  if (!id) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
   }
 
   try {
-    await pool.query('DELETE FROM products WHERE id = $1', [parsedId]);
+    await pool.query('DELETE FROM products WHERE id = $1', [id]);
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Delete error:', error);

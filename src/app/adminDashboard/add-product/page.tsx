@@ -1,6 +1,7 @@
 'use client';
 import { SidebarIcon } from 'lucide-react';
 import React, { useState, ChangeEvent, FormEvent } from 'react';
+import Link from 'next/link'; // Import Link from next/link
 
 const categoriesList = [
   "War Games Decals | Custom & Tactical Designs for WarGaming (14)",
@@ -113,7 +114,7 @@ export default function AddProduct() {
     }));
   };
 
-   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formData.id.trim()) {
@@ -187,15 +188,16 @@ export default function AddProduct() {
 
     // Append all selected image files
     if (images) {
-      Array.from(images).forEach((file, idx) => {
+      // FIX: Removed unused 'idx' variable
+      Array.from(images).forEach((file) => {
         formPayload.append('images', file);
       });
     }
 
     try {
       const res = await fetch('/api/addProduct', {
-  method: 'POST',
-  body: formPayload,
+        method: 'POST',
+        body: formPayload,
       });
 
       let data;
@@ -226,15 +228,18 @@ export default function AddProduct() {
         </div>
 
         <nav className="flex flex-col space-y-3 text-sm">
-          <a href="/adminDashboard/add-product" className="block px-3 py-2 rounded hover:bg-purple-700 transition">
+          {/* FIX: Replaced <a> with <Link> */}
+          <Link href="/adminDashboard/add-product" className="block px-3 py-2 rounded hover:bg-purple-700 transition">
             ➕ Add Products
-          </a>
-          <a href="/adminDashboard/add-product/edit" className="block px-3 py-2 rounded bg-purple-700">
+          </Link>
+          {/* FIX: Replaced <a> with <Link> */}
+          <Link href="/adminDashboard/add-product/edit" className="block px-3 py-2 rounded bg-purple-700">
             🛠️ Edit and Delete Product
-          </a>
-          <a href="/adminDashboard/add-product/list" className="block px-3 py-2 rounded hover:bg-purple-700 transition">
+          </Link>
+          {/* FIX: Replaced <a> with <Link> */}
+          <Link href="/adminDashboard/add-product/list" className="block px-3 py-2 rounded hover:bg-purple-700 transition">
             📋 List of Products
-          </a>
+          </Link>
         </nav>
       </aside>
 

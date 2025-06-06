@@ -1,7 +1,7 @@
 'use client';
 import { SidebarIcon } from 'lucide-react';
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import Link from 'next/link'; // Import Link for navigation
+import Link from 'next/link';
 
 const categoriesList = [
   "War Games Decals | Custom & Tactical Designs for WarGaming (14)",
@@ -87,7 +87,6 @@ export default function AddProduct() {
 
   const [images, setImages] = useState<FileList | null>(null);
 
-  // FIX: Restructured handleChange to be fully type-safe
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -132,65 +131,17 @@ export default function AddProduct() {
       return;
     }
 
-    // Prepare form data (not JSON) to include files
     const formPayload = new FormData();
 
-    formPayload.append('id', formData.id);
-    formPayload.append('type', formData.type);
-    formPayload.append('sku', formData.sku);
-    formPayload.append('gtin', formData.gtin);
-    formPayload.append('name', formData.name);
-    formPayload.append('published', formData.published ? '1' : '0');
-    formPayload.append('is_featured', formData.is_featured ? '1' : '0');
-    formPayload.append('visibility', formData.visibility);
-    formPayload.append('short_description', formData.short_description);
-    formPayload.append('description', formData.description);
-    formPayload.append('date_sale_price_starts', formData.date_sale_price_starts);
-    formPayload.append('date_sale_price_ends', formData.date_sale_price_ends);
-    formPayload.append('tax_status', formData.tax_status);
-    formPayload.append('tax_class', formData.tax_class);
-    formPayload.append('in_stock', formData.in_stock ? '1' : '0');
-    formPayload.append('stock', formData.stock.toString());
-    formPayload.append('low_stock_amount', formData.low_stock_amount === '' ? '' : formData.low_stock_amount);
-    formPayload.append('backorders_allowed', formData.backorders_allowed ? '1' : '0');
-    formPayload.append('sold_individually', formData.sold_individually ? '1' : '0');
-    formPayload.append('weight_g', formData.weight_g);
-    formPayload.append('length_mm', formData.length_mm);
-    formPayload.append('width_mm', formData.width_mm);
-    formPayload.append('height_mm', formData.height_mm);
-    formPayload.append('allow_customer_reviews', formData.allow_customer_reviews ? '1' : '0');
-    formPayload.append('purchase_note', formData.purchase_note);
-    formPayload.append('sale_price', formData.sale_price);
-    formPayload.append('regular_price', formData.regular_price);
-    formPayload.append('categories', formData.categories);
-    formPayload.append('tags', formData.tags);
-    formPayload.append('shipping_class', formData.shipping_class);
-    formPayload.append('download_limit', formData.download_limit);
-    formPayload.append('download_expiry_days', formData.download_expiry_days);
-    formPayload.append('parent', formData.parent);
-    formPayload.append('grouped_products', formData.grouped_products);
-    formPayload.append('upsells', formData.upsells);
-    formPayload.append('cross_sells', formData.cross_sells);
-    formPayload.append('external_url', formData.external_url);
-    formPayload.append('button_text', formData.button_text);
-    formPayload.append('position', formData.position);
-    formPayload.append('brands', formData.brands);
-    formPayload.append('attribute_1_name', formData.attribute_1_name);
-    formPayload.append('attribute_1_values', formData.attribute_1_values);
-    formPayload.append('attribute_1_visible', formData.attribute_1_visible ? '1' : '0');
-    formPayload.append('attribute_1_global', formData.attribute_1_global ? '1' : '0');
-    formPayload.append('attribute_2_name', formData.attribute_2_name);
-    formPayload.append('attribute_2_values', formData.attribute_2_values);
-    formPayload.append('attribute_2_visible', formData.attribute_2_visible ? '1' : '0');
-    formPayload.append('attribute_2_global', formData.attribute_2_global ? '1' : '0');
-    formPayload.append('attribute_3_name', formData.attribute_3_name);
-    formPayload.append('attribute_3_values', formData.attribute_3_values);
-    formPayload.append('attribute_3_visible', formData.attribute_3_visible ? '1' : '0');
-    formPayload.append('attribute_3_global', formData.attribute_3_global ? '1' : '0');
+    Object.entries(formData).forEach(([key, value]) => {
+        if (typeof value === 'boolean') {
+            formPayload.append(key, value ? '1' : '0');
+        } else {
+            formPayload.append(key, String(value));
+        }
+    });
 
-    // Append all selected image files
     if (images) {
-      // FIX: Removed unused 'idx' variable
       Array.from(images).forEach((file) => {
         formPayload.append('images', file);
       });
@@ -230,7 +181,6 @@ export default function AddProduct() {
         </div>
 
         <nav className="flex flex-col space-y-3 text-sm">
-           {/* FIX: Replaced <a> with <Link> for Next.js navigation */}
           <Link href="/adminDashboard/add-product" className="block px-3 py-2 rounded hover:bg-purple-700 transition">
             ➕ Add Products
           </Link>
@@ -334,7 +284,8 @@ export default function AddProduct() {
                   name={name}
                   type={type === 'number' ? 'number' : type}
                   step={type === 'number' && name.includes('price') ? '0.01' : undefined}
-                  value={formData[name as keyof typeof formData]}
+                  // FIX: Added type assertion to satisfy the 'value' prop type
+                  value={formData[name as keyof typeof formData] as string | number}
                   onChange={handleChange}
                   className="rounded border border-purple-400 p-2 text-purple-900"
                   required={required}

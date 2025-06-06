@@ -4,7 +4,7 @@ import pool from '@/lib/db';
 // GET /api/addProduct/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Record<string, string> }
 ) {
   const { id } = params;
   const parsedId = parseInt(id);
@@ -29,7 +29,7 @@ export async function GET(
 // PUT /api/addProduct/[id]
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Record<string, string> }
 ) {
   const { id } = params;
   const parsedId = parseInt(id);
@@ -93,7 +93,7 @@ export async function PUT(
 // DELETE /api/addProduct/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Record<string, string> }
 ) {
   const { id } = params;
   const parsedId = parseInt(id);

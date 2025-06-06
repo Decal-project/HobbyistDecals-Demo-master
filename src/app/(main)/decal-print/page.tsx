@@ -105,7 +105,7 @@ const BulkDecals = () => {
         </h6>
         <p className="text-gray-600 mb-4 ml-4">
           At{" "}
-          <span className="text-blue-600 font-semibold">HobbyistDecals</span>,
+          <span className="text-[#16689A] font-semibold">HobbyistDecals</span>,
           we offer professional decal print-only services tailored to meet the
           needs of a diverse clientele, including Original Equipment
           Manufacturer (OEM) clients, businesses, hobbyists, and individuals.
@@ -164,7 +164,7 @@ const BulkDecals = () => {
             alt="Bulk Decals"
             className="w-full rounded-lg shadow-lg mb-6 w-[600px] h-[390px]"
           />
-          <div className="bg-[#16689A] text-white text-lg font-semibold p-3 text-center border rounded-xl">
+          <div className="bg-[#BEE2F3] text-black text-lg font-semibold p-3 text-center border rounded-xl">
             Our bulk decal services are ideal for:
           </div>
           <div className="border border-gray-300 p-4 bg-white rounded-xl">
@@ -193,7 +193,7 @@ const BulkDecals = () => {
             </ul>
           </div>
           <br />
-          <div className="bg-[#16689A] text-white text-lg font-semibold p-3 text-center rounded-xl">
+          <div className="bg-[#BEE2F3] text-black text-lg font-semibold p-3 text-center rounded-xl">
             How to Order Bulk Decals?
           </div>
           <div className="bg-gray-100 flex flex-wrap md:flex-nowrap border-b border-gray-300 rounded-xl">
@@ -203,7 +203,7 @@ const BulkDecals = () => {
                 onClick={() => setActiveTab(step.id)}
                 className={`flex-1 text-center py-3 px-4 text-sm md:text-base font-semibold transition ${
                   activeTab === step.id
-                    ? "text-orange-600 border-b-4 border-orange-500 bg-white"
+                    ? "text-[#16689A] border-b-4 border-[#16689A] bg-white"
                     : "text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -230,14 +230,14 @@ const BulkDecals = () => {
             <form onSubmit={handleSubmit} className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-4">
               <input
-  type="text"
-  name="firstName"
-  placeholder="First Name *"
-  required
-  className="p-2 border rounded w-full"
-  value={formData.firstName}
-  onChange={handleChange}
-/>
+                type="text"
+                name="firstName"
+                placeholder="First Name *"
+                required
+                className="p-2 border rounded w-full"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
 
                 <input type="text" name="phone" placeholder="Phone" className="p-2 border rounded w-full" value={formData.phone} onChange={handleChange} />
               </div>
@@ -248,15 +248,15 @@ const BulkDecals = () => {
               <div>
                 <label className="block mb-2 text-sm font-medium">File Upload</label>
                 <input
-  ref={fileInputRef}
-  type="file"
-  onChange={handleFileChange}
-  className="w-full border rounded p-2"
-/>
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileChange}
+                  className="w-full border rounded p-2"
+                />
 
                 <p className="text-xs text-gray-500">Allowed: .jpg, .jpeg, .png, .pdf, .zip, etc.</p>
               </div>
-              <button type="submit" className="w-full bg-[#16689A] text-white py-2 rounded-lg hover:bg-blue-800 transition">
+              <button type="submit" className="w-full bg-[#BEE2F3] text-black py-2 rounded-lg hover:bg-blue-800 transition">
                 Submit
               </button>
             </form>
@@ -264,7 +264,7 @@ const BulkDecals = () => {
 
           {/* Why Choose HobbyistDecals? */}
           <div className="md:col-span-2 w-full">
-            <div className="bg-[#16689A] text-white text-lg font-semibold p-3 mt-10 text-center rounded-xl">
+            <div className="bg-[#BEE2F3] text-black text-lg font-semibold p-3 mt-10 text-center rounded-xl">
               Why Choose HobbyistDecals?
             </div>
             <div className="border border-gray-300 p-5 bg-white rounded-xl space-y-2">
@@ -300,9 +300,9 @@ const BulkDecals = () => {
       </div>
 
       <div className="flex justify-center px-4 items-center w-full py-10">
-        <div className="bg-[#16689A] text-white py-6 px-9 rounded-3xl text-center max-w-7xl mx-auto">
+        <div className="bg-[#BEE2F3] text-black py-6 px-9 rounded-3xl text-center max-w-7xl mx-auto">
           <h2 className="text-xl font-bold mb-2">Get Started Today!</h2>
-          <p className="text-sm md:text-base text-white">
+          <p className="text-sm md:text-base text-black">
             Ready to take advantage of our bulk decal services? Contact us now
             to discuss your project and receive a personalized quote. Email us
             at{" "}

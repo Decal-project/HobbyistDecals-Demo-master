@@ -12,7 +12,7 @@ const ClientDecals = () => {
 
   return (
     <div className="mt-8 w-full">
-      <h2 className="bg-[#16689A] text-white text-center py-2 text-xl font-semibold w-full rounded-lg">
+      <h2 className="bg-[#BEE2F3] text-black text-center py-2 text-xl font-semibold w-full rounded-lg">
         Our Custom Decals on Client's Scale Model
     </h2>
       <div className="flex overflow-x-auto space-x-4 bg-white shadow-md w-full scrollbar-hide">

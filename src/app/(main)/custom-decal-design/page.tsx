@@ -32,14 +32,14 @@ const CustomDecalPage: React.FC = () => {
             Our custom decal design services start at just <strong>$25 per hour</strong>. We provide transparent pricing and detailed quotes so you know exactly what to expect.
             No hidden fees, just high-quality, personalized decal designs at a great value.
           </p>
-          <div className="w-full md:h-[525px] h-64 bg-gray-300 flex items-center justify-center text-gray-500 rounded-lg mb-8">
-            Image Placeholder
+          <div className="w-full bg-gray-300 flex items-center justify-center text-gray-500 rounded-lg mb-8">
             <img
-              src="/your-image-path/image.jpg"
+              src="/images/decal-print-image.jpeg"
               alt="Custom Decal Example"
-              className="w-full h-full object-cover"
+              className="w-full h-auto object-contain rounded-lg"
             />
           </div>
+
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="bg-[#BEE2F3] p-4">
               <h3 className="text-2xl font-semibold text-black text-center">

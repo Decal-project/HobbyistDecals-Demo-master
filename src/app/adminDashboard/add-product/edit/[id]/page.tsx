@@ -59,7 +59,6 @@ interface Product {
   attribute_3_global: boolean;
 }
 
-
 export default function EditProduct() {
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -77,8 +76,12 @@ export default function EditProduct() {
         if (!res.ok) throw new Error('Failed to fetch product');
         const data = await res.json();
         setProduct(data.product);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -87,19 +90,19 @@ export default function EditProduct() {
     if (id) fetchProduct();
   }, [id]);
 
- const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value, type } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
 
-  setProduct((prev) => ({
-    ...prev!,
-    [name]: type === 'number'
-      ? parseFloat(value)
-      : type === 'checkbox'
-      ? e.target.checked
-      : value,
-  }));
-};
-
+    setProduct((prev) => ({
+      ...prev!,
+      [name]:
+        type === 'number'
+          ? parseFloat(value)
+          : type === 'checkbox'
+          ? e.target.checked
+          : value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,113 +116,117 @@ export default function EditProduct() {
       if (!res.ok) throw new Error('Failed to update product');
       alert('Product updated successfully!');
       router.push('/adminDashboard/add-product/list');
-    } catch (err: any) {
-      alert(err.message || 'Error updating product');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert('Unknown error occurred while updating product');
+      }
     } finally {
       setSaving(false);
     }
   };
-const fields = [
-  { name: 'type', label: 'Type' },
-  { name: 'sku', label: 'SKU' },
-  { name: 'gtin', label: 'GTIN' },
-  { name: 'name', label: 'Name' },
-  { name: 'published', label: 'Published' },
-  { name: 'is_featured', label: 'Is Featured' },
-  { name: 'visibility', label: 'Visibility' },
-  { name: 'short_description', label: 'Short Description' },
-  { name: 'description', label: 'Description' },
-  { name: 'date_sale_price_starts', label: 'Sale Price Start Date' },
-  { name: 'date_sale_price_ends', label: 'Sale Price End Date' },
-  { name: 'tax_status', label: 'Tax Status' },
-  { name: 'tax_class', label: 'Tax Class' },
-  { name: 'in_stock', label: 'In Stock' },
-  { name: 'stock', label: 'Stock' },
-  { name: 'low_stock_amount', label: 'Low Stock Amount' },
-  { name: 'backorders_allowed', label: 'Backorders Allowed' },
-  { name: 'sold_individually', label: 'Sold Individually' },
-  { name: 'weight_g', label: 'Weight (g)' },
-  { name: 'length_mm', label: 'Length (mm)' },
-  { name: 'width_mm', label: 'Width (mm)' },
-  { name: 'height_mm', label: 'Height (mm)' },
-  { name: 'allow_customer_reviews', label: 'Allow Customer Reviews' },
-  { name: 'purchase_note', label: 'Purchase Note' },
-  { name: 'sale_price', label: 'Sale Price' },
-  { name: 'regular_price', label: 'Regular Price' },
-  { name: 'categories', label: 'Categories' },
-  { name: 'tags', label: 'Tags' },
-  { name: 'shipping_class', label: 'Shipping Class' },
-  { name: 'images', label: 'Images (Comma Separated URLs)' },
-  { name: 'download_limit', label: 'Download Limit' },
-  { name: 'download_expiry_days', label: 'Download Expiry Days' },
-  { name: 'parent', label: 'Parent Product ID' },
-  { name: 'grouped_products', label: 'Grouped Products (IDs)' },
-  { name: 'upsells', label: 'Upsell Product IDs' },
-  { name: 'cross_sells', label: 'Cross-sell Product IDs' },
-  { name: 'external_url', label: 'External URL' },
-  { name: 'button_text', label: 'Button Text' },
-  { name: 'position', label: 'Position' },
-  { name: 'brands', label: 'Brands' },
-  { name: 'attribute_1_name', label: 'Attribute 1 Name' },
-  { name: 'attribute_1_values', label: 'Attribute 1 Values (Comma Separated)' },
-  { name: 'attribute_1_visible', label: 'Attribute 1 Visible' },
-  { name: 'attribute_1_global', label: 'Attribute 1 Global' },
-  { name: 'attribute_2_name', label: 'Attribute 2 Name' },
-  { name: 'attribute_2_values', label: 'Attribute 2 Values (Comma Separated)' },
-  { name: 'attribute_2_visible', label: 'Attribute 2 Visible' },
-  { name: 'attribute_2_global', label: 'Attribute 2 Global' },
-  { name: 'attribute_3_name', label: 'Attribute 3 Name' },
-  { name: 'attribute_3_values', label: 'Attribute 3 Values (Comma Separated)' },
-  { name: 'attribute_3_visible', label: 'Attribute 3 Visible' },
-  { name: 'attribute_3_global', label: 'Attribute 3 Global' },
-];
+
+  const fields = [
+    { name: 'type', label: 'Type' },
+    { name: 'sku', label: 'SKU' },
+    { name: 'gtin', label: 'GTIN' },
+    { name: 'name', label: 'Name' },
+    { name: 'published', label: 'Published' },
+    { name: 'is_featured', label: 'Is Featured' },
+    { name: 'visibility', label: 'Visibility' },
+    { name: 'short_description', label: 'Short Description' },
+    { name: 'description', label: 'Description' },
+    { name: 'date_sale_price_starts', label: 'Sale Price Start Date' },
+    { name: 'date_sale_price_ends', label: 'Sale Price End Date' },
+    { name: 'tax_status', label: 'Tax Status' },
+    { name: 'tax_class', label: 'Tax Class' },
+    { name: 'in_stock', label: 'In Stock' },
+    { name: 'stock', label: 'Stock' },
+    { name: 'low_stock_amount', label: 'Low Stock Amount' },
+    { name: 'backorders_allowed', label: 'Backorders Allowed' },
+    { name: 'sold_individually', label: 'Sold Individually' },
+    { name: 'weight_g', label: 'Weight (g)' },
+    { name: 'length_mm', label: 'Length (mm)' },
+    { name: 'width_mm', label: 'Width (mm)' },
+    { name: 'height_mm', label: 'Height (mm)' },
+    { name: 'allow_customer_reviews', label: 'Allow Customer Reviews' },
+    { name: 'purchase_note', label: 'Purchase Note' },
+    { name: 'sale_price', label: 'Sale Price' },
+    { name: 'regular_price', label: 'Regular Price' },
+    { name: 'categories', label: 'Categories' },
+    { name: 'tags', label: 'Tags' },
+    { name: 'shipping_class', label: 'Shipping Class' },
+    { name: 'images', label: 'Images (Comma Separated URLs)' },
+    { name: 'download_limit', label: 'Download Limit' },
+    { name: 'download_expiry_days', label: 'Download Expiry Days' },
+    { name: 'parent', label: 'Parent Product ID' },
+    { name: 'grouped_products', label: 'Grouped Products (IDs)' },
+    { name: 'upsells', label: 'Upsell Product IDs' },
+    { name: 'cross_sells', label: 'Cross-sell Product IDs' },
+    { name: 'external_url', label: 'External URL' },
+    { name: 'button_text', label: 'Button Text' },
+    { name: 'position', label: 'Position' },
+    { name: 'brands', label: 'Brands' },
+    { name: 'attribute_1_name', label: 'Attribute 1 Name' },
+    { name: 'attribute_1_values', label: 'Attribute 1 Values (Comma Separated)' },
+    { name: 'attribute_1_visible', label: 'Attribute 1 Visible' },
+    { name: 'attribute_1_global', label: 'Attribute 1 Global' },
+    { name: 'attribute_2_name', label: 'Attribute 2 Name' },
+    { name: 'attribute_2_values', label: 'Attribute 2 Values (Comma Separated)' },
+    { name: 'attribute_2_visible', label: 'Attribute 2 Visible' },
+    { name: 'attribute_2_global', label: 'Attribute 2 Global' },
+    { name: 'attribute_3_name', label: 'Attribute 3 Name' },
+    { name: 'attribute_3_values', label: 'Attribute 3 Values (Comma Separated)' },
+    { name: 'attribute_3_visible', label: 'Attribute 3 Visible' },
+    { name: 'attribute_3_global', label: 'Attribute 3 Global' },
+  ];
 
   if (loading) return <p className="p-6">Loading product...</p>;
   if (error) return <p className="p-6 text-red-600">Error: {error}</p>;
   if (!product) return <p className="p-6">Product not found.</p>;
 
   return (
-  <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-10">
-    <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {fields.map((field) => (
-        <div key={field.name}>
-          <label className="block text-sm font-medium">{field.label}</label>
-          <input
-            type={
-              field.name.includes('price') ||
-              field.name === 'stock' ||
-              field.name === 'low_stock_amount' ||
-              field.name === 'weight_g' ||
-              field.name === 'length_mm' ||
-              field.name === 'width_mm' ||
-              field.name === 'height_mm' ||
-              field.name === 'download_limit' ||
-              field.name === 'download_expiry_days' ||
-              field.name === 'position'
-                ? 'number'
-                : field.name.includes('date')
-                ? 'date'
-                : field.name.includes('url')
-                ? 'url'
-                : 'text'
-            }
-            name={field.name}
-            value={product?.[field.name] ?? ''}
-            onChange={handleChange}
-            className="mt-1 block w-full border px-3 py-2 rounded"
-          />
-        </div>
-      ))}
-      <button
-        type="submit"
-        disabled={saving}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {saving ? 'Saving...' : 'Update Product'}
-      </button>
-    </form>
-  </div>
-);
-
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-10">
+      <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {fields.map((field) => (
+          <div key={field.name}>
+            <label className="block text-sm font-medium">{field.label}</label>
+            <input
+              type={
+                field.name.includes('price') ||
+                field.name === 'stock' ||
+                field.name === 'low_stock_amount' ||
+                field.name === 'weight_g' ||
+                field.name === 'length_mm' ||
+                field.name === 'width_mm' ||
+                field.name === 'height_mm' ||
+                field.name === 'download_limit' ||
+                field.name === 'download_expiry_days' ||
+                field.name === 'position'
+                  ? 'number'
+                  : field.name.includes('date')
+                  ? 'date'
+                  : field.name.includes('url')
+                  ? 'url'
+                  : 'text'
+              }
+              name={field.name}
+              value={product?.[field.name as keyof Product] ?? ''}
+              onChange={handleChange}
+              className="mt-1 block w-full border px-3 py-2 rounded"
+            />
+          </div>
+        ))}
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? 'Saving...' : 'Update Product'}
+        </button>
+      </form>
+    </div>
+  );
 }

@@ -24,7 +24,7 @@ export default function GetinTouch() {
         </a>
 
         <Link href="/contact-us">
-            <button className="bg-[#BEE2F3] text-black text-lg px-5 py-3 rounded flex items-center space-x-2 hover:bg-black hover:text-white transition">
+            <button className="bg-[#BEE2F3] font-semibold text-black text-lg px-5 py-3 rounded flex items-center space-x-2 hover:bg-black hover:text-white transition">
                 <span>Contact Us</span>
             </button>
         </Link>

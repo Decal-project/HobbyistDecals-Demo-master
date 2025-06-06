@@ -164,7 +164,7 @@ const GetAQuote = () => {
             <span className="text-gray-600">{fileName}</span>
           </div>
         </div>
-        <button className="w-full bg-[#16689A] text-white p-2 rounded-md font-semibold hover:bg-blue-700">
+        <button className="w-full bg-[#BEE2F3] text-black p-2 rounded-md font-semibold hover:bg-blue-700">
           Submit
         </button>
       </form>

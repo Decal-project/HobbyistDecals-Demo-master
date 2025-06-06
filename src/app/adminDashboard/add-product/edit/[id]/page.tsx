@@ -90,16 +90,33 @@ export default function EditProduct() {
     if (id) fetchProduct();
   }, [id]);
 
+  const booleanFields = new Set([
+    'published',
+    'is_featured',
+    'in_stock',
+    'backorders_allowed',
+    'sold_individually',
+    'allow_customer_reviews',
+    'attribute_1_visible',
+    'attribute_1_global',
+    'attribute_2_visible',
+    'attribute_2_global',
+    'attribute_3_visible',
+    'attribute_3_global',
+  ]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, checked } = e.target;
 
     setProduct((prev) => ({
       ...prev!,
       [name]:
-        type === 'number'
-          ? parseFloat(value)
-          : type === 'checkbox'
-          ? e.target.checked
+        type === 'checkbox'
+          ? checked
+          : type === 'number'
+          ? value === ''
+            ? ''
+            : Number(value)
           : value,
     }));
   };
@@ -190,12 +207,12 @@ export default function EditProduct() {
     <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-10">
       <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {fields.map((field) => (
-          <div key={field.name}>
-            <label className="block text-sm font-medium">{field.label}</label>
-            <input
-              type={
-                field.name.includes('price') ||
+        {fields.map((field) => {
+          const isBoolean = booleanFields.has(field.name);
+          const inputType =
+            isBoolean
+              ? 'checkbox'
+              : field.name.includes('price') ||
                 field.name === 'stock' ||
                 field.name === 'low_stock_amount' ||
                 field.name === 'weight_g' ||
@@ -205,20 +222,43 @@ export default function EditProduct() {
                 field.name === 'download_limit' ||
                 field.name === 'download_expiry_days' ||
                 field.name === 'position'
-                  ? 'number'
-                  : field.name.includes('date')
-                  ? 'date'
-                  : field.name.includes('url')
-                  ? 'url'
-                  : 'text'
-              }
-              name={field.name}
-              value={product?.[field.name as keyof Product] ?? ''}
-              onChange={handleChange}
-              className="mt-1 block w-full border px-3 py-2 rounded"
-            />
-          </div>
-        ))}
+              ? 'number'
+              : field.name.includes('date')
+              ? 'date'
+              : field.name.includes('url')
+              ? 'url'
+              : 'text';
+
+          return (
+            <div key={field.name}>
+              <label className="block text-sm font-medium mb-1">
+                {field.label}
+              </label>
+              {isBoolean ? (
+                <input
+                  type="checkbox"
+                  name={field.name}
+                  checked={product[field.name as keyof Product] as boolean}
+                  onChange={handleChange}
+                  className="mt-1"
+                />
+              ) : (
+                <input
+                  type={inputType}
+                  name={field.name}
+                  value={
+                    product[field.name as keyof Product] !== undefined &&
+                    product[field.name as keyof Product] !== null
+                      ? String(product[field.name as keyof Product])
+                      : ''
+                  }
+                  onChange={handleChange}
+                  className="mt-1 block w-full border px-3 py-2 rounded"
+                />
+              )}
+            </div>
+          );
+        })}
         <button
           type="submit"
           disabled={saving}

@@ -2,7 +2,7 @@
 
 export default function GetStartedCTA() {
   return (
-    <div className="bg-[#16689A] rounded-[50px] py-10 px-4 text-center text-white">
+    <div className="bg-[#BEE2F3] rounded-[50px] py-10 px-4 text-center text-black">
       <h2 className="text-4xl font-bold text-black mb-6">
         Get Started with Your Custom Decal Design Today!
       </h2>

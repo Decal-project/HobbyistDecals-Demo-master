@@ -37,7 +37,7 @@ const BrowsePanelComponent = () => {
         <Link href="/">
           <div className="flex flex-col items-center justify-center gap-2 cursor-pointer transform transition-transform duration-300 hover:scale-95">
             <Image
-              src={"/images/home-browse-panel-home.png"}
+              src={"/images/home-browse-panel-hd-decals.jpg"}
               alt="category_1_img"
               quality={100}
               unoptimized
@@ -46,7 +46,7 @@ const BrowsePanelComponent = () => {
               className="object-contain"
             />
             <p className="capitalize font-semibold text-black text-base text-center">
-              Home
+              HD Decals
             </p>
           </div>
         </Link>
@@ -154,23 +154,29 @@ const BrowsePanelComponent = () => {
             />
           </div>
 
+
           {isCategoriesDropdownOpen && (
-            <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-[800px] bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-4">
-              <ul className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {categories.map((category, index) => (
-                  <li
-                    key={index}
-                    className="hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 rounded px-3 py-2"
-                    onClick={() => setIsCategoriesDropdownOpen(false)}
-                  >
-                    <Link href={`/category/${category.name}`} className="block w-full h-full">
-                              {category.name}
-                            </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+  <div
+    className="absolute top-full mt-2 left-1/2 w-[800px] bg-white shadow-lg border border-gray-200 rounded-lg z-50 p-4"
+    style={{ transform: 'translateX(-60%)' }}
+  >
+    <ul className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {categories.map((category, index) => (
+        <li
+          key={index}
+          className="hover:bg-[#16689A] hover:text-white text-black cursor-pointer text-sm transition-colors duration-300 rounded px-3 py-2"
+          onClick={() => setIsCategoriesDropdownOpen(false)}
+        >
+          <Link href={`/category/${category.name}`} className="block w-full h-full">
+            {category.name}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+
         </div>
       </div>
     </div>

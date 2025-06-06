@@ -41,8 +41,8 @@ const CustomDecalPage: React.FC = () => {
             />
           </div>
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-[#16689A] p-4">
-              <h3 className="text-2xl font-semibold text-white text-center">
+            <div className="bg-[#BEE2F3] p-4">
+              <h3 className="text-2xl font-semibold text-black text-center">
                 Our custom decal design services are perfect for:
               </h3>
             </div>
@@ -65,8 +65,8 @@ const CustomDecalPage: React.FC = () => {
             <GetAQuote />
           </div>
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-[#16689A] p-6">
-              <h3 className="text-2xl font-semibold text-white text-center">
+            <div className="bg-[#BEE2F3] p-6">
+              <h3 className="text-2xl font-semibold text-black text-center">
                 Why Choose HobbyistDecals for Custom Decals?
               </h3>
             </div>

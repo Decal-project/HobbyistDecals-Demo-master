@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db'; // Adjust path if necessary
 
-export async function GET(req: Request) {
+export async function GET() {
     try {
         // You might want to add authentication/authorization here
         // to ensure only admins can access this route.
@@ -25,8 +25,7 @@ export async function GET(req: Request) {
             ORDER BY sp.created_at DESC`
         );
 
-        // Option B: Get checkout_orders that are still 'pending' and are old (general)
-        // Removed 'currency' as it doesn't exist in checkout_orders table.
+        // Option B: Get checkout_orders that are still 'pending' and are old (non-stripe/non-paypal)
         const { rows: generalPendingOrders } = await pool.query(
             `SELECT
                 id AS order_id,
@@ -46,7 +45,6 @@ export async function GET(req: Request) {
         );
 
         // Option C: Get PayPal orders that are still 'pending' and are old
-        // Removed 'currency' as it doesn't exist in checkout_orders table.
         const { rows: paypalPendingOrders } = await pool.query(
             `SELECT
                 id AS order_id,

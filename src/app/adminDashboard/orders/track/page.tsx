@@ -7,7 +7,7 @@ type Order = {
   customerName: string;
   totalAmount: number;
   createdAt: string;
-  shiprocket_shipment_id?: string | null; // Add this line
+  shiprocket_shipment_id?: string | null;
 };
 
 export default function OrdersPage() {
@@ -27,45 +27,48 @@ export default function OrdersPage() {
         }
         const data = await res.json();
         setOrders(data);
-      } catch (error) {
+      } catch {
         setMessage('Failed to load orders');
       } finally {
         setLoading(false);
       }
     }
     fetchOrders();
-  }, [message]); // Include 'message' in the dependency array
+  }, []); // Removed message from dependencies
 
-const pushToShiprocket = async (id: number) => {
-  setLoading(true);
-  setMessage('');
-  console.log('Sending order ID:', id);
+  const pushToShiprocket = async (id: number) => {
+    setLoading(true);
+    setMessage('');
+    console.log('Sending order ID:', id);
 
-  try {
-    const res = await fetch('/api/shiprocket/push', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ id }), // must be an object
-    });
+    try {
+      const res = await fetch('/api/shiprocket/push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
 
-    const result = await res.json(); // Only call once!
+      const result = await res.json();
 
-    console.log('Response:', result);
+      console.log('Response:', result);
 
-    if (res.ok) {
-      setMessage(`✅ Order ${id} pushed to Shiprocket successfully! AWB: ${result.awb_code || 'N/A'}`);
-      // fetchOrders(); // Removed the direct call here as useEffect will handle it
-    } else {
-      setMessage(`❌ Failed to push order ${id}: ${result.error || result.message || 'Unknown error'}`);
+      if (res.ok) {
+        setMessage(`✅ Order ${id} pushed to Shiprocket successfully! AWB: ${result.awb_code || 'N/A'}`);
+      } else {
+        setMessage(`❌ Failed to push order ${id}: ${result.error || result.message || 'Unknown error'}`);
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setMessage(`❌ Error: ${err.message}`);
+      } else {
+        setMessage('❌ Unknown error occurred');
+      }
     }
-  } catch (error: any) {
-    setMessage(`❌ Error: ${error.message || 'Unknown error'}`);
-  }
 
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   return (
     <div className="p-6">

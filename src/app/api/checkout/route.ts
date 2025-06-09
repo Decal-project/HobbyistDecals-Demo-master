@@ -88,8 +88,9 @@ export async function POST(req: Request) {
                 { status: 400 }
             );
         }
-
-        let stripeSessionId: string | null = null;
+        
+        // FIX [1/3]: Changed 'let' to 'const' as stripeSessionId is never reassigned.
+        const stripeSessionId: string | null = null;
         let finalPaypalOrderId: string | null = null;
         let finalPaypalPayerId: string | null = null;
 
@@ -170,11 +171,6 @@ export async function POST(req: Request) {
             sku: item.sku,
             units: item.quantity,
             selling_price: parseFloat(item.price), // Ensure price is a number
-            // Add other optional fields if available and needed by Shiprocket:
-            // hsn: "HSNCODE",
-            // tax: 0,
-            // discount: 0,
-            // product_tax: 0,
         }));
         console.log('Formatted Shiprocket order_items:', shiprocketOrderItems);
         // --- END FETCH CART ITEMS ---
@@ -215,8 +211,6 @@ export async function POST(req: Request) {
                 await client.query(insertCommissionQuery, insertCommissionParams); // Use client
                 console.log(`Commission of $${commissionAmount.toFixed(2)} recorded for affiliate ${affiliate_user_id} on order ${order_id} with status: ${initialCommissionStatus}.`);
 
-                // Update total_earnings only if the commission status allows (e.g., if 'earned' or 'paid' immediately)
-                // For 'pending' or 'on-hold', you might update this later via webhook/manual process
                 if (initialCommissionStatus === 'earned' || initialCommissionStatus === 'paid') {
                     await client.query( // Use client
                         `UPDATE affiliate_users SET total_earnings = COALESCE(total_earnings, 0) + $1 WHERE user_id = $2`,
@@ -227,15 +221,12 @@ export async function POST(req: Request) {
 
             } catch (commissionDbError) {
                 console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError);
-                // This error might warrant a rollback or might be acceptable to log and proceed
                 throw commissionDbError; // Re-throw to trigger the main catch and rollback
             }
         }
         // --- END COMMISSION LOGIC ---
 
         // --- SHIPROCKET PUSH (for COD and initial PayPal - consider moving PayPal/Stripe to webhooks) ---
-        // It's generally better to push to Shiprocket *after* payment confirmation for prepaid methods
-        // (i.e., in your Stripe/PayPal webhook handlers). For COD, it's fine here.
         if (payment_method === 'cod' || payment_method === 'paypal') {
             console.log(`Attempting to push order ${order_id} to Shiprocket for ${payment_method}.`);
             try {
@@ -269,14 +260,13 @@ export async function POST(req: Request) {
                     total_amount: total_amount,
                     sub_total: total_amount, // Adjust if your subtotal is different from total_amount (e.g., if total includes shipping)
                     shipping_is_billing: ship_to_different_address ? 0 : 1, // 0 for different, 1 for same
-                    length: 10, // Placeholder values, adjust based on your products/packaging
+                    length: 10, // Placeholder values
                     breadth: 10,
                     height: 10,
-                    weight: 0.5, // Placeholder value, consider calculating actual weight from cart items
-                    order_items: shiprocketOrderItems, // THIS IS NOW POPULATED
+                    weight: 0.5,
+                    order_items: shiprocketOrderItems,
                 };
 
-                // Assuming you have a separate API route /api/shiprocket/push that handles the actual Shiprocket API call
                 const shiprocketResponse = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/shiprocket/push`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -286,17 +276,15 @@ export async function POST(req: Request) {
                 const shiprocketData = await shiprocketResponse.json();
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
-                    // Decide if you want to rollback the order if Shiprocket push fails here.
-                    // For now, logging and continuing. If critical, uncomment the throw below.
                     throw new Error(`Shiprocket API Error: ${shiprocketData.message || JSON.stringify(shiprocketData.errors)}`);
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
 
-            } catch (shiprocketError: any) {
-                console.error('[Shiprocket Push Failure]:', shiprocketError.message || shiprocketError);
-                // IMPORTANT: If a failed Shiprocket push means the order is invalid, uncomment the following:
-                // await client.query('ROLLBACK');
-                // return NextResponse.json({ error: 'Failed to integrate with shipping partner. Please try again.' }, { status: 500 });
+            // FIX [2/3]: Changed 'any' to 'unknown' for type safety.
+            } catch (shiprocketError: unknown) {
+                // Now we must check the type of shiprocketError before using it.
+                const errorMessage = shiprocketError instanceof Error ? shiprocketError.message : String(shiprocketError);
+                console.error('[Shiprocket Push Failure]:', errorMessage);
             }
         }
         // --- END SHIPROCKET PUSH ---
@@ -306,17 +294,15 @@ export async function POST(req: Request) {
             console.log('Payment method is Stripe. Proceeding with Stripe session creation.');
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
 
-            // Using cartItems fetched earlier to create Stripe line items
             const stripeLineItems = cartItems.map(item => ({
                 price_data: {
                     currency: 'usd',
-                    product_data: { name: item.name || 'Product' }, // Use actual product name
+                    product_data: { name: item.name || 'Product' },
                     unit_amount: Math.round(parseFloat(item.price) * 100), // Convert to cents
                 },
                 quantity: item.quantity,
             }));
 
-            // Fallback for stripeLineItems in case cartItems is somehow empty (though we handle that above)
             const line_items = stripeLineItems.length > 0 ? stripeLineItems : [{
                 price_data: {
                     currency: 'usd',
@@ -372,16 +358,13 @@ export async function POST(req: Request) {
 
         } else if (payment_method === 'paypal') {
             console.log('Payment method is PayPal. Order already created with PayPal IDs.');
-            // For PayPal, the order is confirmed via webhook.
-            // Pushing to Shiprocket here for consistency, but consider moving to PayPal webhook.
-            await client.query('COMMIT'); // Commit the transaction if everything successful for PayPal path
+            await client.query('COMMIT'); // Commit the transaction for PayPal path
             console.log('Database transaction committed successfully for PayPal order:', order_id);
             return NextResponse.json({ success: true, order_id: order_id });
 
         } else if (payment_method === 'cod') {
             console.log('Payment method is \'cod\'. Order created with initial status \'pending\'.');
-            // For COD, the order is created and pushed to Shiprocket immediately.
-            await client.query('COMMIT'); // Commit the transaction if everything successful for COD path
+            await client.query('COMMIT'); // Commit the transaction for COD path
             console.log('Database transaction committed successfully for COD order:', order_id);
             return NextResponse.json({ success: true, order_id: order_id });
         }
@@ -394,8 +377,8 @@ export async function POST(req: Request) {
             { status: 400 }
         );
 
-    } catch (err: any) {
-        // If an error occurred, roll back the transaction
+    // FIX [3/3]: Changed 'any' to 'unknown' for type safety.
+    } catch (err: unknown) {
         if (client) {
             try {
                 await client.query('ROLLBACK');
@@ -404,15 +387,25 @@ export async function POST(req: Request) {
                 console.error('Error during rollback:', rollbackError);
             }
         }
+        
+        // Type-safe error handling
+        let errorMessage = 'An unknown error occurred';
+        if (err instanceof Error) {
+            errorMessage = err.message;
+        }
+        
         console.error('--- Checkout route FATAL error:', err);
-        // Log more details about the error for debugging
-        if (err.type) console.error('Error Type:', err.type);
-        if (err.statusCode) console.error('Status Code:', err.statusCode);
-        if (err.raw && err.raw.message) console.error('Raw Message:', err.raw.message);
-        console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+        
+        // Log Stripe-specific error details if available
+        if (typeof err === 'object' && err !== null) {
+            if ('type' in err) console.error('Error Type:', (err as {type: string}).type);
+            if ('statusCode' in err) console.error('Status Code:', (err as {statusCode: number}).statusCode);
+            const rawError = (err as {raw?: {message: string}}).raw;
+            if (rawError && rawError.message) console.error('Raw Message:', rawError.message);
+        }
 
         return NextResponse.json(
-            { error: 'Failed to process checkout', details: err.message || 'An unknown error occurred' },
+            { error: 'Failed to process checkout', details: errorMessage },
             { status: 500 }
         );
     } finally {

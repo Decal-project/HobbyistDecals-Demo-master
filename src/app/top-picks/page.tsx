@@ -87,7 +87,7 @@ const TopPicksPage = () => {
             }}
             className={`w-8 h-8 rounded-full ${
               currentPage === i + 1
-                ? "bg-[#16689A] text-white"
+                ? "bg-[#BEE2F3] text-black"
                 : "bg-white text-gray-700 border"
             }`}
           >

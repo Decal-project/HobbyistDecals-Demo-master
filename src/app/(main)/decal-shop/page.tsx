@@ -150,7 +150,7 @@ const ShopPage: React.FC = () => {
                     ${parseFloat(product.regular_price).toFixed(2)}
                   </p>
                   <Link href={`/details/${encodeURIComponent(product.name)}`}>
-                    <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+                    <button className="mt-3 px-4 py-2 bg-[#BEE2F3] text-black rounded hover:bg-blue-400 transition">
                       SELECT OPTIONS
                     </button>
                   </Link>
@@ -175,7 +175,7 @@ const ShopPage: React.FC = () => {
                     onClick={() => typeof page === "number" && handlePageChange(page)}
                     className={`px-4 py-2 rounded-full border ${
                       currentPage === page
-                        ? "bg-[#16689A] text-white font-bold"
+                        ? "bg-[#BEE2F3] text-black font-bold"
                         : "text-gray-700 hover:bg-gray-200"
                     }`}
                     disabled={page === "..."}

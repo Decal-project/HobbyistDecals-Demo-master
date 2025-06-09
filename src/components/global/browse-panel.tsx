@@ -46,7 +46,7 @@ const BrowsePanelComponent = () => {
               className="object-contain"
             />
             <p className="capitalize font-semibold text-black text-base text-center">
-              HD Decals
+              Home
             </p>
           </div>
         </Link>

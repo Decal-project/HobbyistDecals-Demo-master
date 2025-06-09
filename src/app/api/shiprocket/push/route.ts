@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         // Fetch items from cart_items using cart_id
         const itemsQuery = await client.query(
             'SELECT name, sku, quantity, price FROM cart_items WHERE cart_id = $1',
-            [cartId] // Use cartId here instead of orderId
+            [cartId]
         );
 
         if (itemsQuery.rows.length === 0) {
@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Shiprocket pickup location not configured correctly' }, { status: 500 });
         }
         console.log('[API] Using Shiprocket Pickup Location:', pickupLocation);
-
 
         // --- MODIFIED SECTION: Add missing payload fields ---
         let subTotal = 0;
@@ -155,13 +154,12 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, awb_code: awb_code }, { status: 200 });
 
-    } catch (error: any) {
-        console.error('[Shiprocket Push Error]', error?.response?.data || error.message);
-
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
-            console.error('[Shiprocket Push Error] Status:', error.response.status);
-            console.error('[Shiprocket Push Error] Headers:', error.response.headers);
-            console.error('[Shiprocket Push Error] Data:', JSON.stringify(error.response.data, null, 2));
+            console.error('[Shiprocket Push Axios Error]', error.response.data || error.message);
+            console.error('[Shiprocket Push Axios Error] Status:', error.response.status);
+            console.error('[Shiprocket Push Axios Error] Headers:', error.response.headers);
+            console.error('[Shiprocket Push Axios Error] Data:', JSON.stringify(error.response.data, null, 2));
             return NextResponse.json(
                 {
                     error: 'Failed to push order to Shiprocket',
@@ -173,8 +171,12 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // For non-axios errors, try to safely extract message
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Shiprocket Push Unknown Error]', errorMessage);
+
         return NextResponse.json(
-            { error: 'Failed to push order to Shiprocket', details: error.message },
+            { error: 'Failed to push order to Shiprocket', details: errorMessage },
             { status: 500 }
         );
     } finally {

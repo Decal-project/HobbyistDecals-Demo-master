@@ -21,8 +21,13 @@ export async function GET() {
 
     const data = await response.json();
     return NextResponse.json({ token: data.token });
-  } catch (err: any) {
-    console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    // Safely handle unknown error type
+    let message = 'Unknown error';
+    if (err instanceof Error) {
+      message = err.message;
+    }
+    console.error('[Shiprocket Token Fetch Error]', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

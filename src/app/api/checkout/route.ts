@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import pool from '@/lib/db'; // Assuming '@/lib/db' exports a pg.Pool instance
+import { PoolClient } from 'pg'; // Import PoolClient type
 
 console.log("Stripe Secret Key being used:", process.env.STRIPE_SECRET_KEY ? "Key Found (length: " + process.env.STRIPE_SECRET_KEY.length + ")" : "Key NOT Found!");
 
@@ -10,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(req: Request) {
-    let client; // Declare client outside try block so it's accessible in finally
+    let client: PoolClient | null = null; // Explicitly type client as PoolClient or null
     try {
         // Acquire a client from the connection pool
         client = await pool.connect();
@@ -37,14 +38,14 @@ export async function POST(req: Request) {
                 } else {
                     console.warn(`Affiliate code '${affiliateCode}' found in cookie but not in affiliate_links table.`);
                 }
-            } catch (dbError) {
+            } catch (dbError: any) { // Explicitly type dbError
                 console.error("Error fetching affiliate user ID from affiliate_links:", dbError);
                 // Continue execution, as this is not a critical error for order creation
             }
         }
         console.log(`Final affiliate_user_id for insert into checkout_orders:`, affiliate_user_id);
 
-        const data = await req.json();
+        const data: any = await req.json(); // Keep 'any' for now, or define a proper interface for 'data'
         console.log('Incoming checkout payload:', data);
 
         const {
@@ -89,12 +90,14 @@ export async function POST(req: Request) {
             );
         }
 
+        let initialOrderStatus = 'pending';
+        let initialCommissionStatus = 'pending'; // General initial status for commissions
+
+        // Declare stripeSessionId with 'let' and initialize it.
+        // It will be reassigned only if payment_method is 'stripe'.
         let stripeSessionId: string | null = null;
         let finalPaypalOrderId: string | null = null;
         let finalPaypalPayerId: string | null = null;
-
-        let initialOrderStatus = 'pending';
-        let initialCommissionStatus = 'pending'; // General initial status for commissions
 
         if (payment_method === 'paypal') {
             finalPaypalOrderId = paypal_order_id || null;
@@ -130,7 +133,7 @@ export async function POST(req: Request) {
             shipping_first_name, shipping_last_name, shipping_company_name, shipping_country,
             shipping_street_address, shipping_city, shipping_state, shipping_postal_code,
             shipping_phone, shipping_email, order_notes, payment_method, total_amount, cart_id,
-            stripeSessionId, // Will be null for PayPal/COD, updated later for Stripe
+            stripeSessionId, // Will be null initially, updated later for Stripe
             finalPaypalOrderId, // Will be null for Stripe/COD
             finalPaypalPayerId, // Will be null for Stripe/COD
             affiliate_user_id,
@@ -165,7 +168,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Cart is empty or invalid. Cannot create order.' }, { status: 400 });
         }
 
-        const shiprocketOrderItems = cartItems.map(item => ({
+        const shiprocketOrderItems = cartItems.map((item: any) => ({ // Explicitly type item
             name: item.name,
             sku: item.sku,
             units: item.quantity,
@@ -225,7 +228,7 @@ export async function POST(req: Request) {
                     console.log(`Affiliate ${affiliate_user_id} total earnings updated in affiliate_users table.`);
                 }
 
-            } catch (commissionDbError) {
+            } catch (commissionDbError: any) { // Explicitly type commissionDbError
                 console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError);
                 // This error might warrant a rollback or might be acceptable to log and proceed
                 throw commissionDbError; // Re-throw to trigger the main catch and rollback
@@ -241,7 +244,7 @@ export async function POST(req: Request) {
             try {
                 const shiprocketPayload = {
                     order_id: `order-${order_id}`,
-                    order_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+                    order_date: new Date().toISOString().split('T')[0], //YYYY-MM-DD format
                     pickup_location: "Home", // IMPORTANT: This should be your actual Shiprocket pickup location name
                     billing_customer_name: billing_first_name,
                     billing_last_name: billing_last_name,
@@ -283,7 +286,7 @@ export async function POST(req: Request) {
                     body: JSON.stringify(shiprocketPayload),
                 });
 
-                const shiprocketData = await shiprocketResponse.json();
+                const shiprocketData: any = await shiprocketResponse.json(); // Explicitly type shiprocketData
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
                     // Decide if you want to rollback the order if Shiprocket push fails here.
@@ -292,7 +295,7 @@ export async function POST(req: Request) {
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
 
-            } catch (shiprocketError: any) {
+            } catch (shiprocketError: any) { // Explicitly type shiprocketError
                 console.error('[Shiprocket Push Failure]:', shiprocketError.message || shiprocketError);
                 // IMPORTANT: If a failed Shiprocket push means the order is invalid, uncomment the following:
                 // await client.query('ROLLBACK');
@@ -307,7 +310,7 @@ export async function POST(req: Request) {
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
 
             // Using cartItems fetched earlier to create Stripe line items
-            const stripeLineItems = cartItems.map(item => ({
+            const stripeLineItems = cartItems.map((item: any) => ({ // Explicitly type item
                 price_data: {
                     currency: 'usd',
                     product_data: { name: item.name || 'Product' }, // Use actual product name
@@ -340,12 +343,13 @@ export async function POST(req: Request) {
                 },
             });
 
-            console.log(`Stripe session created: ${session.id}`);
-            console.log(`Updating checkout_orders (ID: ${order_id}) with stripe_session_id: ${session.id}`);
+            stripeSessionId = session.id; // Assign value to stripeSessionId here
+            console.log(`Stripe session created: ${stripeSessionId}`);
+            console.log(`Updating checkout_orders (ID: ${order_id}) with stripe_session_id: ${stripeSessionId}`);
 
             await client.query( // Use client
                 `UPDATE checkout_orders SET stripe_session_id = $1 WHERE id = $2`,
-                [session.id, order_id]
+                [stripeSessionId, order_id]
             );
             console.log('checkout_orders updated with stripe_session_id.');
 
@@ -358,7 +362,7 @@ export async function POST(req: Request) {
             `;
             const insertStripePaymentParams = [
                 order_id,
-                session.id,
+                stripeSessionId,
                 total_amount,
                 'usd'
             ];
@@ -394,13 +398,13 @@ export async function POST(req: Request) {
             { status: 400 }
         );
 
-    } catch (err: any) {
+    } catch (err: any) { // Explicitly type err as 'any' or a more specific error type
         // If an error occurred, roll back the transaction
         if (client) {
             try {
                 await client.query('ROLLBACK');
                 console.error('Database transaction rolled back due to error.');
-            } catch (rollbackError) {
+            } catch (rollbackError: any) { // Explicitly type rollbackError
                 console.error('Error during rollback:', rollbackError);
             }
         }

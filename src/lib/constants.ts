@@ -1,6 +1,9 @@
 export const advertisementBannerImageUrls: string[] = [
-  "/images/home-advertise1.jpg",
-  "/images/home-advertise2.jpg",
+  "/images/home-advertise1.jpeg",
+  "/images/home-advertise2.jpeg",
+  "/images/home-advertise3.jpeg",
+  "/images/home-advertise4.jpeg",
+  "/images/home-advertise5.jpeg"
 ];
 
 export const categoriesList: { title: string; img: string }[] = [

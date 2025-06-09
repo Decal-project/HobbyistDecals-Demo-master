@@ -19,8 +19,9 @@ export async function POST(req: Request) {
         console.log('Database transaction started.');
 
         let affiliate_user_id: number | null = null;
-        // Adjusted: Call cookies() once and store its result
-        const cookieStore = cookies();
+        
+        // FIX: Added 'await' as cookies() is an async function
+        const cookieStore = await cookies();
         const affiliateCodeCookie = cookieStore.get('affiliate_code');
 
         console.log(`Cookie check: affiliate_code cookie found?`, !!affiliateCodeCookie);
@@ -89,7 +90,6 @@ export async function POST(req: Request) {
             );
         }
         
-        // FIX [1/3]: Changed 'let' to 'const' as stripeSessionId is never reassigned.
         const stripeSessionId: string | null = null;
         let finalPaypalOrderId: string | null = null;
         let finalPaypalPayerId: string | null = null;
@@ -280,7 +280,6 @@ export async function POST(req: Request) {
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
 
-            // FIX [2/3]: Changed 'any' to 'unknown' for type safety.
             } catch (shiprocketError: unknown) {
                 // Now we must check the type of shiprocketError before using it.
                 const errorMessage = shiprocketError instanceof Error ? shiprocketError.message : String(shiprocketError);
@@ -377,7 +376,6 @@ export async function POST(req: Request) {
             { status: 400 }
         );
 
-    // FIX [3/3]: Changed 'any' to 'unknown' for type safety.
     } catch (err: unknown) {
         if (client) {
             try {

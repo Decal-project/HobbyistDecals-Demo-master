@@ -68,7 +68,7 @@ const NewArrivalsSection = () => {
             </p>
             <div className="flex-grow"></div> {/* Push button to bottom */}
             <Link href={`/details/${encodeURIComponent(item.name)}`}>
-              <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+              <button className="mt-3 px-4 py-2 bg-[#BEE2F3] text-black rounded hover:bg-blue-400 transition">
                 SELECT OPTIONS
               </button>
             </Link>

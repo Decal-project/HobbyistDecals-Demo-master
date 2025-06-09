@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import pool from '@/lib/db'; // Assuming '@/lib/db' exports a pg.Pool instance
-import { PoolClient } from 'pg'; // Import PoolClient type
+import { PoolClient } from 'pg'; // Import PoolClient type from 'pg'
 
 console.log("Stripe Secret Key being used:", process.env.STRIPE_SECRET_KEY ? "Key Found (length: " + process.env.STRIPE_SECRET_KEY.length + ")" : "Key NOT Found!");
 
@@ -54,25 +54,26 @@ interface ShiprocketApiResponse {
     status?: string;
     message?: string;
     errors?: Record<string, string[]> | Array<{ message: string; errors?: Record<string, string[]> }>; // Shiprocket can have varied error formats
-    data?: any; // Placeholder; could be further refined if data structure is known
+    // Removed 'data: any;' as it was unused and a source of 'any' type.
 }
 
-// Type guard for errors that might have an HTTP status code
-interface ErrorWithStatusCode {
-    statusCode: number;
-}
-function hasStatusCode(err: unknown): err is ErrorWithStatusCode {
-    return typeof err === 'object' && err !== null && 'statusCode' in err && typeof (err as any).statusCode === 'number';
+// Define a more comprehensive error interface to cover potential properties
+// like statusCode (for HTTP errors) or raw (for Stripe-specific errors).
+interface CustomError extends Error {
+    statusCode?: number;
+    raw?: {
+        message: string;
+        type?: string; // e.g., 'StripeCardError'
+        code?: string; // e.g., 'card_declined'
+        // Add other properties you might expect in `raw` from specific API errors
+    };
+    // Add other custom error properties if your application defines them
 }
 
-// Type guard for errors that might have a 'raw' property with a 'message' (common in Stripe errors)
-interface ErrorWithRawMessage {
-    raw: { message: string; type?: string; code?: string };
-}
-function hasRawMessage(err: unknown): err is ErrorWithRawMessage {
-    return typeof err === 'object' && err !== null && 'raw' in err &&
-           typeof (err as any).raw === 'object' && (err as any).raw !== null &&
-           'message' in (err as any).raw && typeof (err as any).raw.message === 'string';
+// Type guard to check if an unknown error is an instance of CustomError,
+// allowing TypeScript to narrow the type and access custom properties safely.
+function isCustomError(err: unknown): err is CustomError {
+    return err instanceof Error; // Basic check, extend if more specific error classes are used
 }
 
 
@@ -117,7 +118,7 @@ export async function POST(req: Request) {
         console.log(`Final affiliate_user_id for insert into checkout_orders:`, affiliate_user_id);
 
         // Parse the incoming JSON request body and assert its type
-        const data = (await req.json()) as CheckoutPayload; // Explicitly cast for type safety
+        const data: CheckoutPayload = await req.json(); // Explicitly type for compile-time safety
         console.log('Incoming checkout payload:', data);
 
         // Destructure necessary fields from the request payload
@@ -245,7 +246,7 @@ export async function POST(req: Request) {
         }
 
         // Format cart items for Shiprocket API payload
-        const shiprocketOrderItems = cartItems.map((item: CartItem) => ({
+        const shiprocketOrderItems = cartItems.map((item: CartItem) => ({ // Type item explicitly
             name: item.name,
             sku: item.sku,
             units: item.quantity,
@@ -368,7 +369,7 @@ export async function POST(req: Request) {
                     body: JSON.stringify(shiprocketPayload),
                 });
 
-                const shiprocketData: ShiprocketApiResponse = await shiprocketResponse.json(); // Type the response
+                const shiprocketData: ShiprocketApiResponse = await shiprocketResponse.json(); // Explicitly type the response
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
                     // Extract a meaningful error message from Shiprocket's response
@@ -505,24 +506,29 @@ export async function POST(req: Request) {
         console.error('--- Checkout route FATAL error:', err);
 
         let errorMessage = 'An unknown error occurred';
-        if (err instanceof Error) {
+        if (isCustomError(err)) { // Use the custom type guard here
             errorMessage = err.message;
             console.error('Error Type:', err.name); // Log the type of error (e.g., 'Error', 'TypeError')
 
-            // Use the refined type guards to safely access specific error properties
-            if (hasStatusCode(err)) {
+            // Safely access properties that might exist on CustomError
+            if (typeof err.statusCode === 'number') {
                 console.error('Status Code:', err.statusCode);
             }
-            if (hasRawMessage(err)) {
+            if (err.raw && typeof err.raw === 'object' && typeof err.raw.message === 'string') {
                 console.error('Raw Message:', err.raw.message);
-                if ((err as ErrorWithRawMessage).raw.type) {
-                    console.error('Raw Type:', (err as ErrorWithRawMessage).raw.type);
+                if (err.raw.type) {
+                    console.error('Raw Type:', err.raw.type);
                 }
-                if ((err as ErrorWithRawMessage).raw.code) {
-                    console.error('Raw Code:', (err as ErrorWithRawMessage).raw.code);
+                if (err.raw.code) {
+                    console.error('Raw Code:', err.raw.code);
                 }
             }
+        } else if (err instanceof Error) {
+            // Fallback for standard Error objects not covered by CustomError interface
+            errorMessage = err.message;
+            console.error('Standard Error:', err.message);
         }
+
         // Log the full error object for comprehensive debugging.
         // Using Object.getOwnPropertyNames ensures non-enumerable properties are also stringified.
         console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));

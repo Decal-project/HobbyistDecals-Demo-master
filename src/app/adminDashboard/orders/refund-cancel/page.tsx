@@ -250,7 +250,7 @@ export default function RefundCancelOrdersPage() {
                 if (err instanceof Error) {
                     setRefundMessage(`An unexpected error occurred during cancellation: ${err.message}`);
                 } else {
-                     setRefundMessage("An unknown error occurred during cancellation.");
+                    setRefundMessage("An unknown error occurred during cancellation.");
                 }
             } finally {
                 setIsProcessingRefund(false);
@@ -264,7 +264,7 @@ export default function RefundCancelOrdersPage() {
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">↩️ Refund / Cancel Orders</h1>
 
                 {error && (
-                     <div className="p-4 mb-4 rounded bg-red-100 text-red-700">
+                    <div className="p-4 mb-4 rounded bg-red-100 text-red-700">
                         {error}
                     </div>
                 )}
@@ -313,42 +313,41 @@ export default function RefundCancelOrdersPage() {
                                         </td>
                                         <td className="py-3 px-4 border-b text-gray-800">${parseFloat(String(order.refund_amount || 0)).toFixed(2)}</td>
                                         <td className="py-3 px-4 border-b flex space-x-2 items-center">
-                                            {
-                                                (order.status === 'completed' || order.status === 'partially_refunded') &&
+                                            {/* Refund Button Logic */}
+                                            {(order.status === 'completed' || order.status === 'partially_refunded') && order.paymentMethod !== 'cod' &&
                                                 (
                                                     (order.paymentMethod === 'stripe' && order.stripePaymentIntentId && order.stripePaymentIntentId.startsWith('pi_')) ||
                                                     (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId))
-                                                ) &&
-                                                order.paymentMethod !== 'cod' ? (
-                                                    <button
-                                                        onClick={() => handleSelectOrderForRefund(order)}
-                                                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                                        disabled={isProcessingRefund}
-                                                    >
-                                                        Refund
-                                                    </button>
-                                                ) : null
-                                            }
-                                            {
-                                                (order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
+                                                ) ? (
+                                                <button
+                                                    onClick={() => handleSelectOrderForRefund(order)}
+                                                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                                                    disabled={isProcessingRefund}
+                                                >
+                                                    Refund
+                                                </button>
+                                            ) : null}
+
+                                            {/* Cancel Button Logic */}
+                                            {(order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
                                                 order.status !== 'cancelled' && order.status !== 'refunded' ? (
-                                                    <button
-                                                        onClick={() => handleCancelOrder(order.id)}
-                                                        className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600"
-                                                        disabled={isProcessingRefund}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                ) : null
-                                            }
+                                                <button
+                                                    onClick={() => handleCancelOrder(order.id)}
+                                                    className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600"
+                                                    disabled={isProcessingRefund}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            ) : null}
+
+                                            {/* N/A for actions if neither refund nor cancel buttons are shown */}
                                             {
                                                 !(
                                                     ((order.status === 'completed' || order.status === 'partially_refunded') &&
-                                                        (
-                                                            (order.paymentMethod === 'stripe' && order.stripePaymentIntentId && order.stripePaymentIntentId.startsWith('pi_')) ||
+                                                        order.paymentMethod !== 'cod' &&
+                                                        ((order.paymentMethod === 'stripe' && order.stripePaymentIntentId && order.stripePaymentIntentId.startsWith('pi_')) ||
                                                             (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId))
-                                                        ) &&
-                                                        order.paymentMethod !== 'cod'
+                                                        )
                                                     ) || (
                                                         (order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
                                                         order.status !== 'cancelled' && order.status !== 'refunded'

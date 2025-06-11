@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 
 // Define a type for your order data
 interface Order {
@@ -14,17 +13,34 @@ interface Order {
     stripeSessionId?: string;
     paypalOrderId?: string;
     paypalCaptureId?: string;
-    refund_amount?: string | number; // Add this to your Order type
+    refund_amount?: string | number;
 }
 
+// Define specific types for API payloads to avoid using 'any'
+interface RefundPayload {
+    orderId: number;
+    amount: number;
+    reason: 'duplicate' | 'fraudulent' | 'requested_by_customer' | '';
+    paymentIntentId?: string;
+    paypalOrderId?: string;
+}
+
+interface CancelPayload {
+    orderId: number;
+    reason: string;
+    amount?: number;
+    paymentMethod?: string;
+    paymentIntentId?: string;
+    paypalOrderId?: string;
+}
+
+
 export default function RefundCancelOrdersPage() {
-    const router = useRouter();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
     const [refundAmount, setRefundAmount] = useState<number>(0);
-    // >>>>>>>>>>>>>> UPDATED: Type and initial state for refundReason <<<<<<<<<<<<<<<<
     const [refundReason, setRefundReason] = useState<'duplicate' | 'fraudulent' | 'requested_by_customer' | ''>('');
     const [isProcessingRefund, setIsProcessingRefund] = useState(false);
     const [refundMessage, setRefundMessage] = useState<string | null>(null);
@@ -32,9 +48,10 @@ export default function RefundCancelOrdersPage() {
     const fetchOrders = useCallback(async () => {
         try {
             setLoading(true);
-            setRefundMessage(null); // Clear any previous messages
+            setRefundMessage(null);
+            setError(null); // Clear previous errors on re-fetch
 
-            const response = await fetch('/api/admin/orders'); // Your API endpoint
+            const response = await fetch('/api/admin/orders');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -42,30 +59,31 @@ export default function RefundCancelOrdersPage() {
             const rawData = await response.json();
             console.log('Frontend: Raw data from /api/admin/orders:', rawData);
 
-            // Ensure rawData is treated as an array of Order objects directly
             const ordersArray: Order[] = Array.isArray(rawData) ? rawData : Object.values(rawData) as Order[];
             console.log('Frontend: Converted orders array:', ordersArray);
 
             setOrders(ordersArray);
-            setError(null);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Frontend: Failed to fetch orders:", err);
-            setError(`Failed to load orders. Please try again. Error: ${err.message}`);
+            if (err instanceof Error) {
+                setError(`Failed to load orders. Please try again. Error: ${err.message}`);
+            } else {
+                setError("An unknown error occurred while fetching orders.");
+            }
         } finally {
             setLoading(false);
         }
-    }, []); // Empty dependency array means this function is created once
+    }, []);
 
     useEffect(() => {
         fetchOrders();
-    }, [fetchOrders]); // Dependency on fetchOrders
+    }, [fetchOrders]);
 
     const handleSelectOrderForRefund = (order: Order) => {
         setSelectedOrderId(order.id);
-        // Default to full refund, parse to number. Handle cases where totalAmount might be string "0.00"
         setRefundAmount(parseFloat(order.totalAmount) || 0);
-        setRefundReason(''); // Reset reason when selecting a new order
-        setRefundMessage(null); // Clear previous messages
+        setRefundReason('');
+        setRefundMessage(null);
     };
 
     const handleRefund = async () => {
@@ -83,7 +101,6 @@ export default function RefundCancelOrdersPage() {
             return;
         }
 
-        // >>>>>>>>>>>>>> ADDED: Validation for refundReason <<<<<<<<<<<<<<<<
         if (!refundReason) {
             setRefundMessage("Please select a valid refund reason.");
             return;
@@ -99,10 +116,10 @@ export default function RefundCancelOrdersPage() {
 
         try {
             let endpoint = '';
-            let payload: any = {
+            const payload: RefundPayload = {
                 orderId: selectedOrderId,
                 amount: refundAmount,
-                reason: refundReason, // This will now be one of Stripe's allowed values
+                reason: refundReason,
             };
 
             if (orderToRefund.paymentMethod === 'stripe') {
@@ -141,14 +158,18 @@ export default function RefundCancelOrdersPage() {
 
             if (res.ok) {
                 setRefundMessage(`Refund successful! New Status: ${data.newStatus || 'N/A'}. Refund ID: ${data.refundId || 'N/A'}`);
-                fetchOrders(); // Re-fetch orders to update the table
-                setSelectedOrderId(null); // Close refund modal
+                fetchOrders();
+                setSelectedOrderId(null);
             } else {
                 setRefundMessage(`Refund failed: ${data.error || 'Unknown error'}`);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Frontend: Error during refund:', err);
-            setRefundMessage(`An unexpected error occurred during the refund process: ${err.message || ''}`);
+            if (err instanceof Error) {
+                setRefundMessage(`An unexpected error occurred during the refund process: ${err.message}`);
+            } else {
+                setRefundMessage("An unknown error occurred during the refund process.");
+            }
         } finally {
             setIsProcessingRefund(false);
         }
@@ -172,13 +193,13 @@ export default function RefundCancelOrdersPage() {
             setIsProcessingRefund(true);
             setRefundMessage(null);
             try {
-                let endpoint = '/api/admin/orders/cancel';
-                let payload: any = { orderId: orderId, reason: 'Order cancellation by admin' }; // Default reason for cancel
+                const endpoint = '/api/admin/orders/cancel';
+                const payload: CancelPayload = { orderId: orderId, reason: 'Order cancellation by admin' };
 
                 const currentTotalAmount = parseFloat(orderToCancel.totalAmount);
 
                 if (orderToCancel.status === 'completed' || orderToCancel.status === 'partially_refunded') {
-                    payload.amount = currentTotalAmount; // Full refund on cancellation
+                    payload.amount = currentTotalAmount;
                     if (orderToCancel.paymentMethod === 'stripe') {
                         if (!orderToCancel.stripePaymentIntentId || !orderToCancel.stripePaymentIntentId.startsWith('pi_')) {
                             throw new Error("Stripe Payment Intent ID (pi_...) missing or invalid for completed order cancellation.");
@@ -197,12 +218,12 @@ export default function RefundCancelOrdersPage() {
                         }
                         payload.paymentMethod = 'paypal';
                     } else if (orderToCancel.paymentMethod === 'cod') {
-                        payload.paymentMethod = 'cod'; // COD orders can be cancelled without an API refund
+                        payload.paymentMethod = 'cod';
                     } else {
                         throw new Error(`Cancellation with refund not supported for '${orderToCancel.paymentMethod}'.`);
                     }
                 } else if (orderToCancel.status === 'pending') {
-                    payload.paymentMethod = orderToCancel.paymentMethod; // No refund needed if pending
+                    payload.paymentMethod = orderToCancel.paymentMethod;
                 } else {
                     throw new Error(`Cancellation not supported for '${orderToCancel.paymentMethod}' with status '${orderToCancel.status}'.`);
                 }
@@ -220,13 +241,17 @@ export default function RefundCancelOrdersPage() {
 
                 if (res.ok) {
                     setRefundMessage(`Order #${orderId} cancelled successfully! New Status: ${data.newStatus || 'cancelled'}`);
-                    fetchOrders(); // Re-fetch orders to update the table
+                    fetchOrders();
                 } else {
                     setRefundMessage(`Cancellation failed for order #${orderId}: ${data.error || 'Unknown error'}`);
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Frontend: Error during cancellation:', err);
-                setRefundMessage(`An unexpected error occurred during cancellation: ${err.message || ''}`);
+                if (err instanceof Error) {
+                    setRefundMessage(`An unexpected error occurred during cancellation: ${err.message}`);
+                } else {
+                     setRefundMessage("An unknown error occurred during cancellation.");
+                }
             } finally {
                 setIsProcessingRefund(false);
             }
@@ -238,6 +263,12 @@ export default function RefundCancelOrdersPage() {
             <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">↩️ Refund / Cancel Orders</h1>
 
+                {error && (
+                     <div className="p-4 mb-4 rounded bg-red-100 text-red-700">
+                        {error}
+                    </div>
+                )}
+
                 {refundMessage && (
                     <div className={`p-4 mb-4 rounded ${refundMessage.includes('failed') || refundMessage.includes('error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                         {refundMessage}
@@ -248,9 +279,9 @@ export default function RefundCancelOrdersPage() {
                     <div className="flex items-center justify-center py-10">
                         <p className="text-gray-600">Loading orders...</p>
                     </div>
-                ) : orders.length === 0 ? (
+                ) : !error && orders.length === 0 ? (
                     <p className="text-gray-600">No orders to display.</p>
-                ) : (
+                ) : !error && (
                     <div className="overflow-x-auto">
                         <table className="min-w-full bg-white border border-gray-300">
                             <thead>
@@ -261,7 +292,7 @@ export default function RefundCancelOrdersPage() {
                                     <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Payment Method</th>
                                     <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Status</th>
                                     <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Order Date</th>
-                                    <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Refunded Amount</th> {/* New Column */}
+                                    <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Refunded Amount</th>
                                     <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -280,7 +311,7 @@ export default function RefundCancelOrdersPage() {
                                                 day: 'numeric'
                                             })}
                                         </td>
-                                        <td className="py-3 px-4 border-b text-gray-800">${parseFloat(order.refund_amount as string).toFixed(2)}</td> {/* Display Refunded Amount */}
+                                        <td className="py-3 px-4 border-b text-gray-800">${parseFloat(String(order.refund_amount || 0)).toFixed(2)}</td>
                                         <td className="py-3 px-4 border-b flex space-x-2 items-center">
                                             {
                                                 (order.status === 'completed' || order.status === 'partially_refunded') &&
@@ -298,7 +329,6 @@ export default function RefundCancelOrdersPage() {
                                                     </button>
                                                 ) : null
                                             }
-
                                             {
                                                 (order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
                                                 order.status !== 'cancelled' && order.status !== 'refunded' ? (
@@ -311,17 +341,18 @@ export default function RefundCancelOrdersPage() {
                                                     </button>
                                                 ) : null
                                             }
-
                                             {
                                                 !(
                                                     ((order.status === 'completed' || order.status === 'partially_refunded') &&
-                                                        ((order.paymentMethod === 'stripe' && order.stripePaymentIntentId && order.stripePaymentIntentId.startsWith('pi_')) ||
-                                                            (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId)))) &&
-                                                    order.paymentMethod !== 'cod'
-                                                ) &&
-                                                !(
-                                                    (order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
-                                                    order.status !== 'cancelled' && order.status !== 'refunded'
+                                                        (
+                                                            (order.paymentMethod === 'stripe' && order.stripePaymentIntentId && order.stripePaymentIntentId.startsWith('pi_')) ||
+                                                            (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId))
+                                                        ) &&
+                                                        order.paymentMethod !== 'cod'
+                                                    ) || (
+                                                        (order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
+                                                        order.status !== 'cancelled' && order.status !== 'refunded'
+                                                    )
                                                 ) ? (
                                                     <span className="text-gray-500">N/A</span>
                                                 ) : null
@@ -337,10 +368,9 @@ export default function RefundCancelOrdersPage() {
                 {selectedOrderId && (
                     <div className="mt-8 p-6 border border-gray-300 rounded-lg bg-gray-50">
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">Process Refund for Order #{selectedOrderId}</h2>
-                        {/* Display previously refunded amount */}
                         {orders.find(o => o.id === selectedOrderId)?.refund_amount > 0 && (
                             <p className="mb-2 text-gray-700">
-                                Previously Refunded Amount: ${parseFloat(orders.find(o => o.id === selectedOrderId)?.refund_amount as string).toFixed(2)}
+                                Previously Refunded Amount: ${parseFloat(String(orders.find(o => o.id === selectedOrderId)?.refund_amount || 0)).toFixed(2)}
                             </p>
                         )}
                         <div className="mb-4">
@@ -362,7 +392,6 @@ export default function RefundCancelOrdersPage() {
                             <label htmlFor="refundReason" className="block text-gray-700 text-sm font-bold mb-2">
                                 Reason:
                             </label>
-                            {/* >>>>>>>>>>>>>> CHANGED TO SELECT DROPDOWN <<<<<<<<<<<<<<<< */}
                             <select
                                 id="refundReason"
                                 value={refundReason}
@@ -384,8 +413,7 @@ export default function RefundCancelOrdersPage() {
                             </button>
                             <button
                                 onClick={handleRefund}
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                // >>>>>>>>>>>>>> DISABLED BUTTON IF NO REASON SELECTED <<<<<<<<<<<<<<<<
+                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-blue-400"
                                 disabled={isProcessingRefund || !refundReason}
                             >
                                 {isProcessingRefund ? 'Processing...' : 'Confirm Refund'}
@@ -397,4 +425,3 @@ export default function RefundCancelOrdersPage() {
         </div>
     );
 }
-

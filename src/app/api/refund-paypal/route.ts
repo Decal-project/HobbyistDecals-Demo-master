@@ -24,9 +24,8 @@ async function generateAccessToken(): Promise<string> {
 
     if (!response.ok) {
         const errorData = await response.json();
-        console.error('Failed to generate PayPal access token:', errorData);
         const errorMessage = errorData.error_description || response.statusText || 'Unknown error';
-        throw new Error(`PayPal Access Token Error: Client Authentication failed: ${errorMessage}`);
+        throw new Error(`PayPal Access Token Error: ${errorMessage}`);
     }
 
     const data = await response.json();
@@ -40,7 +39,6 @@ type PayPalCapture = {
 
 async function getCaptureIdFromOrderId(paypalOrderId: string, accessToken: string): Promise<string | null> {
     const orderDetailsUrl = `${PAYPAL_API_BASE_URL}/v2/checkout/orders/${paypalOrderId}`;
-    console.log(`Fetching order details for PayPal Order ID: ${paypalOrderId}`);
 
     const response = await fetch(orderDetailsUrl, {
         method: 'GET',
@@ -51,7 +49,6 @@ async function getCaptureIdFromOrderId(paypalOrderId: string, accessToken: strin
     });
 
     const data = await response.json();
-    console.log('PayPal Order Details Response:', data);
 
     if (!response.ok) {
         console.error('Failed to fetch PayPal order details:', data);
@@ -78,7 +75,7 @@ async function refundPayPalOrder(
     amount: number,
     reason: string,
     accessToken: string
-): Promise<any> {
+): Promise<unknown> {
     const refundUrl = `${PAYPAL_API_BASE_URL}/v2/payments/captures/${captureId}/refund`;
 
     const requestBody = {
@@ -88,9 +85,6 @@ async function refundPayPalOrder(
         },
         note_to_payer: reason,
     };
-
-    console.log(`Attempting PayPal refund for Capture ID: ${captureId} with amount: ${amount}`);
-    console.log('Refund Request Body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(refundUrl, {
         method: 'POST',
@@ -103,10 +97,8 @@ async function refundPayPalOrder(
     });
 
     const responseData = await response.json();
-    console.log('PayPal Refund API Response:', responseData);
 
     if (!response.ok) {
-        console.error("PayPal Refund API error:", responseData);
         throw new Error(`PayPal refund failed: ${responseData.message || JSON.stringify(responseData)}`);
     }
 
@@ -119,6 +111,7 @@ async function refundPayPalOrder(
 
 export async function POST(req: Request) {
     let client: pg.PoolClient | null = null;
+
     try {
         const { orderId: internalOrderId, paypalOrderId, amount, reason } = await req.json();
 
@@ -128,12 +121,8 @@ export async function POST(req: Request) {
 
         client = await pool.connect();
         await client.query('BEGIN');
-        console.log('Database transaction started for PayPal refund.');
 
         const accessToken = await generateAccessToken();
-        console.log('PayPal Access Token generated successfully.');
-
-        console.log(`Received paypalOrderId from frontend: ${paypalOrderId}. Attempting to get Capture ID.`);
         const captureId = await getCaptureIdFromOrderId(paypalOrderId, accessToken);
 
         if (!captureId) {
@@ -143,10 +132,19 @@ export async function POST(req: Request) {
                 { status: 404 }
             );
         }
-        console.log(`Found PayPal Capture ID: ${captureId}`);
 
-        const refundResponse = await refundPayPalOrder(captureId, amount, reason, accessToken);
-        console.log('PayPal refund initiated:', refundResponse);
+        const rawRefundResponse = await refundPayPalOrder(captureId, amount, reason || 'requested_by_customer', accessToken);
+
+        if (
+            typeof rawRefundResponse !== 'object' ||
+            rawRefundResponse === null ||
+            !('status' in rawRefundResponse) ||
+            typeof (rawRefundResponse as { status: string }).status !== 'string'
+        ) {
+            throw new Error('Unexpected PayPal refund response structure.');
+        }
+
+        const refundResponse = rawRefundResponse as { id: string; status: string };
 
         const orderResult = await client.query(
             `SELECT total_amount, affiliate_user_id FROM checkout_orders WHERE id = $1 FOR UPDATE`,
@@ -162,45 +160,34 @@ export async function POST(req: Request) {
         const originalTotalAmount = parseFloat(dbOrder.total_amount);
         const affiliateUserId = dbOrder.affiliate_user_id;
 
-        let newStatus = 'partially_refunded';
-        if (amount >= originalTotalAmount) {
-            newStatus = 'refunded';
-        }
+        let newStatus = amount >= originalTotalAmount ? 'refunded' : 'partially_refunded';
 
         await client.query(
             `UPDATE checkout_orders SET status = $1, updated_at = NOW() WHERE id = $2`,
             [newStatus, internalOrderId]
         );
-        console.log(`Order ${internalOrderId} status updated to: ${newStatus}`);
 
         if (affiliateUserId !== null) {
             const commissionRateResult = await client.query(
                 `SELECT commission_rate FROM affiliate_users WHERE user_id = $1`,
                 [affiliateUserId]
             );
-            const commissionRate = commissionRateResult.rows[0]?.commission_rate || 0.10;
 
+            const commissionRate = commissionRateResult.rows[0]?.commission_rate ?? 0.10;
             const refundedCommissionAmount = amount * commissionRate;
 
             await client.query(
-                `UPDATE affiliate_commissions
-                 SET status = 'reversed', updated_at = NOW()
-                 WHERE order_id = $1 AND affiliate_user_id = $2`,
+                `UPDATE affiliate_commissions SET status = 'reversed', updated_at = NOW() WHERE order_id = $1 AND affiliate_user_id = $2`,
                 [internalOrderId, affiliateUserId]
             );
-            console.log(`Affiliate commission for order ${internalOrderId} reversed.`);
 
             await client.query(
-                `UPDATE affiliate_users
-                 SET total_earnings = COALESCE(total_earnings, 0) - $1
-                 WHERE user_id = $2`,
+                `UPDATE affiliate_users SET total_earnings = COALESCE(total_earnings, 0) - $1 WHERE user_id = $2`,
                 [refundedCommissionAmount, affiliateUserId]
             );
-            console.log(`Affiliate user ${affiliateUserId} earnings adjusted by -${refundedCommissionAmount}.`);
         }
 
         await client.query('COMMIT');
-        console.log('Database transaction committed for PayPal refund.');
 
         return NextResponse.json({
             message: 'PayPal refund processed successfully',
@@ -213,22 +200,19 @@ export async function POST(req: Request) {
         if (client) {
             try {
                 await client.query('ROLLBACK');
-                console.error('Database transaction rolled back due to error during PayPal refund.');
             } catch (rollbackError) {
-                console.error('Error during rollback for PayPal refund:', rollbackError);
+                console.error('Error during rollback:', rollbackError);
             }
         }
 
-        const err = error instanceof Error ? error.message : 'An unknown error occurred';
-        console.error('--- PayPal Refund route FATAL error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         return NextResponse.json(
-            { error: 'Failed to process PayPal refund', details: err },
+            { error: 'Failed to process PayPal refund', details: errorMessage },
             { status: 500 }
         );
     } finally {
         if (client) {
             client.release();
-            console.log('Database client released for PayPal refund.');
         }
     }
 }

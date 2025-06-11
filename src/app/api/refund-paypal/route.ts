@@ -8,7 +8,6 @@ const PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com';
 
 async function generateAccessToken(): Promise<string> {
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-        console.error("PayPal API credentials (Client ID or Secret) are missing from environment variables.");
         throw new Error("PayPal API credentials (Client ID or Secret) are missing from environment variables.");
     }
 
@@ -160,7 +159,7 @@ export async function POST(req: Request) {
         const originalTotalAmount = parseFloat(dbOrder.total_amount);
         const affiliateUserId = dbOrder.affiliate_user_id;
 
-        let newStatus = amount >= originalTotalAmount ? 'refunded' : 'partially_refunded';
+        const newStatus = amount >= originalTotalAmount ? 'refunded' : 'partially_refunded';
 
         await client.query(
             `UPDATE checkout_orders SET status = $1, updated_at = NOW() WHERE id = $2`,

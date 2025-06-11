@@ -120,8 +120,16 @@ export async function POST(req: Request) {
     if (error instanceof Stripe.errors.StripeError) {
       console.error('Stripe Error Type:', error.type);
       console.error('Stripe Status Code:', error.statusCode);
-      // Safely access `error.raw.message` by asserting `error.raw` as `any`
-      console.error('Stripe Raw Message:', (error.raw as any)?.message);
+      
+      // Safely access error.raw.message without using 'any'
+      // Check if raw exists, is an object, and has a 'message' property
+      if (error.raw && typeof error.raw === 'object' && 'message' in error.raw) {
+        // Assert the type of error.raw to include the message property
+        console.error('Stripe Raw Message:', (error.raw as { message: string }).message);
+      } else {
+        console.error('Stripe Raw Message: Not available or not an object with a message property.');
+      }
+
       return NextResponse.json(
         { error: 'Stripe refund failed', details: error.message },
         { status: error.statusCode || 500 }

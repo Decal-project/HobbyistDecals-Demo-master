@@ -1,7 +1,5 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 // Define a type for your order data
 interface Order {
@@ -20,8 +18,26 @@ interface Order {
     paypalCaptureId?: string;
 }
 
+// Define types for API payloads to avoid using 'any'
+interface RefundPayload {
+    orderId: number;
+    amount: number;
+    reason: 'duplicate' | 'fraudulent' | 'requested_by_customer' | '';
+    paymentIntentId?: string;
+    paypalOrderId?: string;
+}
+
+interface CancelPayload {
+    orderId: number;
+    reason: string;
+    amount?: number;
+    paymentMethod: string;
+    paymentIntentId?: string;
+    paypalOrderId?: string;
+}
+
+
 export default function RefundCancelOrdersPage() {
-    const router = useRouter();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -36,6 +52,7 @@ export default function RefundCancelOrdersPage() {
     const fetchOrders = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null); // Clear previous page-level errors
             setRefundMessage(null); // Clear any previous messages
 
             const response = await fetch('/api/admin/orders'); // Your API endpoint
@@ -51,10 +68,10 @@ export default function RefundCancelOrdersPage() {
             console.log('Frontend: Converted orders array:', ordersArray);
 
             setOrders(ordersArray);
-            setError(null);
-        } catch (err: any) {
-            console.error("Frontend: Failed to fetch orders:", err);
-            setError(`Failed to load orders. Please try again. Error: ${err.message}`);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            console.error("Frontend: Failed to fetch orders:", errorMessage);
+            setError(`Failed to load orders. Please try again. Error: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
@@ -103,7 +120,7 @@ export default function RefundCancelOrdersPage() {
 
         try {
             let endpoint = '';
-            let payload: any = {
+            const payload: RefundPayload = {
                 orderId: selectedOrderId,
                 amount: refundAmount,
                 reason: refundReason, // This will now be one of Stripe's allowed values
@@ -150,9 +167,10 @@ export default function RefundCancelOrdersPage() {
             } else {
                 setRefundMessage(`Refund failed: ${data.error || 'Unknown error'}`);
             }
-        } catch (err: any) {
-            console.error('Frontend: Error during refund:', err);
-            setRefundMessage(`An unexpected error occurred during the refund process: ${err.message || ''}`);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            console.error('Frontend: Error during refund:', errorMessage);
+            setRefundMessage(`An unexpected error occurred during the refund process: ${errorMessage}`);
         } finally {
             setIsProcessingRefund(false);
         }
@@ -176,8 +194,8 @@ export default function RefundCancelOrdersPage() {
             setIsProcessingRefund(true);
             setRefundMessage(null);
             try {
-                let endpoint = '/api/admin/orders/cancel';
-                let payload: any = { orderId: orderId, reason: 'Order cancellation by admin' }; // Default reason for cancel
+                const endpoint = '/api/admin/orders/cancel';
+                const payload: Partial<CancelPayload> = { orderId: orderId, reason: 'Order cancellation by admin' };
 
                 const currentTotalAmount = parseFloat(orderToCancel.totalAmount);
 
@@ -228,9 +246,10 @@ export default function RefundCancelOrdersPage() {
                 } else {
                     setRefundMessage(`Cancellation failed for order #${orderId}: ${data.error || 'Unknown error'}`);
                 }
-            } catch (err: any) {
-                console.error('Frontend: Error during cancellation:', err);
-                setRefundMessage(`An unexpected error occurred during cancellation: ${err.message || ''}`);
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : String(err);
+                console.error('Frontend: Error during cancellation:', errorMessage);
+                setRefundMessage(`An unexpected error occurred during cancellation: ${errorMessage}`);
             } finally {
                 setIsProcessingRefund(false);
             }
@@ -242,6 +261,13 @@ export default function RefundCancelOrdersPage() {
             <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">↩️ Refund / Cancel Orders</h1>
 
+                {/* Display page-level fetch errors */}
+                {error && (
+                     <div className="p-4 mb-4 rounded bg-red-100 text-red-700">
+                        {error}
+                     </div>
+                )}
+
                 {refundMessage && (
                     <div className={`p-4 mb-4 rounded ${refundMessage.includes('failed') || refundMessage.includes('error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                         {refundMessage}
@@ -252,7 +278,7 @@ export default function RefundCancelOrdersPage() {
                     <div className="flex items-center justify-center py-10">
                         <p className="text-gray-600">Loading orders...</p>
                     </div>
-                ) : orders.length === 0 ? (
+                ) : !error && orders.length === 0 ? ( // Added !error to not show "No orders" if there was a fetch error
                     <p className="text-gray-600">No orders to display.</p>
                 ) : (
                     <div className="overflow-x-auto">

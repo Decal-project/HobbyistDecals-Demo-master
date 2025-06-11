@@ -1,4 +1,3 @@
-// src/app/api/refund-paypal/route.ts
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import pg from 'pg';
@@ -7,7 +6,7 @@ const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_SECRET_KEY;
 const PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com';
 
-async function generateAccessToken() {
+async function generateAccessToken(): Promise<string> {
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
         console.error("PayPal API credentials (Client ID or Secret) are missing from environment variables.");
         throw new Error("PayPal API credentials (Client ID or Secret) are missing from environment variables.");
@@ -34,7 +33,11 @@ async function generateAccessToken() {
     return data.access_token;
 }
 
-// NEW FUNCTION: To fetch the Capture ID from a PayPal Order ID
+type PayPalCapture = {
+    id: string;
+    status: string;
+};
+
 async function getCaptureIdFromOrderId(paypalOrderId: string, accessToken: string): Promise<string | null> {
     const orderDetailsUrl = `${PAYPAL_API_BASE_URL}/v2/checkout/orders/${paypalOrderId}`;
     console.log(`Fetching order details for PayPal Order ID: ${paypalOrderId}`);
@@ -55,23 +58,27 @@ async function getCaptureIdFromOrderId(paypalOrderId: string, accessToken: strin
         return null;
     }
 
-    // Look for a completed capture in the purchase_units
     if (data.purchase_units && data.purchase_units.length > 0) {
         for (const unit of data.purchase_units) {
-            if (unit.payments && unit.payments.captures && unit.payments.captures.length > 0) {
-                // Find the first completed capture
-                const completedCapture = unit.payments.captures.find((cap: any) => cap.status === 'COMPLETED');
+            const captures: PayPalCapture[] | undefined = unit.payments?.captures;
+            if (captures && captures.length > 0) {
+                const completedCapture = captures.find((cap) => cap.status === 'COMPLETED');
                 if (completedCapture) {
                     return completedCapture.id;
                 }
             }
         }
     }
-    return null; // No completed capture found
+
+    return null;
 }
 
-
-async function refundPayPalOrder(captureId: string, amount: number, reason: string, accessToken: string) {
+async function refundPayPalOrder(
+    captureId: string,
+    amount: number,
+    reason: string,
+    accessToken: string
+): Promise<any> {
     const refundUrl = `${PAYPAL_API_BASE_URL}/v2/payments/captures/${captureId}/refund`;
 
     const requestBody = {
@@ -126,34 +133,18 @@ export async function POST(req: Request) {
         const accessToken = await generateAccessToken();
         console.log('PayPal Access Token generated successfully.');
 
-        let captureId: string | null = paypalOrderId; // Assume it's a capture ID initially
-
-        // Check if paypalOrderId looks like an Order ID (e.g., starts with "OO-")
-        // You might need to refine this check based on your actual PayPal Order ID format.
-        // A typical PayPal Order ID looks like '8A967812BK123456D'. Capture ID is similar.
-        // The most reliable way is to store the Capture ID from the start.
-        // For now, we'll try to fetch it if the refund fails, or if it doesn't look like a capture ID.
-        // A better approach would be to fetch it always, or rely on a stored capture_id.
-
-        // Let's assume if it doesn't look like a standard capture ID (e.g., if it's very short, or you know a specific prefix for orders),
-        // or if the initial refund attempt fails, we try to fetch it.
-        // For simplicity, let's always try to fetch capture ID if `paypalOrderId` is not definitely a capture ID.
-        // A robust check: if your stored `paypalOrderId` is always the *Order ID*, then always run `getCaptureIdFromOrderId`.
-        // If your stored `paypalOrderId` *could be* a Capture ID, then try refund directly, if it fails with RESOURCE_NOT_FOUND, THEN fetch.
-
-        // Given your error, '2PF02824KX172784P' looks like a transaction ID or similar.
-        // Let's implement robustly: fetch the capture ID associated with the order ID.
-        // Assuming paypalOrderId passed from frontend is the main PayPal Order ID.
         console.log(`Received paypalOrderId from frontend: ${paypalOrderId}. Attempting to get Capture ID.`);
-        captureId = await getCaptureIdFromOrderId(paypalOrderId, accessToken);
+        const captureId = await getCaptureIdFromOrderId(paypalOrderId, accessToken);
 
         if (!captureId) {
             await client.query('ROLLBACK');
-            return NextResponse.json({ error: 'Could not find a completed capture ID for the provided PayPal Order ID.' }, { status: 404 });
+            return NextResponse.json(
+                { error: 'Could not find a completed capture ID for the provided PayPal Order ID.' },
+                { status: 404 }
+            );
         }
         console.log(`Found PayPal Capture ID: ${captureId}`);
 
-        // Perform the PayPal refund using the obtained captureId
         const refundResponse = await refundPayPalOrder(captureId, amount, reason, accessToken);
         console.log('PayPal refund initiated:', refundResponse);
 
@@ -218,7 +209,7 @@ export async function POST(req: Request) {
             paypalResponse: refundResponse,
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (client) {
             try {
                 await client.query('ROLLBACK');
@@ -227,9 +218,11 @@ export async function POST(req: Request) {
                 console.error('Error during rollback for PayPal refund:', rollbackError);
             }
         }
+
+        const err = error instanceof Error ? error.message : 'An unknown error occurred';
         console.error('--- PayPal Refund route FATAL error:', error);
         return NextResponse.json(
-            { error: 'Failed to process PayPal refund', details: error.message || 'An unknown error occurred' },
+            { error: 'Failed to process PayPal refund', details: err },
             { status: 500 }
         );
     } finally {

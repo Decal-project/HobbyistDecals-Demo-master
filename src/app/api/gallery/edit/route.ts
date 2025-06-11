@@ -13,7 +13,6 @@ async function saveImage(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const filename = `${uuidv4()}-${file.name}`;
   const uploadDir = path.join(process.cwd(), "public/uploads");
-  // Ensure the uploads directory exists
   await fs.mkdir(uploadDir, { recursive: true });
   const uploadPath = path.join(uploadDir, filename);
   await fs.writeFile(uploadPath, buffer);
@@ -23,19 +22,17 @@ async function saveImage(file: File): Promise<string> {
 // Helper function to delete an image
 async function deleteImage(imageUrl: string): Promise<void> {
   if (!imageUrl || !imageUrl.startsWith('/uploads/')) {
-    // Not an uploaded image or invalid URL, do nothing
     return;
   }
   const filePath = path.join(process.cwd(), "public", imageUrl);
   try {
-    if (existsSync(filePath)) { // Check if file exists before attempting to delete
+    if (existsSync(filePath)) {
       await fs.unlink(filePath);
     } else {
       console.warn(`File not found, skipping deletion: ${filePath}`);
     }
   } catch (error) {
     console.error(`Error deleting image file ${filePath}:`, error);
-    // You might want to throw the error or handle it based on your needs
   }
 }
 
@@ -70,7 +67,7 @@ export async function POST(req: NextRequest) {
 }
 
 // GET: Fetch all gallery items
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const { rows } = await pool.query(
       `SELECT id, image_url, title, description, display_order, is_visible, created_at
@@ -90,23 +87,22 @@ export async function GET(req: NextRequest) {
 // PUT: Update an existing gallery item
 export async function PUT(req: NextRequest) {
   const formData = await req.formData();
-  const id = formData.get("id")?.toString(); // Get ID from form data
-  const file = formData.get("image") as File | null; // Image is optional for update
+  const id = formData.get("id")?.toString();
+  const file = formData.get("image") as File | null;
   const title = formData.get("title")?.toString() || "";
   const description = formData.get("description")?.toString() || "";
   const display_order = parseInt(formData.get("display_order") as string) || 0;
   const is_visible = formData.get("is_visible") === "true";
-  const existingImageUrl = formData.get("existing_image_url")?.toString() || ""; // To delete old image if new one is uploaded
+  const existingImageUrl = formData.get("existing_image_url")?.toString() || "";
 
   if (!id || !title) {
     return NextResponse.json({ error: "Missing required fields: ID and title" }, { status: 400 });
   }
 
-  let imageUrlToSave = existingImageUrl; // Default to existing image URL
+  let imageUrlToSave = existingImageUrl;
 
   try {
     if (file) {
-      // If a new file is uploaded, save it and delete the old one
       imageUrlToSave = await saveImage(file);
       if (existingImageUrl) {
         await deleteImage(existingImageUrl);
@@ -129,8 +125,6 @@ export async function PUT(req: NextRequest) {
 
 // DELETE: Delete a gallery item
 export async function DELETE(req: NextRequest) {
-  // For DELETE, you typically send the ID in the query params or body.
-  // Using query params for simplicity here: /api/gallery?id=123
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
@@ -139,7 +133,6 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    // First, get the image_url to delete the file from the public folder
     const { rows } = await pool.query(
       `SELECT image_url FROM gallery_items WHERE id = $1`,
       [id]
@@ -151,12 +144,8 @@ export async function DELETE(req: NextRequest) {
 
     const imageUrlToDelete = rows[0].image_url;
 
-    await pool.query(
-      `DELETE FROM gallery_items WHERE id = $1`,
-      [id]
-    );
+    await pool.query(`DELETE FROM gallery_items WHERE id = $1`, [id]);
 
-    // After successful database deletion, delete the image file
     if (imageUrlToDelete) {
       await deleteImage(imageUrlToDelete);
     }

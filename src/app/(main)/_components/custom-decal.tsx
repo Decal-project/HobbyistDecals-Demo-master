@@ -15,6 +15,15 @@ type Decal = {
   order: number;
 };
 
+type RawDecal = {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  is_visible: boolean;
+  display_order: number;
+};
+
 const CustomDecal = () => {
   const [decals, setDecals] = useState<Decal[]>([]);
   const autoplay = useMemo(() => Autoplay({ delay: 5000, stopOnInteraction: false }), []);
@@ -26,9 +35,9 @@ const CustomDecal = () => {
     const fetchDecals = async () => {
       try {
         const res = await fetch("/api/gallery");
-        const rawData = await res.json();
+        const rawData: RawDecal[] = await res.json();
 
-        const formatted: Decal[] = rawData.map((item: any) => ({
+        const formatted: Decal[] = rawData.map((item) => ({
           id: item.id,
           title: item.title,
           description: item.description,
@@ -82,7 +91,7 @@ const CustomDecal = () => {
 
   return (
     <div className="w-full min-h-[300px] p-4 flex flex-col items-start justify-center gap-6 bg-white">
-      <h2 className="capitalize text-xl text-black font-semibold">Custom Decals We've Created</h2>
+      <h2 className="capitalize text-xl text-black font-semibold">Custom Decals We&rsquo;ve Created</h2>
       <div className="relative w-full flex items-center">
         {/* Left Arrow */}
         <button

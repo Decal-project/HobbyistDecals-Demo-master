@@ -46,7 +46,7 @@ const StatsAndServices = () => {
               onClick={() => setActiveTab(tab)}
               className={`flex-1 px-4 py-2 text-sm font-semibold transition ${
                 activeTab === tab
-                  ? 'bg-[#16689A] text-white'
+                  ? 'bg-[#BEE2F3] text-black'
                   : 'bg-white text-gray-800 border-r hover:bg-blue-100'
               }`}
             >

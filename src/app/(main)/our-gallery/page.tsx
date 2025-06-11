@@ -150,7 +150,7 @@ const GalleryPage = () => {
           <h3 className="text-2xl font-bold mb-6 text-gray-900">Featured Projects :</h3>
 
           <div className="mb-6">
-            <div className="bg-[#16689A] text-white font-bold py-4 px-6 rounded-full">
+            <div className="bg-[#BEE2F3] text-black font-bold py-4 px-6 rounded-full">
               Classic Car Models
             </div>
             <div className="border border-[#1478A6] rounded-3xl p-6 text-gray-700 mt-[-20px] pt-8">
@@ -159,7 +159,7 @@ const GalleryPage = () => {
           </div>
 
           <div className="mb-6">
-            <div className="bg-[#16689A] text-white font-bold py-4 px-6 rounded-full">
+            <div className="bg-[#BEE2F3] text-black font-bold py-4 px-6 rounded-full">
               Aircraft Models
             </div>
             <div className="border border-[#1478A6] rounded-3xl p-6 text-gray-700 mt-[-20px] pt-8">
@@ -168,7 +168,7 @@ const GalleryPage = () => {
           </div>
 
           <div className="mb-6">
-            <div className="bg-[#16689A] text-white font-bold py-4 px-6 rounded-full">
+            <div className="bg-[#BEE2F3] text-black font-bold py-4 px-6 rounded-full">
               Custom Creations
             </div>
             <div className="border border-[#1478A6] rounded-3xl p-6 text-gray-700 mt-[-20px] pt-8">

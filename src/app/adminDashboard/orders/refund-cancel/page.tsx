@@ -316,8 +316,7 @@ export default function RefundCancelOrdersPage() {
                                                 (
                                                     (order.paymentMethod === 'stripe' && order.stripePaymentIntentId && order.stripePaymentIntentId.startsWith('pi_')) ||
                                                     (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId))
-                                                ) &&
-                                                order.paymentMethod !== 'cod' ? (
+                                                ) ? (
                                                     <button
                                                         onClick={() => handleSelectOrderForRefund(order)}
                                                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
@@ -345,10 +344,9 @@ export default function RefundCancelOrdersPage() {
                                             {/* No Actions (if neither Refund nor Cancel is applicable) */}
                                             {
                                                 !(
-                                                    ((order.status === 'completed' || order.status === 'partially_refunded') &&
+                                                    (order.status === 'completed' || order.status === 'partially_refunded') &&
                                                     ((order.paymentMethod === 'stripe' && order.stripePaymentIntentId && order.stripePaymentIntentId.startsWith('pi_')) ||
-                                                    (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId)))) &&
-                                                    order.paymentMethod !== 'cod'
+                                                    (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId)))
                                                 ) &&
                                                 !(
                                                     (order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&

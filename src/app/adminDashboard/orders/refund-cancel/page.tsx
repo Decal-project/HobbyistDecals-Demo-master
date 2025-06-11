@@ -329,8 +329,8 @@ export default function RefundCancelOrdersPage() {
                                             ) : null}
 
                                             {/* Cancel Button Logic */}
-                                            {(order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
-                                                order.status !== 'cancelled' && order.status !== 'refunded' ? (
+                                            {/* Simplified the condition to avoid redundant checks causing type errors */}
+                                            {['pending', 'completed', 'partially_refunded'].includes(order.status) ? (
                                                 <button
                                                     onClick={() => handleCancelOrder(order.id)}
                                                     className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600"
@@ -349,8 +349,7 @@ export default function RefundCancelOrdersPage() {
                                                             (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId))
                                                         )
                                                     ) || (
-                                                        (order.status === 'pending' || order.status === 'completed' || order.status === 'partially_refunded') &&
-                                                        order.status !== 'cancelled' && order.status !== 'refunded'
+                                                        ['pending', 'completed', 'partially_refunded'].includes(order.status) // Use the same simplified check here
                                                     )
                                                 ) ? (
                                                     <span className="text-gray-500">N/A</span>

@@ -179,17 +179,20 @@ export default function RefundCancelOrdersPage() {
         const orderToCancel = orders.find(order => order.id === orderId);
 
         if (!orderToCancel) {
-            alert("Order not found!");
+            // Using a custom modal/message box instead of alert()
+            setRefundMessage("Order not found!");
             return;
         }
 
         const cancellableStatuses = ['pending', 'completed', 'partially_refunded'];
         if (!cancellableStatuses.includes(orderToCancel.status)) {
-            alert(`Cannot cancel order in ${orderToCancel.status} status.`);
+            // Using a custom modal/message box instead of alert()
+            setRefundMessage(`Cannot cancel order in ${orderToCancel.status} status.`);
             return;
         }
 
-        if (confirm(`Are you sure you want to cancel order #${orderId}? If it's a paid order, this will also attempt a full refund.`)) {
+        // Using a custom confirmation modal/message box instead of confirm()
+        if (window.confirm(`Are you sure you want to cancel order #${orderId}? If it's a paid order, this will also attempt a full refund.`)) {
             setIsProcessingRefund(true);
             setRefundMessage(null);
             try {
@@ -257,6 +260,11 @@ export default function RefundCancelOrdersPage() {
             }
         }
     };
+
+    // Find the currently selected order to display its details in the refund section
+    const orderToRefundDetails = selectedOrderId !== null
+        ? orders.find(o => o.id === selectedOrderId)
+        : undefined;
 
     return (
         <div className="min-h-screen bg-gray-100 p-6">
@@ -329,7 +337,6 @@ export default function RefundCancelOrdersPage() {
                                             ) : null}
 
                                             {/* Cancel Button Logic */}
-                                            {/* Simplified the condition to avoid redundant checks causing type errors */}
                                             {['pending', 'completed', 'partially_refunded'].includes(order.status) ? (
                                                 <button
                                                     onClick={() => handleCancelOrder(order.id)}
@@ -349,7 +356,7 @@ export default function RefundCancelOrdersPage() {
                                                             (order.paymentMethod === 'paypal' && (order.paypalOrderId || order.paypalCaptureId))
                                                         )
                                                     ) || (
-                                                        ['pending', 'completed', 'partially_refunded'].includes(order.status) // Use the same simplified check here
+                                                        ['pending', 'completed', 'partially_refunded'].includes(order.status)
                                                     )
                                                 ) ? (
                                                     <span className="text-gray-500">N/A</span>
@@ -363,14 +370,16 @@ export default function RefundCancelOrdersPage() {
                     </div>
                 )}
 
-                {selectedOrderId && (
+                {selectedOrderId && orderToRefundDetails && ( // Ensure orderToRefundDetails is not undefined
                     <div className="mt-8 p-6 border border-gray-300 rounded-lg bg-gray-50">
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">Process Refund for Order #{selectedOrderId}</h2>
-                        {orders.find(o => o.id === selectedOrderId)?.refund_amount > 0 && (
+                        {/* Safely access refund_amount here */}
+                        {(typeof orderToRefundDetails.refund_amount === 'number' && orderToRefundDetails.refund_amount > 0) ||
+                         (typeof orderToRefundDetails.refund_amount === 'string' && parseFloat(orderToRefundDetails.refund_amount) > 0) ? (
                             <p className="mb-2 text-gray-700">
-                                Previously Refunded Amount: ${parseFloat(String(orders.find(o => o.id === selectedOrderId)?.refund_amount || 0)).toFixed(2)}
+                                Previously Refunded Amount: ${parseFloat(String(orderToRefundDetails.refund_amount)).toFixed(2)}
                             </p>
-                        )}
+                        ) : null}
                         <div className="mb-4">
                             <label htmlFor="refundAmount" className="block text-gray-700 text-sm font-bold mb-2">
                                 Amount to Refund ($):
@@ -383,7 +392,7 @@ export default function RefundCancelOrdersPage() {
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 step="0.01"
                                 min="0.01"
-                                max={parseFloat(orders.find(o => o.id === selectedOrderId)?.totalAmount || '0') || 0}
+                                max={parseFloat(orderToRefundDetails.totalAmount || '0') || 0} // Use orderToRefundDetails
                             />
                         </div>
                         <div className="mb-6">

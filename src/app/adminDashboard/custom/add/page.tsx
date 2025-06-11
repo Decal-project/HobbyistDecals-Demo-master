@@ -36,34 +36,36 @@ export default function UploadGalleryItem() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData: { error?: string } = await response.json();
         throw new Error(errorData.error || "Something went wrong!");
       }
 
-      const successData = await response.json();
+      const successData: { message: string } = await response.json();
       setMessage(successData.message);
-      // Optionally reset form fields after successful submission
+
+      // Reset form
       setFile(null);
       setTitle("");
       setDescription("");
       setDisplayOrder(0);
       setIsVisible(true);
-      (document.getElementById("image-upload") as HTMLInputElement).value = ""; // Clear file input
-    } catch (err: any) {
-      setError(err.message || "Failed to upload item.");
+      const fileInput = document.getElementById("image-upload") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to upload item.");
+      }
     }
   };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {" "}
-      {/* Added bg-gray-50 for overall background */}
-      {/* The Sidebar Section */}
+      {/* Sidebar */}
       <aside className="w-64 bg-gray-100 p-5 border-r border-gray-200 shadow-md flex flex-col">
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-          Admin Dashboard
-        </h2>
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800">Admin Dashboard</h2>
         <nav>
-          {/* Custom Decals Section */}
           <div className="mb-6">
             <h3 className="text-lg font-medium text-gray-700 mb-4 flex items-center gap-2">
               🤝 Manage Custom Decals
@@ -91,54 +93,36 @@ export default function UploadGalleryItem() {
           </div>
         </nav>
       </aside>
-      {/* Main content area */}
+
+      {/* Main Content */}
       <main className="flex-1 p-8">
-        <h1
-          style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}
-        >
+        <h1 className="text-center mb-8 text-2xl font-bold text-gray-800">
           Upload New Gallery Item
         </h1>
+
         {message && (
-          <p
-            style={{ color: "green", textAlign: "center", marginBottom: "15px" }}
-          >
-            {message}
-          </p>
+          <p className="text-green-600 text-center mb-4">{message}</p>
         )}
         {error && (
-          <p style={{ color: "red", textAlign: "center", marginBottom: "15px" }}>
-            {error}
-          </p>
+          <p className="text-red-600 text-center mb-4">{error}</p>
         )}
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "15px" }}
-        >
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label
-              htmlFor="image-upload"
-              style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}
-            >
+            <label htmlFor="image-upload" className="block mb-1 font-bold">
               Image:
             </label>
             <input
               type="file"
               id="image-upload"
-              onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
               accept="image/*"
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
+
           <div>
-            <label
-              htmlFor="title"
-              style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}
-            >
+            <label htmlFor="title" className="block mb-1 font-bold">
               Title:
             </label>
             <input
@@ -147,19 +131,12 @@ export default function UploadGalleryItem() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
+
           <div>
-            <label
-              htmlFor="description"
-              style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}
-            >
+            <label htmlFor="description" className="block mb-1 font-bold">
               Description:
             </label>
             <textarea
@@ -167,61 +144,38 @@ export default function UploadGalleryItem() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
+
           <div>
-            <label
-              htmlFor="display-order"
-              style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}
-            >
+            <label htmlFor="display-order" className="block mb-1 font-bold">
               Display Order:
             </label>
             <input
               type="number"
               id="display-order"
               value={displayOrder}
-              onChange={(e) => setDisplayOrder(parseInt(e.target.value))}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              onChange={(e) => setDisplayOrder(Number(e.target.value))}
+              className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
-          <div>
-            <label
-              htmlFor="is-visible"
-              style={{ display: "flex", alignItems: "center", fontWeight: "bold" }}
-            >
-              <input
-                type="checkbox"
-                id="is-visible"
-                checked={isVisible}
-                onChange={(e) => setIsVisible(e.target.checked)}
-                style={{ marginRight: "10px" }}
-              />
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="is-visible"
+              checked={isVisible}
+              onChange={(e) => setIsVisible(e.target.checked)}
+            />
+            <label htmlFor="is-visible" className="font-bold">
               Is Visible
             </label>
           </div>
+
           <button
             type="submit"
-            style={{
-              padding: "10px 15px",
-              backgroundColor: "#0070f3",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "16px",
-              marginTop: "20px",
-            }}
+            className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
           >
             Upload Item
           </button>

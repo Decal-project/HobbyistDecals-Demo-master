@@ -1,9 +1,9 @@
 // src/app/api/subscribe/route.ts
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db'; // Import your PostgreSQL connection pool
-import { Resend } from 'resend'; // Import Resend
+import pool from '@/lib/db';
+import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY); // Initialize Resend with your API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
     try {
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
         const normalizedEmail = email.toLowerCase();
 
-        // 1. Check if the email already exists in the 'subscribers' table
+        // Check if already subscribed
         const checkQuery = 'SELECT _id FROM subscribers WHERE email = $1';
         const checkResult = await pool.query(checkQuery, [normalizedEmail]);
 
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "This email is already subscribed." }, { status: 409 });
         }
 
-        // 2. Insert the new subscriber into the 'subscribers' table
+        // Insert new subscriber
         const insertQuery = `
             INSERT INTO subscribers (
                 _id, email, first_name, last_name, phone, subscription_date,
@@ -41,20 +41,19 @@ export async function POST(req: Request) {
             RETURNING _id;
         `;
         const insertResult = await pool.query(insertQuery, [normalizedEmail]);
-
         const newSubscriberId = insertResult.rows[0]._id;
+
         console.log(`Email '${email}' successfully subscribed with ID: ${newSubscriberId}`);
 
-        // --- NEW: Send Welcome Email with Discount Code ---
-        const discountCode = "WELCOME10"; // Your actual discount code
-        const senderEmail = "onboarding@resend.dev"; // Use your verified Resend domain email (e.g., from your domain hobbyistdecals.com)
-                                                                     // For testing, Resend provides 'onboarding@resend.dev' or similar.
+        // Send welcome email
+        const discountCode = "WELCOME10";
+        const senderEmail = "onboarding@resend.dev";
 
         try {
             const { data, error } = await resend.emails.send({
-                from: `HobbyistDecals <${senderEmail}>`, // Display name <sender_email>
+                from: `HobbyistDecals <${senderEmail}>`,
                 to: [normalizedEmail],
-                subject: 'Welcome to HobbyistDecals! Enjoy 10% Off Your First Order!', // More engaging subject line
+                subject: 'Welcome to HobbyistDecals! Enjoy 10% Off Your First Order!',
                 html: `
                     <!DOCTYPE html>
                     <html lang="en">
@@ -76,15 +75,15 @@ export async function POST(req: Request) {
                     </head>
                     <body>
                         <div class="container">
-                            <h1 style="color:#16689A; text-align:center;">Welcome to HobbyistDecals!</h1>
+                            <h1 style="color:#16689A;">Welcome to HobbyistDecals!</h1>
                             <p>Hi there,</p>
                             <p>Thank you for subscribing to our newsletter! We're excited to have you join the HobbyistDecals community.</p>
-                            <p style="text-align:center;">🎉 As a special welcome gift, please use the discount code below to get <strong>10% off</strong> your first order!</p>
-                            <p class="discount-code" style="background-color:#e0f7fa; color:#00897b; font-size:1.5em; padding:10px; border-radius:4px; text-align:center; margin:20px auto; display:block; width:fit-content;">${discountCode}</p>
-                            <p style="text-align:center;"><a href="http://localhost:3000/decal-shop" class="shop-link" style="display:inline-block; background-color:#16689A; color:white; padding:12px 20px; text-decoration:none; border-radius:6px; font-weight:bold;">Visit Our Shop Now</a></p>
+                            <p style="text-align:center;">🎉 Use the discount code below to get <strong>10% off</strong> your first order!</p>
+                            <p class="discount-code">${discountCode}</p>
+                            <p style="text-align:center;"><a href="http://localhost:3000/decal-shop" class="shop-link">Visit Our Shop Now</a></p>
                             <p>Stay tuned for updates on our latest decals, exclusive offers, and exciting news!</p>
                             <p>Happy Decaling,<br>The HobbyistDecals Team</p>
-                            <div class="footer" style="margin-top:30px; font-size:0.8em; color:#777; text-align:center;">
+                            <div class="footer">
                                 <p>Follow us on:</p>
                                 <div class="social-links">
                                     <a href="#">Facebook</a> | <a href="#">Instagram</a> | <a href="#">Twitter</a>
@@ -94,30 +93,44 @@ export async function POST(req: Request) {
                         </div>
                     </body>
                     </html>
-                    `,
-                // You can also use `text` for plain text email:
-                // text: `Welcome to HobbyistDecals! Here's your 10% discount code: ${discountCode}. Happy Decaling!`
+                `
             });
 
             if (error) {
                 console.error("Error sending email:", error);
-                // Decide if you want to fail the subscription or just log the email error
-                // For now, we'll log it but still return success for subscription.
             } else {
                 console.log("Email sent successfully:", data);
             }
-        } catch (emailError) {
-            console.error("Caught error during email sending:", emailError);
+        } catch (emailError: unknown) {
+            if (emailError instanceof Error) {
+                console.error("Caught error during email sending:", emailError.message);
+            } else {
+                console.error("Unknown error during email sending:", emailError);
+            }
         }
-        // --- End of NEW: Send Welcome Email with Discount Code ---
 
-        return NextResponse.json({ message: "You've successfully subscribed and a discount code has been sent to your email!" }, { status: 200 }); // More informative success message
+        return NextResponse.json({
+            message: "You've successfully subscribed and a discount code has been sent to your email!"
+        }, { status: 200 });
 
-    } catch (error: any) {
-        console.error("Error subscribing email or processing request:", error);
-        if (error.code === '23505' && error.constraint === 'subscribers_email_key') {
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error("Error subscribing email or processing request:", error.message);
+        } else {
+            console.error("Unknown error subscribing email or processing request:", error);
+        }
+
+        if (
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            'constraint' in error &&
+            (error as { code: string; constraint: string }).code === '23505' &&
+            (error as { code: string; constraint: string }).constraint === 'subscribers_email_key'
+        ) {
             return NextResponse.json({ error: "This email is already subscribed." }, { status: 409 });
         }
+
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

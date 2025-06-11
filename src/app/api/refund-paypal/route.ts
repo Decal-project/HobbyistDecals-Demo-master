@@ -7,13 +7,42 @@ const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_SECRET_KEY;
 const PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com';
 
-async function generateAccessToken() {
+interface PayPalRefundResponse {
+    id: string;
+    status: 'COMPLETED' | 'PENDING' | string;
+    [key: string]: unknown;
+}
+
+interface PayPalOrderCapture {
+    id: string;
+    status: string;
+}
+
+interface PayPalPurchaseUnit {
+    payments?: {
+        captures?: PayPalOrderCapture[];
+    };
+}
+
+interface PayPalOrderResponse {
+    purchase_units?: PayPalPurchaseUnit[];
+    [key: string]: unknown;
+}
+
+interface RefundRequestBody {
+    orderId: number;
+    paypalOrderId: string;
+    amount: number;
+    reason: string;
+}
+
+async function generateAccessToken(): Promise<string> {
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-        console.error("PayPal API credentials (Client ID or Secret) are missing from environment variables.");
-        throw new Error("PayPal API credentials (Client ID or Secret) are missing from environment variables.");
+        throw new Error("PayPal credentials are missing.");
     }
 
     const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
+
     const response = await fetch(`${PAYPAL_API_BASE_URL}/v1/oauth2/token`, {
         method: 'POST',
         body: 'grant_type=client_credentials',
@@ -25,86 +54,56 @@ async function generateAccessToken() {
 
     if (!response.ok) {
         const errorData = await response.json();
-        console.error('Failed to generate PayPal access token:', errorData);
-        const errorMessage = errorData.error_description || response.statusText || 'Unknown error';
-        throw new Error(`PayPal Access Token Error: Client Authentication failed: ${errorMessage}`);
+        throw new Error(`PayPal Access Token Error: ${errorData.error_description || response.statusText}`);
     }
 
     const data = await response.json();
     return data.access_token;
 }
 
-// NEW FUNCTION: To fetch the Capture ID from a PayPal Order ID
 async function getCaptureIdFromOrderId(paypalOrderId: string, accessToken: string): Promise<string | null> {
-    const orderDetailsUrl = `${PAYPAL_API_BASE_URL}/v2/checkout/orders/${paypalOrderId}`;
-    console.log(`Fetching order details for PayPal Order ID: ${paypalOrderId}`);
-
-    const response = await fetch(orderDetailsUrl, {
-        method: 'GET',
+    const url = `${PAYPAL_API_BASE_URL}/v2/checkout/orders/${paypalOrderId}`;
+    const response = await fetch(url, {
         headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
         },
     });
 
-    const data = await response.json();
-    console.log('PayPal Order Details Response:', data);
+    const data: PayPalOrderResponse = await response.json();
+    if (!response.ok) return null;
 
-    if (!response.ok) {
-        console.error('Failed to fetch PayPal order details:', data);
-        return null;
+    const units = data.purchase_units ?? [];
+    for (const unit of units) {
+        const captures = unit.payments?.captures ?? [];
+        const completedCapture = captures.find(cap => cap.status === 'COMPLETED');
+        if (completedCapture) return completedCapture.id;
     }
 
-    // Look for a completed capture in the purchase_units
-    if (data.purchase_units && data.purchase_units.length > 0) {
-        for (const unit of data.purchase_units) {
-            if (unit.payments && unit.payments.captures && unit.payments.captures.length > 0) {
-                // Find the first completed capture
-                const completedCapture = unit.payments.captures.find((cap: any) => cap.status === 'COMPLETED');
-                if (completedCapture) {
-                    return completedCapture.id;
-                }
-            }
-        }
-    }
-    return null; // No completed capture found
+    return null;
 }
 
-
-async function refundPayPalOrder(captureId: string, amount: number, reason: string, accessToken: string) {
+async function refundPayPalOrder(captureId: string, amount: number, reason: string, accessToken: string): Promise<PayPalRefundResponse> {
     const refundUrl = `${PAYPAL_API_BASE_URL}/v2/payments/captures/${captureId}/refund`;
-
-    const requestBody = {
-        amount: {
-            currency_code: 'USD',
-            value: amount.toFixed(2),
-        },
+    const body = {
+        amount: { currency_code: 'USD', value: amount.toFixed(2) },
         note_to_payer: reason,
     };
-
-    console.log(`Attempting PayPal refund for Capture ID: ${captureId} with amount: ${amount}`);
-    console.log('Refund Request Body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(refundUrl, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
             'PayPal-Request-Id': `REFUND-${Date.now()}-${Math.random().toString(36).substring(7)}`,
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(body),
     });
 
-    const responseData = await response.json();
-    console.log('PayPal Refund API Response:', responseData);
+    const responseData: PayPalRefundResponse = await response.json();
 
-    if (!response.ok) {
-        console.error("PayPal Refund API error:", responseData);
-        throw new Error(`PayPal refund failed: ${responseData.message || JSON.stringify(responseData)}`);
-    }
-
-    if (responseData.status !== 'COMPLETED' && responseData.status !== 'PENDING') {
-        throw new Error(`PayPal refund not completed successfully. Status: ${responseData.status}`);
+    if (!response.ok || (responseData.status !== 'COMPLETED' && responseData.status !== 'PENDING')) {
+        throw new Error(`PayPal refund failed: ${JSON.stringify(responseData)}`);
     }
 
     return responseData;
@@ -112,138 +111,118 @@ async function refundPayPalOrder(captureId: string, amount: number, reason: stri
 
 export async function POST(req: Request) {
     let client: pg.PoolClient | null = null;
-    try {
-        const { orderId: internalOrderId, paypalOrderId, amount, reason } = await req.json();
 
-        if (!internalOrderId || !paypalOrderId || !amount) {
+    try {
+        const { orderId, paypalOrderId, amount, reason }: RefundRequestBody = await req.json();
+
+        if (!orderId || !paypalOrderId || !amount) {
             return NextResponse.json({ error: 'Missing required refund data.' }, { status: 400 });
         }
 
         client = await pool.connect();
         await client.query('BEGIN');
-        console.log('Database transaction started for PayPal refund.');
 
         const accessToken = await generateAccessToken();
-        console.log('PayPal Access Token generated successfully.');
-
-        let captureId: string | null = paypalOrderId; // Assume it's a capture ID initially
-
-        console.log(`Received paypalOrderId from frontend: ${paypalOrderId}. Attempting to get Capture ID.`);
-        captureId = await getCaptureIdFromOrderId(paypalOrderId, accessToken);
+        const captureId = await getCaptureIdFromOrderId(paypalOrderId, accessToken);
 
         if (!captureId) {
             await client.query('ROLLBACK');
-            return NextResponse.json({ error: 'Could not find a completed capture ID for the provided PayPal Order ID.' }, { status: 404 });
+            return NextResponse.json({ error: 'Could not find completed capture ID.' }, { status: 404 });
         }
-        console.log(`Found PayPal Capture ID: ${captureId}`);
 
-        const orderResult = await client.query(
-            `SELECT total_amount, affiliate_user_id, COALESCE(refund_amount, 0) as current_refund_amount, status
-             FROM checkout_orders WHERE id = $1 FOR UPDATE`,
-            [internalOrderId]
-        );
+        const result = await client.query(`
+            SELECT total_amount, affiliate_user_id, COALESCE(refund_amount, 0) AS current_refund_amount, status
+            FROM checkout_orders WHERE id = $1 FOR UPDATE
+        `, [orderId]);
 
-        if (orderResult.rows.length === 0) {
+        if (result.rows.length === 0) {
             await client.query('ROLLBACK');
-            return NextResponse.json({ error: 'Order not found for status update.' }, { status: 404 });
+            return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
         }
 
-        const dbOrder = orderResult.rows[0];
-        const originalTotalAmount = parseFloat(dbOrder.total_amount);
-        const affiliateUserId = dbOrder.affiliate_user_id;
-        const currentRefundAmount = parseFloat(dbOrder.current_refund_amount);
-        const remainingRefundableAmount = originalTotalAmount - currentRefundAmount;
+        const {
+            total_amount,
+            affiliate_user_id,
+            current_refund_amount,
+            status,
+        }: {
+            total_amount: string;
+            affiliate_user_id: number | null;
+            current_refund_amount: string;
+            status: string;
+        } = result.rows[0];
 
-        if (parseFloat(amount) <= 0) {
+        const total = parseFloat(total_amount);
+        const refunded = parseFloat(current_refund_amount);
+        const remaining = total - refunded;
+
+        if (amount <= 0 || amount > remaining) {
             await client.query('ROLLBACK');
-            console.warn(`PayPal Refund: Refund amount must be greater than zero for order ${internalOrderId}. Rolling back transaction.`);
-            return NextResponse.json({ error: 'Refund amount must be greater than zero.' }, { status: 400 });
+            return NextResponse.json({ error: 'Invalid refund amount.' }, { status: 400 });
         }
 
-        if (parseFloat(amount) > remainingRefundableAmount) {
-            await client.query('ROLLBACK');
-            console.warn(`PayPal Refund: Refund amount exceeds remaining balance for order ${internalOrderId}. Rolling back transaction.`);
-            return NextResponse.json({ error: 'Refund amount exceeds the remaining refundable amount.' }, { status: 400 });
-        }
-
-        // Perform the PayPal refund using the obtained captureId
         const refundResponse = await refundPayPalOrder(captureId, amount, reason, accessToken);
-        console.log('PayPal refund initiated:', refundResponse);
+        const updatedRefund = refunded + amount;
+        let newStatus = status;
 
-        const newTotalRefundedAmount = currentRefundAmount + parseFloat(amount);
-        let newStatus = dbOrder.status;
-
-        if (refundResponse.status === 'COMPLETED' || refundResponse.status === 'PENDING') {
-            if (newTotalRefundedAmount.toFixed(2) === originalTotalAmount.toFixed(2)) {
-                newStatus = 'refunded';
-            } else if (newTotalRefundedAmount > 0) {
-                newStatus = 'partially_refunded';
-            }
+        if (updatedRefund.toFixed(2) === total.toFixed(2)) {
+            newStatus = 'refunded';
         } else {
-            console.warn(`PayPal Refund: Unexpected refund status from PayPal API: ${refundResponse.status}`);
-            newStatus = 'refund_processing_error';
+            newStatus = 'partially_refunded';
         }
 
-        await client.query(
-            `UPDATE checkout_orders SET status = $1, refund_amount = $2, updated_at = NOW() WHERE id = $3`,
-            [newStatus, newTotalRefundedAmount, internalOrderId]
-        );
-        console.log(`Order ${internalOrderId} status updated to: ${newStatus}, Refund amount updated to: ${newTotalRefundedAmount}`);
+        await client.query(`
+            UPDATE checkout_orders
+            SET status = $1, refund_amount = $2, updated_at = NOW()
+            WHERE id = $3
+        `, [newStatus, updatedRefund, orderId]);
 
-        if (affiliateUserId !== null) {
-            const commissionRateResult = await client.query(
-                `SELECT commission_rate FROM affiliate_users WHERE user_id = $1`,
-                [affiliateUserId]
-            );
-            const commissionRate = commissionRateResult.rows[0]?.commission_rate || 0.10;
+        if (affiliate_user_id !== null) {
+            const commissionResult = await client.query(`
+                SELECT commission_rate FROM affiliate_users WHERE user_id = $1
+            `, [affiliate_user_id]);
 
-            const refundedCommissionAmount = amount * commissionRate;
+            const commissionRate = commissionResult.rows[0]?.commission_rate || 0.1;
+            const reversedAmount = amount * commissionRate;
 
-            await client.query(
-                `UPDATE affiliate_commissions
-                 SET status = 'reversed', updated_at = NOW()
-                 WHERE order_id = $1 AND affiliate_user_id = $2`,
-                [internalOrderId, affiliateUserId]
-            );
-            console.log(`Affiliate commission for order ${internalOrderId} reversed.`);
+            await client.query(`
+                UPDATE affiliate_commissions
+                SET status = 'reversed', updated_at = NOW()
+                WHERE order_id = $1 AND affiliate_user_id = $2
+            `, [orderId, affiliate_user_id]);
 
-            await client.query(
-                `UPDATE affiliate_users
-                 SET total_earnings = COALESCE(total_earnings, 0) - $1
-                 WHERE user_id = $2`,
-                [refundedCommissionAmount, affiliateUserId]
-            );
-            console.log(`Affiliate user ${affiliateUserId} earnings adjusted by -${refundedCommissionAmount}.`);
+            await client.query(`
+                UPDATE affiliate_users
+                SET total_earnings = COALESCE(total_earnings, 0) - $1
+                WHERE user_id = $2
+            `, [reversedAmount, affiliate_user_id]);
         }
 
         await client.query('COMMIT');
-        console.log('Database transaction committed for PayPal refund.');
 
         return NextResponse.json({
             message: 'PayPal refund processed successfully',
             refundId: refundResponse.id,
-            newStatus: newStatus,
+            newStatus,
             paypalResponse: refundResponse,
         });
 
-    } catch (error: any) {
+    } catch (error) {
         if (client) {
             try {
                 await client.query('ROLLBACK');
-                console.error('Database transaction rolled back due to error during PayPal refund.');
-            } catch (rollbackError) {
-                console.error('Error during rollback for PayPal refund:', rollbackError);
+            } catch (rollbackErr) {
+                console.error('Rollback failed:', rollbackErr);
             }
         }
-        console.error('--- PayPal Refund route FATAL error:', error);
+
+        console.error('PayPal refund error:', error);
+        const err = error as Error;
         return NextResponse.json(
-            { error: 'Failed to process PayPal refund', details: error.message || 'An unknown error occurred' },
+            { error: 'Refund failed', details: err.message || 'Unknown error' },
             { status: 500 }
         );
     } finally {
-        if (client) {
-            client.release();
-            console.log('Database client released for PayPal refund.');
-        }
+        if (client) client.release();
     }
 }

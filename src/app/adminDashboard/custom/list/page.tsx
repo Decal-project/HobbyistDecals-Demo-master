@@ -19,7 +19,6 @@ export default function ListGalleryItems() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // useEffect to fetch data when the component mounts
   useEffect(() => {
     async function fetchGalleryItems() {
       try {
@@ -30,15 +29,19 @@ export default function ListGalleryItems() {
         }
         const data: GalleryItem[] = await response.json();
         setItems(data);
-      } catch (err: any) {
-        setError(err.message || "An unknown error occurred.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred.");
+        }
       } finally {
         setLoading(false);
       }
     }
 
     fetchGalleryItems();
-  }, []); // Empty dependency array means this effect runs once after the initial render
+  }, []);
 
   if (loading) {
     return (
@@ -66,13 +69,12 @@ export default function ListGalleryItems() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* The Sidebar Section */}
+      {/* Sidebar Section */}
       <aside className="w-64 bg-gray-100 p-5 border-r border-gray-200 shadow-md flex flex-col">
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">
           Admin Dashboard
         </h2>
         <nav>
-          {/* Custom Decals Section */}
           <div className="mb-6">
             <h3 className="text-lg font-medium text-gray-700 mb-4 flex items-center gap-2">
               🤝 Manage Custom Decals

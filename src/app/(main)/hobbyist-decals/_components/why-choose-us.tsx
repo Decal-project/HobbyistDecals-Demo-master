@@ -48,7 +48,7 @@ export default function WhyChooseUs() {
               onClick={() => toggleAccordion(index)}
               className={`flex justify-between items-center px-8 py-4 cursor-pointer transition-colors duration-300 ${
                 activeIndex === index
-                  ? 'bg-[#16689A] text-white'
+                  ? 'bg-[#BEE2F3] text-black'
                   : 'bg-white hover:bg-gray-50'
               }`}
             >

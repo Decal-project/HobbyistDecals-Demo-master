@@ -59,6 +59,12 @@ export default function AdminDashboard() {
           >
             📝 Manage Blogs
           </button>
+          <button
+            onClick={() => router.push("/adminDashboard/custom/list")}
+            className="py-3 bg-blue-700 rounded hover:bg-blue-600 transition"
+          >
+            📝 Manage Custom Decals We've Created
+          </button>
         </nav>
       </aside>
 
@@ -143,6 +149,15 @@ export default function AdminDashboard() {
             { label: "📃 View Blog List", href: "/adminDashboard/blogs/list" },
           ]}
         />
+          <DashboardCard
+  title="🤝 Manage Custom Decals We've Created"
+  color="blue"
+  options={[
+    { label: "➕ Add Decals", href: "/adminDashboard/custom/add" },
+    { label: "✏️ Edit Decals", href: "/adminDashboard/custom/edit" },
+    { label: "📋 List Decals", href: "/adminDashboard/custom/list" },
+  ]}
+/>
       </main>
     </div>
   );

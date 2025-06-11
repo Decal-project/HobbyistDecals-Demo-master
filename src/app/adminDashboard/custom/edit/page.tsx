@@ -6,12 +6,12 @@ import React, { useState, useEffect } from "react";
 // Define the type for a gallery item for better type safety
 interface GalleryItem {
   id: number;
-  image_url: string | null; // image_url can be null
+  image_url: string | null;
   title: string;
   description: string | null;
   display_order: number;
   is_visible: boolean;
-  created_at: string; // ISO 8601 string
+  created_at: string;
 }
 
 export default function GalleryManagementPage() {
@@ -20,63 +20,57 @@ export default function GalleryManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  // State for editing
   const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
 
-  // States for the EDIT form (within modal)
   const [editFile, setEditFile] = useState<File | null>(null);
   const [editTitle, setEditTitle] = useState<string>("");
   const [editDescription, setEditDescription] = useState<string>("");
   const [editDisplayOrder, setEditDisplayOrder] = useState<number>(0);
   const [editIsVisible, setEditIsVisible] = useState<boolean>(true);
-  const [editCurrentImageUrl, setEditCurrentImageUrl] = useState<string | null>(null); // Can be null
+  const [editCurrentImageUrl, setEditCurrentImageUrl] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
-
 
   const fetchGalleryItems = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/gallery/edit"); // Your API endpoint
+      const response = await fetch("/api/gallery/edit");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data: GalleryItem[] = await response.json();
       setItems(data);
-    } catch (err: any) {
-      setError(err.message || "An unknown error occurred while fetching items.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while fetching items.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch items when the component mounts
   useEffect(() => {
     fetchGalleryItems();
   }, []);
 
-  // Effect to populate edit form fields when editingItem changes
   useEffect(() => {
     if (editingItem) {
       setEditTitle(editingItem.title);
       setEditDescription(editingItem.description || "");
       setEditDisplayOrder(editingItem.display_order);
       setEditIsVisible(editingItem.is_visible);
-      setEditCurrentImageUrl(editingItem.image_url); // Set existing image URL
-      setEditFile(null); // Clear file input on item change
-      // Clear messages for edit form
+      setEditCurrentImageUrl(editingItem.image_url);
+      setEditFile(null);
       setMessage(null);
       setError(null);
     }
   }, [editingItem]);
 
-
-  // --- Handle Item Deletion ---
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this item? This action cannot be undone.")) {
-      return;
-    }
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
 
     try {
       setMessage(null);
@@ -92,27 +86,28 @@ export default function GalleryManagementPage() {
 
       const successData = await response.json();
       setMessage(successData.message);
-      // Optimistically remove the deleted item from the state
       setItems((prevItems) => prevItems.filter((item) => item.id !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while deleting.");
+      }
     }
   };
 
-  // --- Handle Item Editing (Prepare Form) ---
   const handleEdit = (item: GalleryItem) => {
     setEditingItem(item);
     setShowEditModal(true);
   };
 
-  // --- Handle Edit Form Submission ---
   const handleEditFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage("");
     setError("");
     setIsUpdating(true);
 
-    if (!editingItem || !editTitle) { // Ensure editingItem is not null and title is present
+    if (!editingItem || !editTitle) {
       setError("Item data or title is missing for update.");
       setIsUpdating(false);
       return;
@@ -125,22 +120,19 @@ export default function GalleryManagementPage() {
     formData.append("display_order", editDisplayOrder.toString());
     formData.append("is_visible", editIsVisible.toString());
 
-    // Only send existing_image_url if it's not null/empty
     if (editCurrentImageUrl) {
       formData.append("existing_image_url", editCurrentImageUrl);
     }
 
     if (editFile) {
-      formData.append("image", editFile); // Only append new file if selected
+      formData.append("image", editFile);
     } else if (!editCurrentImageUrl) {
-      // If no new file is selected and there was no current image, explicitly tell backend to clear it.
       formData.append("clear_image", "true");
     }
 
-
     try {
       const response = await fetch("/api/gallery/edit", {
-        method: "PUT", // Use PUT method for updates
+        method: "PUT",
         body: formData,
       });
 
@@ -152,32 +144,31 @@ export default function GalleryManagementPage() {
       const successData = await response.json();
       setMessage(successData.message);
 
-      // Update the displayed image immediately if a new one was uploaded
       if (editFile) {
         setEditCurrentImageUrl(URL.createObjectURL(editFile));
-      } else if (editFile === null && formData.get("clear_image") === "true") {
-        // If file input was cleared AND we sent clear_image flag
+      } else if (formData.get("clear_image") === "true") {
         setEditCurrentImageUrl(null);
       }
 
-      // Optionally, close the modal after a short delay for user to see success message
       setTimeout(() => {
         onCloseEditModal();
-      }, 1500); // Close after 1.5 seconds
-    } catch (err: any) {
-      setError(err.message || "Failed to update item.");
+      }, 1500);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while updating.");
+      }
     } finally {
       setIsUpdating(false);
     }
   };
 
-  // --- Handle Closing Edit Modal ---
   const onCloseEditModal = () => {
     setShowEditModal(false);
     setEditingItem(null);
-    fetchGalleryItems(); // Re-fetch items to show updated data
+    fetchGalleryItems();
   };
-
 
   return (
     <div className="flex min-h-screen bg-gray-50">

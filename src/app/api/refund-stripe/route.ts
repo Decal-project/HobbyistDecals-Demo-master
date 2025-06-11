@@ -120,7 +120,8 @@ export async function POST(req: Request) {
     if (error instanceof Stripe.errors.StripeError) {
       console.error('Stripe Error Type:', error.type);
       console.error('Stripe Status Code:', error.statusCode);
-      console.error('Stripe Raw Message:', error.raw?.message);
+      // Safely access `error.raw.message` by asserting `error.raw` as `any`
+      console.error('Stripe Raw Message:', (error.raw as any)?.message);
       return NextResponse.json(
         { error: 'Stripe refund failed', details: error.message },
         { status: error.statusCode || 500 }

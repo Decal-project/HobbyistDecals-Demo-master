@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import pool from '@/lib/db'
 
 interface ThankYouData {
   billingName: string

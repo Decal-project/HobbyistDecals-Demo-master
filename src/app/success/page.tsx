@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 interface ThankYouData {
   billingName: string
   totalAmount: number
 }
 
-export default function SuccessPage({ searchParams }: { searchParams: { session_id: string } }) {
-  const { session_id } = searchParams
+export default function SuccessPage() {
+  const searchParams = useSearchParams()
+  const session_id = searchParams.get('session_id')
+
   const [data, setData] = useState<ThankYouData | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,15 +47,17 @@ export default function SuccessPage({ searchParams }: { searchParams: { session_
     fetchOrder()
   }, [session_id])
 
-  if (error) return <p>{error}</p>
-  if (!data) return <p>Loading order...</p>
+  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>
+  if (!data) return <p className="text-center mt-10">Loading order...</p>
 
   const { billingName, totalAmount } = data
   const formattedTotal = isNaN(totalAmount) ? '0.00' : totalAmount.toFixed(2)
 
   return (
     <div className="max-w-2xl mx-auto p-6 text-center bg-white shadow rounded mt-10">
-      <h1 className="text-3xl font-bold text-green-600 mb-4">🎉 Congratulations, {billingName}!</h1>
+      <h1 className="text-3xl font-bold text-green-600 mb-4">
+        🎉 Congratulations, {billingName}!
+      </h1>
       <p className="text-lg mb-4">Thank you for your order.</p>
       <p className="text-xl font-semibold">Total Paid: ${formattedTotal}</p>
       <p className="mt-6 text-gray-700">

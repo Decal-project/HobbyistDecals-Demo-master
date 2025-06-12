@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import pool from '@/lib/db'
-import sendEmail from '@/./lib/sendEmail'
+import sendEmail from '@/lib/sendEmail'
 
+// Use the latest supported version string OR remove it to use Stripe default
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15',
+  apiVersion: '2025-04-30.basil', 
 })
 
 export async function POST(req: Request) {

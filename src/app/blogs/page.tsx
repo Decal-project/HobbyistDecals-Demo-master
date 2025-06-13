@@ -104,7 +104,7 @@ const BlogsPage = () => {
               </p>
               <div className="flex-grow"></div>
               <Link href={`/blogs/${blog.id}`}>
-                <button className="mt-3 px-4 py-2 bg-[#16689A] text-white rounded hover:bg-orange-600 transition">
+                <button className="mt-3 px-4 py-2 bg-[#BEE2F3] text-black rounded hover:bg-blue-400 transition">
                   READ MORE
                 </button>
               </Link>

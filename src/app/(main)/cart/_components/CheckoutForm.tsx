@@ -70,7 +70,7 @@ interface PayPalCaptureResponse {
 interface PayPalActions {
     order: {
         capture: () => Promise<PayPalCaptureResponse>; // Specified return type
-        create: (_data: object) => Promise<string>; // Specified data type as object and used underscore for unused parameter
+        create: (_data: object, _actions: object) => Promise<string>; // Specified data type as object and used underscore for unused parameter
     };
     // Add other actions if needed
 }
@@ -218,7 +218,7 @@ export default function CheckoutForm() {
     };
 
     const renderFields = (section: 'billing' | 'shipping') => {
-        const sectionData = formData[section]; // Renamed 'data' to 'sectionData' to avoid shadowing
+        const sectionData = formData[section];
         return (
             <>
                 <div className="grid grid-cols-2 gap-4">
@@ -380,7 +380,7 @@ export default function CheckoutForm() {
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
-                                createOrder={async (_data: PayPalCreateOrderData, _actions: PayPalActions) => {
+                                createOrder={async () => { // Removed _data and _actions
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
                                             method: 'POST',
@@ -401,7 +401,7 @@ export default function CheckoutForm() {
                                         return null;
                                     }
                                 }}
-                                onApprove={async (data: PayPalOnApproveData, _actions: PayPalActions) => {
+                                onApprove={async (data: PayPalOnApproveData) => { // Removed _actions
                                     try {
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
                                             method: 'POST',

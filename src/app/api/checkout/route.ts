@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(req: Request) {
-    let client; // Declare client outside try block so it's accessible in finally
+    let client: Awaited<ReturnType<typeof pool.connect>> | undefined; // Declare client with a more specific type and make it optional
     try {
         // Acquire a client from the connection pool
         client = await pool.connect();
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         if (affiliateCodeCookie) {
             const { value: affiliateCode } = affiliateCodeCookie;
             try {
-                const { rows } = await client.query( // Use client for queries within transaction
+                const { rows } = await client.query<{ user_id: number }>( // Specify row type for clarity
                     `SELECT user_id FROM affiliate_links WHERE code = $1`,
                     [affiliateCode]
                 );
@@ -81,7 +81,9 @@ export async function POST(req: Request) {
 
         if (!billing_first_name || !billing_last_name || !billing_email || !total_amount || !cart_id) {
             // Added total_amount and cart_id as critical missing info
-            await client.query('ROLLBACK'); // Rollback if validation fails
+            if (client) { // Check if client exists before rolling back
+                await client.query('ROLLBACK'); // Rollback if validation fails
+            }
             console.warn('Missing required billing, total amount, or cart information. Rolling back transaction.');
             return NextResponse.json(
                 { error: 'Missing required billing, total amount, or cart information.' },
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
             );
         }
 
-        let stripeSessionId: string | null = null;
+        const stripeSessionId: string | null = null; // Changed to const as it's not reassigned here
         let finalPaypalOrderId: string | null = null;
         let finalPaypalPayerId: string | null = null;
 
@@ -139,7 +141,7 @@ export async function POST(req: Request) {
 
         console.log('Attempting to insert into checkout_orders with params:', insertOrderParams);
 
-        const { rows: orderRows } = await client.query( // Use client for queries within transaction
+        const { rows: orderRows } = await client.query<{ id: number }>( // Specify row type for clarity
             insertOrderQuery,
             insertOrderParams
         );
@@ -148,7 +150,7 @@ export async function POST(req: Request) {
 
         // --- FETCH CART ITEMS FOR SHIPROCKET & STRIPE LINE ITEMS ---
         // Using the provided public.cart_items schema
-        const { rows: cartItems } = await client.query(
+        const { rows: cartItems } = await client.query<CartItem>( // Specify CartItem type
             `SELECT
                 sku,
                 name,
@@ -161,7 +163,9 @@ export async function POST(req: Request) {
 
         if (cartItems.length === 0) {
             console.warn(`No items found in cart_items for cart_id: ${cart_id}. This order cannot be processed without items.`);
-            await client.query('ROLLBACK'); // Rollback if cart is empty
+            if (client) { // Check if client exists before rolling back
+                await client.query('ROLLBACK'); // Rollback if cart is empty
+            }
             return NextResponse.json({ error: 'Cart is empty or invalid. Cannot create order.' }, { status: 400 });
         }
 
@@ -278,7 +282,7 @@ export async function POST(req: Request) {
                     body: JSON.stringify(shiprocketPayload),
                 });
 
-                const shiprocketData = await shiprocketResponse.json();
+                const shiprocketData: { message?: string; errors?: any } = await shiprocketResponse.json(); // Specify type for shiprocketData
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
                     // Decide if you want to rollback the order if Shiprocket push fails here.
@@ -287,7 +291,7 @@ export async function POST(req: Request) {
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
 
-            } catch (shiprocketError: any) {
+            } catch (shiprocketError: Error) { // Specify Error type
                 console.error('[Shiprocket Push Failure]:', shiprocketError.message || shiprocketError);
                 // IMPORTANT: If a failed Shiprocket push means the order is invalid, uncomment the following:
                 // await client.query('ROLLBACK');
@@ -301,14 +305,7 @@ export async function POST(req: Request) {
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
 
             // Using cartItems fetched earlier to create Stripe line items
-            const stripeLineItems = cartItems.map(item => ({
-                price_data: {
-                    currency: 'usd',
-                    product_data: { name: item.name || 'Product' }, // Use actual product name
-                    unit_amount: Math.round(parseFloat(item.price) * 100), // Convert to cents
-                },
-                quantity: item.quantity,
-            }));
+            // Removed unused stripeLineItems variable as per ESLint error
 
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
@@ -378,14 +375,16 @@ export async function POST(req: Request) {
         }
 
         // If none of the payment methods matched
-        await client.query('ROLLBACK'); // Rollback if unsupported payment method
+        if (client) { // Check if client exists before rolling back
+            await client.query('ROLLBACK'); // Rollback if unsupported payment method
+        }
         console.warn('Unsupported payment method received. Rolling back transaction.');
         return NextResponse.json(
             { error: 'Unsupported payment method.' },
             { status: 400 }
         );
 
-    } catch (err: any) {
+    } catch (err: unknown) { // Use 'unknown' type for caught errors
         // If an error occurred, roll back the transaction
         if (client) {
             try {
@@ -396,14 +395,31 @@ export async function POST(req: Request) {
             }
         }
         console.error('--- Checkout route FATAL error:', err);
-        // Log more details about the error for debugging
-        if (err.type) console.error('Error Type:', err.type);
-        if (err.statusCode) console.error('Status Code:', err.statusCode);
-        if (err.raw && err.raw.message) console.error('Raw Message:', err.raw.message);
-        console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+
+        let errorMessage = 'An unknown error occurred';
+        let errorDetails: Record<string, any> = {};
+
+        if (err instanceof Error) { // Type guard to safely access properties of Error
+            errorMessage = err.message;
+            errorDetails.name = err.name;
+            errorDetails.stack = err.stack;
+
+            // Check for specific Stripe error properties if applicable
+            if ('type' in err && typeof err.type === 'string') {
+                errorDetails.type = err.type;
+            }
+            if ('statusCode' in err && typeof err.statusCode === 'number') {
+                errorDetails.statusCode = err.statusCode;
+            }
+            if ('raw' in err && typeof err.raw === 'object' && err.raw !== null && 'message' in err.raw && typeof err.raw.message === 'string') {
+                errorDetails.rawMessage = err.raw.message;
+            }
+        }
+
+        console.error('Full Error Object in /api/checkout:', JSON.stringify(errorDetails, null, 2));
 
         return NextResponse.json(
-            { error: 'Failed to process checkout', details: err.message || 'An unknown error occurred' },
+            { error: 'Failed to process checkout', details: errorMessage },
             { status: 500 }
         );
     } finally {
@@ -412,4 +428,12 @@ export async function POST(req: Request) {
             console.log('Database client released.');
         }
     }
+}
+
+// Define the type for cart items to improve type safety
+interface CartItem {
+    sku: string;
+    name: string;
+    quantity: number;
+    price: string; // Assuming price comes as a string from DB, then parsed
 }

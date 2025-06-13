@@ -120,16 +120,17 @@ export async function POST(req: Request) {
             );
         }
 
-        let stripeSessionId: string | null = null;
-        let finalPaypalOrderId: string | null = null;
-        let finalPaypalPayerId: string | null = null;
+        // Changed 'stripeSessionId' to 'const' as it's only assigned once here.
+        // It's still conditionally set later if payment_method is 'stripe',
+        // but its initial value is set here.
+        const stripeSessionId: string | null = null;
+        const finalPaypalOrderId: string | null = paypal_order_id || null;
+        const finalPaypalPayerId: string | null = paypal_payer_id || null;
 
         let initialOrderStatus = 'pending';
         let initialCommissionStatus = 'pending'; // General initial status for commissions
 
         if (payment_method === 'paypal') {
-            finalPaypalOrderId = paypal_order_id || null;
-            finalPaypalPayerId = paypal_payer_id || null;
             initialOrderStatus = 'pending'; // Awaiting webhook confirmation for capture
             initialCommissionStatus = 'pending'; // Will be 'earned' on capture.completed webhook
         } else if (payment_method === 'cod') {
@@ -307,7 +308,7 @@ export async function POST(req: Request) {
                     body: JSON.stringify(shiprocketPayload),
                 });
 
-                const shiprocketData: { message?: string; errors?: any } = await shiprocketResponse.json(); // Explicitly type shiprocketData
+                const shiprocketData: { message?: string; errors?: unknown } = await shiprocketResponse.json(); // Explicitly type shiprocketData
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
                     // Decide if you want to rollback the order if Shiprocket push fails here.

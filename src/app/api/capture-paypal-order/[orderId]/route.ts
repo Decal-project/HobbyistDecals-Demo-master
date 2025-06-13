@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Buffer } from 'buffer';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { orderId: string } }
-) {
-  const { orderId } = params;
+export async function POST(req: NextRequest) {
+  const url = new URL(req.url);
+  const orderId = url.pathname.split('/').pop(); // Extract orderId from the dynamic route
 
   if (!orderId) {
     return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
@@ -40,13 +38,13 @@ export async function POST(
     const data = await res.json();
 
     if (!res.ok) {
-      console.error('PayPal capture error details:', data);
+      console.error('PayPal capture error:', data);
       return NextResponse.json({ error: 'PayPal capture failed', details: data }, { status: res.status });
     }
 
     return NextResponse.json({ success: true, data });
   } catch (err) {
-    console.error('Capture error:', err);
+    console.error('Server error during PayPal capture:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

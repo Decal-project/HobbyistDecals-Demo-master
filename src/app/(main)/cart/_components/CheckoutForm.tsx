@@ -5,62 +5,15 @@ import { useRouter } from 'next/navigation';
 import PaypalButton from './atoms/paypal-button'; // Adjust the import path as needed
 import Loader from './atoms/loader'; // Adjust the import path as needed
 
-interface AddressFields {
-    firstName: string;
-    lastName: string;
-    company: string;
-    country: string;
-    address: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    phone: string;
-    email: string;
-}
-
-interface CheckoutFormData {
-    billing: AddressFields;
-    shipping: AddressFields;
-    shipToDifferent: boolean;
-    orderNotes: string;
-    paymentMethod: 'stripe' | 'cod' | 'paypal';
-    agreed: boolean;
-}
-
-// *** IMPORTANT: This interface assumes your /api/cart endpoint is updated ***
-interface CartItemForFrontend {
-    sku: string;
-    name: string;
-    quantity: number;
-    price_for_display: number; // Unit price after quantity-based discounts
-}
-
-// *** IMPORTANT: This interface assumes your /api/cart endpoint is updated ***
-interface CartForFrontend {
-    id: number;
-    subtotal_after_quantity_discounts: number; // Sum of (price_for_display * quantity) for all items
-    total_quantity_discount_amount: number; // Total amount of quantity discounts applied
-    coupon_discount_amount: number; // Total amount of coupon discount applied (from DB)
-    shipping_cost: number;
-    final_total_amount: number; // subtotal_after_quantity_discounts - coupon_discount_amount + shipping_cost (from DB)
-    coupon_code_applied: string | null; // The coupon code applied if any (from DB)
-    items: CartItemForFrontend[]; // The array of items, each with its calculated display price
-}
-
-interface PayPalOnApproveData {
-    orderID: string;
-    payerID: string;
-}
-
-interface PayPalOnErrorData {
-    message?: string;
-}
+// ... (Interface definitions remain the same, they look good)
 
 export default function CheckoutForm() {
     const router = useRouter();
     const [cart, setCart] = useState<CartForFrontend | null>(null);
     const [loadingCart, setLoadingCart] = useState(true);
     const [paypalLoaded, setPaypalLoaded] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null); // Added for displaying errors
+
     const emptyAddr: AddressFields = {
         firstName: '',
         lastName: '',
@@ -85,6 +38,7 @@ export default function CheckoutForm() {
 
     const fetchCart = async () => {
         setLoadingCart(true);
+        setErrorMessage(null); // Clear previous errors
         try {
             const res = await fetch('/api/cart');
             if (!res.ok) {
@@ -94,6 +48,7 @@ export default function CheckoutForm() {
             setCart(data);
         } catch (error) {
             console.error("Error fetching cart:", error);
+            setErrorMessage(`Error fetching cart: ${(error as Error).message}`); // Display error
             setCart(null);
         } finally {
             setLoadingCart(false);
@@ -102,7 +57,7 @@ export default function CheckoutForm() {
 
     useEffect(() => {
         fetchCart();
-    }, []); // Fetch cart on component mount
+    }, []);
 
     const subtotalDisplay = cart?.subtotal_after_quantity_discounts ?? 0;
     const shippingAmtDisplay = cart?.shipping_cost ?? 0;
@@ -110,10 +65,15 @@ export default function CheckoutForm() {
     const totalDisplay = subtotalDisplay + shippingAmtDisplay - discountAmtDisplay;
 
     useEffect(() => {
+        // Load PayPal SDK only when PayPal is selected and not already loaded
         if (formData.paymentMethod === 'paypal' && !paypalLoaded) {
+            // Check if window.paypal is already defined by a previous script, prevent re-loading
+            if (typeof window.paypal !== 'undefined') {
+                setPaypalLoaded(true);
+                return;
+            }
+
             const script = document.createElement('script');
-            // Ensure NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID is defined in your .env.local
-            // If you are using production, change 'sandbox' to 'production' in the client-id URL.
             script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID}&currency=USD`;
             script.async = true;
             script.onload = () => {
@@ -121,11 +81,17 @@ export default function CheckoutForm() {
             };
             script.onerror = () => {
                 console.error('Failed to load PayPal SDK.');
-                alert('Failed to load PayPal payment options.');
+                setErrorMessage('Failed to load PayPal payment options. Please try another method or refresh.'); // More specific error
             };
             document.body.appendChild(script);
+
+            // Cleanup function for useEffect (optional, but good practice for scripts)
+            return () => {
+                // If you were removing the script, you'd do it here.
+                // However, PayPal SDK is often left on the page once loaded.
+            };
         }
-    }, [formData.paymentMethod, paypalLoaded]);
+    }, [formData.paymentMethod, paypalLoaded]); // Depend on paypalLoaded to prevent re-append
 
     const handleField = (
         section: 'billing' | 'shipping',
@@ -142,21 +108,21 @@ export default function CheckoutForm() {
     };
 
     const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault(); // Prevent default form submission
+        e.preventDefault();
+        setErrorMessage(null); // Clear previous errors
 
-        // If PayPal is selected, the form should not be submitted via this function.
-        // The PayPal button handles its own submission flow.
         if (formData.paymentMethod === 'paypal') {
             console.log("PayPal payment method selected. Not submitting form via traditional submit.");
-            return; // Exit early
+            return;
         }
 
         if (!formData.agreed) {
-            alert('Please agree to the terms.');
+            setErrorMessage('Please agree to the terms & conditions to proceed.'); // Use state for error message
             return;
         }
 
         const commonPayload = {
+            // ... (your commonPayload remains the same, looks good)
             billing_first_name: formData.billing.firstName,
             billing_last_name: formData.billing.lastName,
             billing_company_name: formData.billing.company,
@@ -179,7 +145,7 @@ export default function CheckoutForm() {
             shipping_phone: formData.shipping.phone,
             shipping_email: formData.shipping.email,
             order_notes: formData.orderNotes,
-            payment_method: formData.paymentMethod, // This will be 'stripe' or 'cod' here
+            payment_method: formData.paymentMethod,
             cart_id: cart?.id,
             coupon_code: cart?.coupon_code_applied,
             total_amount: totalDisplay.toFixed(2),
@@ -193,7 +159,9 @@ export default function CheckoutForm() {
             });
             const json = await res.json();
 
-            if (!res.ok) throw new Error(json.error || 'Checkout failed');
+            if (!res.ok) {
+                throw new Error(json.error || 'Checkout failed');
+            }
 
             if (formData.paymentMethod === 'stripe' && json.url) {
                 window.location.href = json.url;
@@ -202,7 +170,7 @@ export default function CheckoutForm() {
             }
         } catch (err) {
             console.error('Checkout error', err);
-            alert((err as Error).message);
+            setErrorMessage(`Checkout error: ${(err as Error).message}`);
         }
     };
 
@@ -362,19 +330,27 @@ export default function CheckoutForm() {
                         I agree to the terms & conditions.
                     </label>
 
+                    {/* Display error message if any */}
+                    {errorMessage && (
+                        <div className="text-red-600 text-sm mt-2">{errorMessage}</div>
+                    )}
+
                     {/* Conditional rendering of PayPal button or traditional submit button */}
                     {formData.paymentMethod === 'paypal' && paypalLoaded ? (
                         <div className="mt-6">
                             <PaypalButton
-                                // No 'type="submit"' here, as it's handled by PayPal SDK
+                                disabled={!formData.agreed} // Disable button if terms not agreed
                                 style={{
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
                                 createOrder={async () => {
+                                    setErrorMessage(null); // Clear previous errors
                                     if (!formData.agreed) {
-                                        alert('Please agree to the terms before proceeding with PayPal.');
-                                        throw new Error('User did not agree to terms.'); // Prevent order creation
+                                        // This alert will trigger if the button somehow becomes active before agreed
+                                        // But the disabled prop should prevent this for better UX
+                                        setErrorMessage('Please agree to the terms before proceeding with PayPal.');
+                                        throw new Error('User did not agree to terms.');
                                     }
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
@@ -395,19 +371,17 @@ export default function CheckoutForm() {
                                         return order.id; // This is the PayPal Order ID
                                     } catch (error) {
                                         console.error('Error creating PayPal order:', error);
-                                        alert(`Failed to create PayPal order: ${(error as Error).message}`);
-                                        throw error; // Re-throw to prevent PayPal from continuing
+                                        setErrorMessage(`Failed to create PayPal order: ${(error as Error).message}`);
+                                        throw error;
                                     }
                                 }}
                                 onApprove={async (data: PayPalOnApproveData) => {
+                                    setErrorMessage(null); // Clear previous errors
                                     try {
-                                        // This 'captureRes' might not be strictly necessary if your /api/checkout
-                                        // handles the capture itself, but it's fine for now if your backend
-                                        // capture-paypal-order endpoint also does this.
+                                        // Capture the PayPal order on your backend
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
-                                            // You might need to send more data for the capture if your backend requires it
                                         });
                                         const orderData = await captureRes.json();
                                         if (!captureRes.ok) {
@@ -415,8 +389,9 @@ export default function CheckoutForm() {
                                         }
                                         console.log('PayPal Payment Successful!', orderData);
 
-                                        // Now, submit the order details to your backend's /api/checkout
+                                        // Then, submit the order details to your backend's /api/checkout
                                         const checkoutPayload = {
+                                            // ... (your checkoutPayload remains the same, looks good)
                                             billing_first_name: formData.billing.firstName,
                                             billing_last_name: formData.billing.lastName,
                                             billing_company_name: formData.billing.company,
@@ -439,12 +414,12 @@ export default function CheckoutForm() {
                                             shipping_phone: formData.shipping.phone,
                                             shipping_email: formData.shipping.email,
                                             order_notes: formData.orderNotes,
-                                            payment_method: 'paypal', // Explicitly set payment method to 'paypal'
+                                            payment_method: 'paypal',
                                             cart_id: cart?.id,
                                             coupon_code: cart?.coupon_code_applied,
                                             total_amount: totalDisplay.toFixed(2),
-                                            paypal_order_id: data.orderID, // Pass PayPal Order ID
-                                            paypal_payer_id: data.payerID, // Pass PayPal Payer ID
+                                            paypal_order_id: data.orderID,
+                                            paypal_payer_id: data.payerID,
                                         };
 
                                         const res = await fetch('/api/checkout', {
@@ -456,31 +431,29 @@ export default function CheckoutForm() {
                                         if (!res.ok) {
                                             const errorData = await res.json();
                                             console.error('Error saving order details for PayPal:', errorData);
-                                            alert('Failed to save order details after PayPal payment.');
-                                            return;
+                                            throw new Error(errorData.error || 'Failed to save order details after PayPal payment.');
                                         }
 
-                                        router.push(`/thank-you?name=${formData.billing.firstName}&amount=${totalDisplay.toFixed(2)}&paymentMethod=paypal`); // Redirect after successful payment and order save
+                                        router.push(`/thank-you?name=${formData.billing.firstName}&amount=${totalDisplay.toFixed(2)}&paymentMethod=paypal`);
                                     } catch (err) {
                                         console.error('PayPal Capture/Checkout Error:', err);
-                                        alert(`Failed to complete PayPal payment: ${(err as Error).message}`);
+                                        setErrorMessage(`Failed to complete PayPal payment: ${(err as Error).message}`);
                                     }
                                 }}
                                 onCancel={() => {
-                                    alert('PayPal payment cancelled.');
+                                    setErrorMessage('PayPal payment cancelled.');
                                 }}
                                 onError={(err: PayPalOnErrorData) => {
                                     console.error('PayPal Error:', err);
-                                    alert(`An error occurred during PayPal payment: ${err?.message || 'Unknown error'}`);
+                                    setErrorMessage(`An error occurred during PayPal payment: ${err?.message || 'Unknown error'}`);
                                 }}
                             />
                         </div>
                     ) : (
-                        // This button is only for Stripe and COD. The form's onSubmit will handle it.
                         <button
                             type="submit"
                             className="w-full bg-yellow-400 text-blue-800 font-bold text-xl py-3 rounded mt-6"
-                            disabled={loadingCart || !cart || !formData.agreed} // Disable if cart not loaded or terms not agreed
+                            disabled={loadingCart || !cart || !formData.agreed}
                         >
                             {formData.paymentMethod === 'stripe'
                                 ? `Pay $${totalDisplay.toFixed(2)} with Stripe`

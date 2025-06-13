@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { cookies } from 'next/headers'; // This is an async function
 import Stripe from 'stripe';
 import pool from '@/lib/db'; // Assuming '@/lib/db' exports a pg.Pool instance
 import { PoolClient } from 'pg'; // Import PoolClient type from 'pg'
@@ -20,8 +20,8 @@ export async function POST(req: Request) {
         console.log('Database transaction started.');
 
         let affiliate_user_id: number | null = null;
-        // Adjusted: Call cookies() once and store its result
-        const cookieStore = cookies();
+        // Adjusted: AWAIT the result of cookies()
+        const cookieStore = await cookies();
         const affiliateCodeCookie = cookieStore.get('affiliate_code');
 
         console.log(`Cookie check: affiliate_code cookie found?`, !!affiliateCodeCookie);

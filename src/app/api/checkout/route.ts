@@ -120,9 +120,6 @@ export async function POST(req: Request) {
             );
         }
 
-        // Changed 'stripeSessionId' to 'const' as it's only assigned once here.
-        // It's still conditionally set later if payment_method is 'stripe',
-        // but its initial value is set here.
         const stripeSessionId: string | null = null;
         const finalPaypalOrderId: string | null = paypal_order_id || null;
         const finalPaypalPayerId: string | null = paypal_payer_id || null;
@@ -330,18 +327,13 @@ export async function POST(req: Request) {
             console.log('Payment method is Stripe. Proceeding with Stripe session creation.');
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
 
-            // Using cartItems fetched earlier to create Stripe line items
-            // The existing logic already uses total_amount for the single line item.
-            // No changes needed here based on the original request's Stripe line item structure.
-
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
-                // Always use a single line item for the total amount for accuracy
                 line_items: [{
                     price_data: {
                         currency: 'usd',
                         product_data: { name: 'Order Total' },
-                        unit_amount: Math.round(total_amount * 100), // total_amount is already number type
+                        unit_amount: Math.round(total_amount * 100),
                     },
                     quantity: 1,
                 }],
@@ -351,7 +343,9 @@ export async function POST(req: Request) {
                 metadata: {
                     order_id: String(order_id),
                     cart_id: String(cart_id),
-                    affiliate_user_id: affiliate_user_id ? String(affiliate_user_id) : undefined,
+                    // Convert affiliate_user_id to a string if it exists, otherwise use undefined.
+                    // Stripe metadata values must be strings.
+                    affiliate_user_id: affiliate_user_id !== null ? String(affiliate_user_id) : undefined,
                 },
             });
 

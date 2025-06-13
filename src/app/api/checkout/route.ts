@@ -327,6 +327,15 @@ export async function POST(req: Request) {
             console.log('Payment method is Stripe. Proceeding with Stripe session creation.');
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
 
+            // Prepare metadata object to ensure all values are strings or omitted if null/undefined
+            const metadata: { [key: string]: string } = {
+                order_id: String(order_id),
+                cart_id: String(cart_id),
+            };
+            if (affiliate_user_id !== null) {
+                metadata.affiliate_user_id = String(affiliate_user_id);
+            }
+
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
                 line_items: [{
@@ -340,13 +349,7 @@ export async function POST(req: Request) {
                 mode: 'payment',
                 success_url: `${process.env.NEXT_PUBLIC_DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${process.env.NEXT_PUBLIC_DOMAIN}/checkout`,
-                metadata: {
-                    order_id: String(order_id),
-                    cart_id: String(cart_id),
-                    // Convert affiliate_user_id to a string if it exists, otherwise use undefined.
-                    // Stripe metadata values must be strings.
-                    affiliate_user_id: affiliate_user_id !== null ? String(affiliate_user_id) : undefined,
-                },
+                metadata: metadata, // Use the carefully constructed metadata object
             });
 
             console.log(`Stripe session created: ${session.id}`);

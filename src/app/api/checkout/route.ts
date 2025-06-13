@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import pool from '@/lib/db'; // Assuming '@/lib/db' exports a pg.Pool instance
+import { PoolClient } from 'pg'; // Import PoolClient type from 'pg'
 
 console.log("Stripe Secret Key being used:", process.env.STRIPE_SECRET_KEY ? "Key Found (length: " + process.env.STRIPE_SECRET_KEY.length + ")" : "Key NOT Found!");
 
@@ -10,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(req: Request) {
-    let client: Awaited<ReturnType<typeof pool.connect>> | undefined; // Declare client with a more specific type and make it optional
+    let client: PoolClient | undefined; // Explicitly type client as PoolClient or undefined
     try {
         // Acquire a client from the connection pool
         client = await pool.connect();
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
         if (affiliateCodeCookie) {
             const { value: affiliateCode } = affiliateCodeCookie;
             try {
-                const { rows } = await client.query<{ user_id: number }>( // Specify row type for clarity
+                const { rows } = await client.query<{ user_id: number }>( // Specify row type
                     `SELECT user_id FROM affiliate_links WHERE code = $1`,
                     [affiliateCode]
                 );
@@ -37,8 +38,8 @@ export async function POST(req: Request) {
                 } else {
                     console.warn(`Affiliate code '${affiliateCode}' found in cookie but not in affiliate_links table.`);
                 }
-            } catch (dbError) {
-                console.error("Error fetching affiliate user ID from affiliate_links:", dbError);
+            } catch (dbError: unknown) { // Type dbError as unknown
+                console.error("Error fetching affiliate user ID from affiliate_links:", dbError instanceof Error ? dbError.message : dbError);
                 // Continue execution, as this is not a critical error for order creation
             }
         }
@@ -77,13 +78,41 @@ export async function POST(req: Request) {
             cart_id, // This is crucial for fetching cart items
             paypal_order_id,
             paypal_payer_id,
+        }: { // Explicitly define the expected structure of 'data'
+            billing_first_name: string;
+            billing_last_name: string;
+            billing_company_name?: string;
+            billing_country?: string;
+            billing_street_address?: string;
+            billing_city?: string;
+            billing_state?: string;
+            billing_postal_code?: string;
+            billing_phone?: string;
+            billing_email: string;
+
+            ship_to_different_address: boolean;
+            shipping_first_name?: string;
+            shipping_last_name?: string;
+            shipping_company_name?: string;
+            shipping_country?: string;
+            shipping_street_address?: string;
+            shipping_city?: string;
+            shipping_state?: string;
+            shipping_postal_code?: string;
+            shipping_phone?: string;
+            shipping_email?: string;
+
+            order_notes?: string;
+            payment_method: 'stripe' | 'paypal' | 'cod'; // Enforce specific payment methods
+            total_amount: number; // Expect total_amount to be a number
+            cart_id: string; // Expect cart_id to be a string
+            paypal_order_id?: string;
+            paypal_payer_id?: string;
         } = data;
 
         if (!billing_first_name || !billing_last_name || !billing_email || !total_amount || !cart_id) {
             // Added total_amount and cart_id as critical missing info
-            if (client) { // Check if client exists before rolling back
-                await client.query('ROLLBACK'); // Rollback if validation fails
-            }
+            await client.query('ROLLBACK'); // Rollback if validation fails
             console.warn('Missing required billing, total amount, or cart information. Rolling back transaction.');
             return NextResponse.json(
                 { error: 'Missing required billing, total amount, or cart information.' },
@@ -91,7 +120,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const stripeSessionId: string | null = null; // Changed to const as it's not reassigned here
+        let stripeSessionId: string | null = null;
         let finalPaypalOrderId: string | null = null;
         let finalPaypalPayerId: string | null = null;
 
@@ -125,7 +154,7 @@ export async function POST(req: Request) {
             ) RETURNING id
         `;
 
-        const insertOrderParams = [
+        const insertOrderParams: (string | number | boolean | null | undefined)[] = [ // Explicitly type array elements
             billing_first_name, billing_last_name, billing_company_name, billing_country,
             billing_street_address, billing_city, billing_state, billing_postal_code,
             billing_phone, billing_email, ship_to_different_address,
@@ -141,7 +170,7 @@ export async function POST(req: Request) {
 
         console.log('Attempting to insert into checkout_orders with params:', insertOrderParams);
 
-        const { rows: orderRows } = await client.query<{ id: number }>( // Specify row type for clarity
+        const { rows: orderRows } = await client.query<{ id: number }>( // Specify row type
             insertOrderQuery,
             insertOrderParams
         );
@@ -150,7 +179,7 @@ export async function POST(req: Request) {
 
         // --- FETCH CART ITEMS FOR SHIPROCKET & STRIPE LINE ITEMS ---
         // Using the provided public.cart_items schema
-        const { rows: cartItems } = await client.query<CartItem>( // Specify CartItem type
+        const { rows: cartItems } = await client.query<{ sku: string; name: string; quantity: number; price: string }>( // Specify row type
             `SELECT
                 sku,
                 name,
@@ -163,9 +192,7 @@ export async function POST(req: Request) {
 
         if (cartItems.length === 0) {
             console.warn(`No items found in cart_items for cart_id: ${cart_id}. This order cannot be processed without items.`);
-            if (client) { // Check if client exists before rolling back
-                await client.query('ROLLBACK'); // Rollback if cart is empty
-            }
+            await client.query('ROLLBACK'); // Rollback if cart is empty
             return NextResponse.json({ error: 'Cart is empty or invalid. Cannot create order.' }, { status: 400 });
         }
 
@@ -177,7 +204,6 @@ export async function POST(req: Request) {
         }));
         console.log('Formatted Shiprocket order_items:', shiprocketOrderItems);
         // --- END FETCH CART ITEMS ---
-
 
         // --- COMMISSION CALCULATION AND INSERTION LOGIC ---
         if (affiliate_user_id !== null) {
@@ -224,9 +250,8 @@ export async function POST(req: Request) {
                     console.log(`Affiliate ${affiliate_user_id} total earnings updated in affiliate_users table.`);
                 }
 
-            } catch (commissionDbError) {
-                console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError);
-                // This error might warrant a rollback or might be acceptable to log and proceed
+            } catch (commissionDbError: unknown) { // Type commissionDbError as unknown
+                console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError instanceof Error ? commissionDbError.message : commissionDbError);
                 throw commissionDbError; // Re-throw to trigger the main catch and rollback
             }
         }
@@ -282,7 +307,7 @@ export async function POST(req: Request) {
                     body: JSON.stringify(shiprocketPayload),
                 });
 
-                const shiprocketData: { message?: string; errors?: any } = await shiprocketResponse.json(); // Specify type for shiprocketData
+                const shiprocketData: { message?: string; errors?: any } = await shiprocketResponse.json(); // Explicitly type shiprocketData
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
                     // Decide if you want to rollback the order if Shiprocket push fails here.
@@ -291,8 +316,8 @@ export async function POST(req: Request) {
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
 
-            } catch (shiprocketError: Error) { // Specify Error type
-                console.error('[Shiprocket Push Failure]:', shiprocketError.message || shiprocketError);
+            } catch (shiprocketError: unknown) { // Type shiprocketError as unknown
+                console.error('[Shiprocket Push Failure]:', shiprocketError instanceof Error ? shiprocketError.message : shiprocketError);
                 // IMPORTANT: If a failed Shiprocket push means the order is invalid, uncomment the following:
                 // await client.query('ROLLBACK');
                 // return NextResponse.json({ error: 'Failed to integrate with shipping partner. Please try again.' }, { status: 500 });
@@ -305,7 +330,8 @@ export async function POST(req: Request) {
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
 
             // Using cartItems fetched earlier to create Stripe line items
-            // Removed unused stripeLineItems variable as per ESLint error
+            // The existing logic already uses total_amount for the single line item.
+            // No changes needed here based on the original request's Stripe line item structure.
 
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
@@ -314,7 +340,7 @@ export async function POST(req: Request) {
                     price_data: {
                         currency: 'usd',
                         product_data: { name: 'Order Total' },
-                        unit_amount: Math.round(parseFloat(total_amount) * 100), // Use total_amount here
+                        unit_amount: Math.round(total_amount * 100), // total_amount is already number type
                     },
                     quantity: 1,
                 }],
@@ -375,51 +401,38 @@ export async function POST(req: Request) {
         }
 
         // If none of the payment methods matched
-        if (client) { // Check if client exists before rolling back
-            await client.query('ROLLBACK'); // Rollback if unsupported payment method
-        }
+        await client.query('ROLLBACK'); // Rollback if unsupported payment method
         console.warn('Unsupported payment method received. Rolling back transaction.');
         return NextResponse.json(
             { error: 'Unsupported payment method.' },
             { status: 400 }
         );
 
-    } catch (err: unknown) { // Use 'unknown' type for caught errors
+    } catch (err: unknown) { // Type err as unknown
         // If an error occurred, roll back the transaction
         if (client) {
             try {
                 await client.query('ROLLBACK');
                 console.error('Database transaction rolled back due to error.');
-            } catch (rollbackError) {
-                console.error('Error during rollback:', rollbackError);
+            } catch (rollbackError: unknown) { // Type rollbackError as unknown
+                console.error('Error during rollback:', rollbackError instanceof Error ? rollbackError.message : rollbackError);
             }
         }
         console.error('--- Checkout route FATAL error:', err);
 
-        let errorMessage = 'An unknown error occurred';
-        let errorDetails: Record<string, any> = {};
-
-        if (err instanceof Error) { // Type guard to safely access properties of Error
-            errorMessage = err.message;
-            errorDetails.name = err.name;
-            errorDetails.stack = err.stack;
-
-            // Check for specific Stripe error properties if applicable
-            if ('type' in err && typeof err.type === 'string') {
-                errorDetails.type = err.type;
-            }
-            if ('statusCode' in err && typeof err.statusCode === 'number') {
-                errorDetails.statusCode = err.statusCode;
-            }
-            if ('raw' in err && typeof err.raw === 'object' && err.raw !== null && 'message' in err.raw && typeof err.raw.message === 'string') {
-                errorDetails.rawMessage = err.raw.message;
-            }
+        let errorDetails = 'An unknown error occurred'; // Use 'let' as it might be reassigned
+        if (err instanceof Error) {
+            errorDetails = err.message;
+            // Log more details about the error for debugging
+            if ('type' in err && typeof err.type === 'string') console.error('Error Type:', err.type);
+            if ('statusCode' in err && typeof err.statusCode === 'number') console.error('Status Code:', err.statusCode);
+            if ('raw' in err && typeof err.raw === 'object' && err.raw && 'message' in err.raw && typeof err.raw.message === 'string') console.error('Raw Message:', err.raw.message);
         }
+        console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
 
-        console.error('Full Error Object in /api/checkout:', JSON.stringify(errorDetails, null, 2));
 
         return NextResponse.json(
-            { error: 'Failed to process checkout', details: errorMessage },
+            { error: 'Failed to process checkout', details: errorDetails },
             { status: 500 }
         );
     } finally {
@@ -428,12 +441,4 @@ export async function POST(req: Request) {
             console.log('Database client released.');
         }
     }
-}
-
-// Define the type for cart items to improve type safety
-interface CartItem {
-    sku: string;
-    name: string;
-    quantity: number;
-    price: string; // Assuming price comes as a string from DB, then parsed
 }

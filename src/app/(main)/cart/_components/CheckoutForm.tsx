@@ -47,9 +47,8 @@ interface CartForFrontend {
     items: CartItemForFrontend[]; // The array of items, each with its calculated display price
 }
 
-interface PayPalCreateOrderData {
-    orderID?: string;
-}
+// Removed PayPalCreateOrderData and PayPalActions as they are no longer directly used for type annotations in this component.
+// Their types are implicitly handled by the PaypalButton component's props.
 
 interface PayPalOnApproveData {
     orderID: string;
@@ -58,21 +57,6 @@ interface PayPalOnApproveData {
 
 interface PayPalOnErrorData {
     message?: string;
-}
-
-// Define a more specific type for PayPal capture response if known,
-// otherwise, a general object with a known 'id' for the order.
-interface PayPalCaptureResponse {
-    id: string; // The ID of the captured order
-    // Add other fields you expect from a successful capture response
-}
-
-interface PayPalActions {
-    order: {
-        capture: () => Promise<PayPalCaptureResponse>; // Specified return type
-        create: (_data: object, _actions: object) => Promise<string>; // Specified data type as object and used underscore for unused parameter
-    };
-    // Add other actions if needed
 }
 
 export default function CheckoutForm() {
@@ -380,7 +364,7 @@ export default function CheckoutForm() {
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
-                                createOrder={async () => { // Removed _data and _actions
+                                createOrder={async () => {
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
                                             method: 'POST',
@@ -401,7 +385,7 @@ export default function CheckoutForm() {
                                         return null;
                                     }
                                 }}
-                                onApprove={async (data: PayPalOnApproveData) => { // Removed _actions
+                                onApprove={async (data: PayPalOnApproveData) => {
                                     try {
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
                                             method: 'POST',

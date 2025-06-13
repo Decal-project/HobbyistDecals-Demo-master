@@ -60,6 +60,15 @@ interface PayPalOnErrorData {
     message?: string;
 }
 
+// You might need to adjust these types based on the actual PayPal SDK types
+interface PayPalActions {
+    order: {
+        capture: () => Promise<any>; // Replace any with the actual capture response type
+        create: (data: any) => Promise<string>; // Replace any with the actual create order request type
+    };
+    // Add other actions if needed
+}
+
 export default function CheckoutForm() {
     const router = useRouter();
     const [cart, setCart] = useState<CartForFrontend | null>(null);
@@ -203,70 +212,70 @@ export default function CheckoutForm() {
     };
 
     const renderFields = (section: 'billing' | 'shipping') => {
-        const data = formData[section];
+        const sectionData = formData[section]; // Renamed 'data' to 'sectionData' to avoid shadowing
         return (
             <>
                 <div className="grid grid-cols-2 gap-4">
                     <input
                         required
                         placeholder="First Name"
-                        value={data.firstName}
+                        value={sectionData.firstName}
                         onChange={e => handleField(section, 'firstName', e.target.value)}
                         className="p-2 border"
                     />
                     <input
                         required
                         placeholder="Last Name"
-                        value={data.lastName}
+                        value={sectionData.lastName}
                         onChange={e => handleField(section, 'lastName', e.target.value)}
                         className="p-2 border"
                     />
                 </div>
                 <input
                     placeholder="Company (optional)"
-                    value={data.company}
+                    value={sectionData.company}
                     onChange={e => handleField(section, 'company', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Country"
-                    value={data.country}
+                    value={sectionData.country}
                     onChange={e => handleField(section, 'country', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Street Address"
-                    value={data.address}
+                    value={sectionData.address}
                     onChange={e => handleField(section, 'address', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="City"
-                    value={data.city}
+                    value={sectionData.city}
                     onChange={e => handleField(section, 'city', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="State"
-                    value={data.state}
+                    value={sectionData.state}
                     onChange={e => handleField(section, 'state', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Postal Code"
-                    value={data.postalCode}
+                    value={sectionData.postalCode}
                     onChange={e => handleField(section, 'postalCode', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Phone"
-                    value={data.phone}
+                    value={sectionData.phone}
                     onChange={e => handleField(section, 'phone', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
@@ -274,7 +283,7 @@ export default function CheckoutForm() {
                     required
                     placeholder="Email"
                     type="email"
-                    value={data.email}
+                    value={sectionData.email}
                     onChange={e => handleField(section, 'email', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
@@ -365,7 +374,7 @@ export default function CheckoutForm() {
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
-                                createOrder={async (data: PayPalCreateOrderData, actions: any) => {
+                                createOrder={async (data: PayPalCreateOrderData, actions: PayPalActions) => {
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
                                             method: 'POST',
@@ -386,7 +395,7 @@ export default function CheckoutForm() {
                                         return null;
                                     }
                                 }}
-                                onApprove={async (data: PayPalOnApproveData, actions: any) => {
+                                onApprove={async (data: PayPalOnApproveData, actions: PayPalActions) => {
                                     try {
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
                                             method: 'POST',
@@ -448,7 +457,7 @@ export default function CheckoutForm() {
                                 onCancel={() => {
                                     alert('PayPal payment cancelled.');
                                 }}
-                                onError={(err: PayPalOnErrorData | any) => {
+                                onError={(err: PayPalOnErrorData) => { // Type 'any' changed to 'PayPalOnErrorData'
                                     console.error('PayPal Error:', err);
                                     alert(`An error occurred during PayPal payment: ${err?.message || 'Unknown error'}`);
                                 }}

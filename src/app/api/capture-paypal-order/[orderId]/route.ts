@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Buffer } from 'buffer';
 
-export async function POST(req: NextRequest, context: { params: { orderId: string } }) {
-  // FIX 1: Await context.params
-  const { orderId } = await context.params;
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { orderId: string } }
+) {
+  const { orderId } = params;
 
   if (!orderId) {
     return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
@@ -12,16 +15,21 @@ export async function POST(req: NextRequest, context: { params: { orderId: strin
     const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID;
     const paypalSecret = process.env.PAYPAL_SECRET_KEY;
 
-    if (!paypalClientId) {
-      return NextResponse.json({ error: 'PayPal Client ID is not configured.' }, { status: 500 });
-    }
-    if (!paypalSecret) {
-      return NextResponse.json({ error: 'PayPal Secret Key is not configured.' }, { status: 500 });
+    if (!paypalClientId || !paypalSecret) {
+      return NextResponse.json(
+        { error: 'PayPal credentials are not configured.' },
+        { status: 500 }
+      );
     }
 
     const basicAuth = Buffer.from(`${paypalClientId}:${paypalSecret}`).toString('base64');
 
-    const res = await fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`, {
+    const PAYPAL_API_BASE =
+      process.env.NODE_ENV === 'production'
+        ? 'https://api-m.paypal.com'
+        : 'https://api-m.sandbox.paypal.com';
+
+    const res = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${basicAuth}`,

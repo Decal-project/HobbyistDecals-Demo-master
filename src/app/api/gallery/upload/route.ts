@@ -5,12 +5,12 @@ import path from "path";
 import fs from "fs/promises";
 
 // Save uploaded image
-async function saveImage(file: File): Promise<string> {
+async function saveImage(file: File): Promise<{ data: string }> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const filename = `${uuidv4()}-${file.name}`;
   const uploadPath = path.join(process.cwd(), "public/uploads", filename);
   await fs.writeFile(uploadPath, buffer);
-  return `/uploads/${filename}`;
+  return { data: `/uploads/${filename}` }; // Modified to return an object
 }
 
 export async function POST(req: NextRequest) {
@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const imageUrl = await saveImage(file);
+  const imageResult = await saveImage(file); // Renamed to imageResult
+  const imageUrl = imageResult.data; // Extract the actual URL from the data property
 
   await pool.query(
     `INSERT INTO gallery_items (image_url, title, description, display_order, is_visible)

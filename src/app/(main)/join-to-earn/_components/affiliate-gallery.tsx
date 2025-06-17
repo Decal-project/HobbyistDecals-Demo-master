@@ -60,8 +60,8 @@ export default function AffiliateGallery() {
                 key={idx}
               >
                 <Image
-                  src={item.img || item.img}
-                  alt={item.title || `Decal ${idx + 1}`} {/* Corrected: Use item.title instead of item.name */}
+                  src={item.img || "/placeholder.png"}
+                  alt={item.title || `Decal ${idx + 1}`}
                   width={100}
                   height={80}
                   className="rounded-md object-contain border"

@@ -1,67 +1,40 @@
 "use client";
 
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import { advertisementBannerImageUrls } from "@/lib/constants";
 
 const AdvertisementBannersComponent = () => {
-  const image1 = advertisementBannerImageUrls[0];
-  const image2 = advertisementBannerImageUrls[1];
-  const innerImages = advertisementBannerImageUrls.slice(2);
-
-  return (
-    <div className="w-full flex justify-center py-0 px-2">
-      <Carousel
-        className="w-full max-w-[5000px]" // Increased width from screen-lg to custom large
-        plugins={[Autoplay({ delay: 10000 })]}
-      >
-        <CarouselContent className="!m-0">
-          {/* Outer Slide 1 */}
-          <CarouselItem className="!p-0">
-            <div className="relative w-full h-[500px]"> {/* Increased height too */}
-              <Image
-                src={image1}
-                alt="Ad 1"
-                fill
-                quality={100}
-                className="object-contain rounded-lg"
-              />
-            </div>
-          </CarouselItem>
-
-          {/* Inner Carousel */}
-          <CarouselItem className="!p-0">
-            <InnerBannerCarousel images={innerImages} />
-          </CarouselItem>
-
-          {/* Outer Slide 2 */}
-          <CarouselItem className="!p-0">
-            <div className="relative w-full h-[500px]">
-              <Image
-                src={image2}
-                alt="Ad 2"
-                fill
-                quality={100}
-                className="object-contain rounded-lg"
-              />
-            </div>
-          </CarouselItem>
-        </CarouselContent>
-      </Carousel>
-    </div>
-  );
-};
-
-const InnerBannerCarousel = ({ images }: { images: string[] }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const autoplayDelay = 5000;
+  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
+
+  const scrollToIndex = useCallback(
+    (index: number) => {
+      if (emblaApi) {
+        emblaApi.scrollTo(index);
+      }
+    },
+    [emblaApi]
+  );
+
+  const startAutoplay = useCallback(() => {
+    stopAutoplay(); // Avoid multiple intervals
+    if (!emblaApi) return;
+
+    autoplayRef.current = setInterval(() => {
+      emblaApi.scrollNext();
+    }, autoplayDelay);
+  }, [emblaApi]);
+
+  const stopAutoplay = () => {
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current);
+      autoplayRef.current = null;
+    }
+  };
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -72,27 +45,34 @@ const InnerBannerCarousel = ({ images }: { images: string[] }) => {
     if (!emblaApi) return;
 
     emblaApi.on("select", onSelect);
+    onSelect(); // Set initial index
+    startAutoplay();
 
-    const autoplay = setInterval(() => {
-      if (emblaApi.canScrollNext()) {
-        emblaApi.scrollNext();
-      } else {
-        emblaApi.scrollTo(0);
-      }
-    }, 5000);
+    return () => {
+      stopAutoplay();
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect, startAutoplay]);
 
-    return () => clearInterval(autoplay);
-  }, [emblaApi, onSelect]);
+  const handleDotClick = (index: number) => {
+    stopAutoplay();
+    scrollToIndex(index);
+    setTimeout(() => startAutoplay(), 3000);
+  };
 
   return (
-    <div className="relative w-full h-[500px] overflow-hidden">
-      <div ref={emblaRef} className="h-full w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden py-4 px-2">
+      {/* Embla Carousel */}
+      <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {images.map((img, index) => (
-            <div key={index} className="relative flex-none w-full h-[500px]">
+          {advertisementBannerImageUrls.map((img, index) => (
+            <div
+              className="relative flex-[0_0_100%] h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px]"
+              key={index}
+            >
               <Image
                 src={img}
-                alt={`Slide ${index}`}
+                alt={`Ad ${index + 1}`}
                 fill
                 quality={100}
                 className="object-contain rounded-lg"
@@ -104,13 +84,14 @@ const InnerBannerCarousel = ({ images }: { images: string[] }) => {
 
       {/* Dots */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
-        {images.map((_, index) => (
-          <div
+        {advertisementBannerImageUrls.map((_, index) => (
+          <button
             key={index}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 focus:outline-none ${
               selectedIndex === index ? "bg-blue-600" : "bg-gray-400"
             }`}
-          ></div>
+            onClick={() => handleDotClick(index)}
+          ></button>
         ))}
       </div>
     </div>

@@ -4,35 +4,49 @@ import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs/promises";
 
-// Save uploaded image
+// Helper to save uploaded image
 async function saveImage(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const filename = `${uuidv4()}-${file.name}`;
-  const uploadPath = path.join(process.cwd(), "public/uploads", filename);
+
+  const dir = path.join(process.cwd(), "public/uploads");
+  await fs.mkdir(dir, { recursive: true }); // Ensure directory exists
+
+  const uploadPath = path.join(dir, filename);
   await fs.writeFile(uploadPath, buffer);
+
   return `/uploads/${filename}`;
 }
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
+  try {
+    const formData = await req.formData();
 
-  const file = formData.get("image") as File;
-  const title = formData.get("title")?.toString() || "";
-  const description = formData.get("description")?.toString() || "";
-  const display_order = parseInt(formData.get("display_order") as string) || 0;
-  const is_visible = formData.get("is_visible") === "true";
+    const file = formData.get("image") as File;
+    const title = formData.get("title")?.toString() || "";
+    const description = formData.get("description")?.toString() || "";
+    const displayOrderRaw = formData.get("display_order")?.toString();
+    const display_order = displayOrderRaw ? parseInt(displayOrderRaw) : 0;
+    const is_visible = formData.get("is_visible") === "true";
 
-  if (!file || !title) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    // Validate required fields
+    if (!file || !title) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Save image to disk
+    const imageUrl = await saveImage(file);
+
+    // Insert into PostgreSQL
+    await pool.query(
+      `INSERT INTO gallery_items (image_url, title, description, display_order, is_visible)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [imageUrl, title, description, display_order, is_visible]
+    );
+
+    return NextResponse.json({ message: "Item uploaded successfully", imageUrl }, { status: 200 });
+  } catch (error) {
+    console.error("Upload failed:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-
-  const imageUrl = await saveImage(file);
-
-  await pool.query(
-    `INSERT INTO gallery_items (image_url, title, description, display_order, is_visible)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [imageUrl, title, description, display_order, is_visible]
-  );
-
-  return NextResponse.json({ message: "Item uploaded successfully" });
 }

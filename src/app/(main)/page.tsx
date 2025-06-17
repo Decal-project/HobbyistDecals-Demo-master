@@ -8,7 +8,6 @@ import BlogsComponent from "./_components/blogs";
 import NewArrivalsSection from "./_components/new-arrivals"; 
 import TopPicksComponent from "./_components/top-picks";
 import CustomDecal from "./_components/custom-decal";
-import PreOrders from "./_components/pre-orders";
 import FeedbackCard from './_components/FeedbackCard';
 
 export default function Home() {

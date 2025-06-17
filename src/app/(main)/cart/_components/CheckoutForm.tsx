@@ -60,10 +60,11 @@ interface PayPalOnErrorData {
     message?: string;
 }
 
-// Define a type for PayPal actions if you need to use them, or just use `any` if it's external
-// For a simple case where you don't explicitly call `actions.redirect()` or similar, `any` is often used.
-// If you want to be more specific, you'd need to consult the PayPal SDK types.
-type PayPalActions = any;
+// Define a type for PayPal actions for better type safety
+interface PayPalActions {
+    redirect: (url: string) => void;
+    // Add other PayPal action methods if you use them, e.g., enable(), disable()
+}
 
 
 export default function CheckoutForm() {

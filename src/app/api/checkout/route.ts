@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         console.log('Database transaction started.');
 
         let affiliate_user_id: number | null = null;
-        const cookieStore = cookies();
+        const cookieStore = await cookies(); // Await the cookies() function
         const affiliateCodeCookie = cookieStore.get('affiliate_code');
 
         console.log(`Cookie check: affiliate_code cookie found?`, !!affiliateCodeCookie);

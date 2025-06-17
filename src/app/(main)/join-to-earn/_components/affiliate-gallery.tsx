@@ -61,7 +61,7 @@ export default function AffiliateGallery() {
               >
                 <Image
                   src={item.img || item.img}
-                  alt={item.name || `Decal ${idx + 1}`}
+                  alt={item.title || `Decal ${idx + 1}`} {/* Corrected: Use item.title instead of item.name */}
                   width={100}
                   height={80}
                   className="rounded-md object-contain border"

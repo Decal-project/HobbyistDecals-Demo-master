@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Stripe from 'stripe';
+import { StripeError } from 'stripe'; // Import StripeError directly
 import pool from '@/lib/db'; // Assuming '@/lib/db' exports a pg.Pool instance
 import { PoolClient } from 'pg'; // Import PoolClient for type hinting
 
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
                 } else {
                     console.warn(`Affiliate code '${affiliateCode}' found in cookie but not in affiliate_links table.`);
                 }
-            } catch (dbError: unknown) {
+            } catch (dbError: unknown) { // Changed to unknown
                 if (dbError instanceof Error) {
                     console.error("Error fetching affiliate user ID from affiliate_links:", dbError.message);
                 } else {
@@ -212,7 +213,7 @@ export async function POST(req: Request) {
                     console.log(`Affiliate ${affiliate_user_id} total earnings updated in affiliate_users table.`);
                 }
 
-            } catch (commissionDbError: unknown) {
+            } catch (commissionDbError: unknown) { // Changed to unknown
                 if (commissionDbError instanceof Error) {
                     console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError.message);
                 } else {
@@ -275,7 +276,7 @@ export async function POST(req: Request) {
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
 
-            } catch (shiprocketError: unknown) {
+            } catch (shiprocketError: unknown) { // Changed to unknown
                 if (shiprocketError instanceof Error) {
                     console.error('[Shiprocket Push Failure]:', shiprocketError.message);
                 } else {
@@ -360,15 +361,16 @@ export async function POST(req: Request) {
             { status: 400 }
         );
 
-    } catch (err: unknown) {
+    } catch (err: unknown) { // Changed to unknown
         if (client) {
             try {
                 await client.query('ROLLBACK');
                 console.error('Database transaction rolled back due to error.');
-            } catch (rollbackError: unknown) {
+            } catch (rollbackError: unknown) { // Changed to unknown
                 if (rollbackError instanceof Error) {
                     console.error('Error during rollback:', rollbackError.message);
                 } else {
+                    // It's good practice to log the unknown error object for debugging
                     console.error('Error during rollback:', rollbackError);
                 }
             }
@@ -376,29 +378,28 @@ export async function POST(req: Request) {
         console.error('--- Checkout route FATAL error:', err);
 
         // More robust error handling for Stripe errors
-        // Correct way to check for Stripe errors is using 'err.type' or the Stripe.errors class
-        if (err && typeof err === 'object' && 'type' in err && typeof (err as any).type === 'string' && (err as any).type.startsWith('Stripe')) {
-            const stripeError = err as Stripe.StripeError; // Cast to StripeError for better type inference
-            console.error('Stripe Error Type:', stripeError.type);
-            console.error('Stripe Error Code:', stripeError.code); // e.g., 'card_error', 'validation_error'
-            console.error('Stripe Error Message:', stripeError.message);
-            if (stripeError.raw) {
-                console.error('Stripe Raw Error:', stripeError.raw);
+        if (err instanceof StripeError) {
+            console.error('Stripe Error Type:', err.type);
+            console.error('Stripe Error Code:', err.code); // e.g., 'card_error', 'validation_error'
+            console.error('Stripe Error Message:', err.message);
+            if (err.raw) {
+                console.error('Stripe Raw Error:', err.raw);
                 // Safely access message property if it exists
-                if (typeof stripeError.raw === 'object' && stripeError.raw !== null && 'message' in stripeError.raw && typeof (stripeError.raw as any).message === 'string') {
-                    console.error('Stripe Raw Message (specific):', (stripeError.raw as any).message);
+                if (typeof err.raw === 'object' && err.raw !== null && 'message' in err.raw && typeof err.raw.message === 'string') {
+                    console.error('Stripe Raw Message (specific):', err.raw.message);
                 }
             }
-            if (stripeError.statusCode) {
-                console.error('Stripe Status Code:', stripeError.statusCode);
+            if (err.statusCode) {
+                console.error('Stripe Status Code:', err.statusCode);
             }
             return NextResponse.json(
-                { error: 'Failed to process checkout (Stripe Error)', details: stripeError.message },
-                { status: stripeError.statusCode || 500 } // Use Stripe's status code if available
+                { error: 'Failed to process checkout (Stripe Error)', details: err.message },
+                { status: err.statusCode || 500 } // Use Stripe's status code if available
             );
         } else if (err instanceof Error) {
             // General JavaScript Error
             console.error('General Error Message:', err.message);
+            // Using JSON.stringify with a replacer to handle circular references or non-enumerable properties
             console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
             return NextResponse.json(
                 { error: 'Failed to process checkout', details: err.message || 'An unknown error occurred' },

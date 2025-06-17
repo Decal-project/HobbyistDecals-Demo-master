@@ -304,7 +304,8 @@ export async function POST(req: Request) {
                 metadata: {
                     order_id: String(order_id),
                     cart_id: String(cart_id),
-                    affiliate_user_id: affiliate_user_id ? String(affiliate_user_id) : undefined,
+                    // Corrected: Ensure affiliate_user_id is either a string, null, or undefined
+                    affiliate_user_id: affiliate_user_id !== null ? String(affiliate_user_id) : null,
                 },
             });
 

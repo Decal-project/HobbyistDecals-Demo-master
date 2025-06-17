@@ -25,14 +25,13 @@ export default function GetinTouch() {
 
       <Link 
         href="/contact-us" 
-        // Added bg-white for a white background behind the image and increased padding for more space
         className="flex items-center justify-center p-3 rounded-full bg-white shadow-md hover:shadow-lg transition"
       >
         <Image
-            src="/images/contact_us.jpg"
+            src="/images/contact-us.jpg"
             alt="Contact Us"
-            width={55} // Slightly increased size
-            height={55} // Slightly increased size
+            width={55} 
+            height={55} 
         />
       </Link>
       

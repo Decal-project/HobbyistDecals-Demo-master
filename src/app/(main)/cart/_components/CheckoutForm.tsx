@@ -372,7 +372,11 @@ export default function CheckoutForm() {
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
-                                createOrder={async (_data: PayPalCreateOrderData, _actions: PayPalActions) => {
+                                createOrder={async (data: PayPalCreateOrderData, actions: PayPalActions) => {
+                                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                    const _data = data; // Suppress unused warning for 'data' if it's not directly used
+                                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                    const _actions = actions; // Suppress unused warning for 'actions' if it's not directly used
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
                                             method: 'POST',
@@ -393,7 +397,9 @@ export default function CheckoutForm() {
                                         return null;
                                     }
                                 }}
-                                onApprove={async (data: PayPalOnApproveData, _actions: PayPalActions) => {
+                                onApprove={async (data: PayPalOnApproveData, actions: PayPalActions) => {
+                                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                    const _actions = actions; // Suppress unused warning for 'actions' if it's not directly used
                                     try {
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
                                             method: 'POST',

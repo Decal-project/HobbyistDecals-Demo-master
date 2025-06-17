@@ -107,6 +107,7 @@ export default function CartTotals({ subtotal, shipping }: CartTotalsProps) {
                     state: state?.value || '',
                     city,
                     pinCode,
+                    couponCode: couponCode.trim() || null, // Added this line
                 }),
             });
 

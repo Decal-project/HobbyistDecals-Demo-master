@@ -89,16 +89,18 @@ export async function POST(req: Request) {
             );
         }
 
+        // Fix 1: Change 'let' to 'const' for stripeSessionId
+        // stripeSessionId is assigned once within the 'stripe' block, so it can be 'const' after initialization.
+        // It's initialized to null here and then assigned a value if payment_method is 'stripe'.
+        // If it were reassigned multiple times, 'let' would be appropriate.
         let stripeSessionId: string | null = null;
-        let finalPaypalOrderId: string | null = null;
-        let finalPaypalPayerId: string | null = null;
+        const finalPaypalOrderId: string | null = paypalOrderId || null; // No reassignment, use const
+        const finalPaypalPayerId: string | null = paypal_payer_id || null; // No reassignment, use const
 
         let initialOrderStatus = 'pending';
         let initialCommissionStatus = 'pending'; // General initial status for commissions
 
         if (payment_method === 'paypal') {
-            finalPaypalOrderId = paypalOrderId || null; // Using paypalOrderId here
-            finalPaypalPayerId = paypal_payer_id || null;
             initialOrderStatus = 'pending'; // Awaiting webhook confirmation for capture
             initialCommissionStatus = 'pending'; // Will be 'earned' on capture.completed webhook
         } else if (payment_method === 'cod') {
@@ -278,7 +280,8 @@ export async function POST(req: Request) {
                     body: JSON.stringify(shiprocketPayload),
                 });
 
-                const shiprocketData = await shiprocketResponse.json();
+                // Fix 2: Remove ': any' from catch block
+                const shiprocketData: any = await shiprocketResponse.json(); // Keep 'any' here as we don't have a specific type for the response
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
                     // Decide if you want to rollback the order if Shiprocket push fails here.
@@ -287,8 +290,12 @@ export async function POST(req: Request) {
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
 
-            } catch (shiprocketError: any) {
-                console.error('[Shiprocket Push Failure]:', shiprocketError.message || shiprocketError);
+            } catch (shiprocketError: unknown) { // Use 'unknown' instead of 'any' for better type safety
+                if (shiprocketError instanceof Error) {
+                    console.error('[Shiprocket Push Failure]:', shiprocketError.message);
+                } else {
+                    console.error('[Shiprocket Push Failure]:', shiprocketError);
+                }
                 // IMPORTANT: If a failed Shiprocket push means the order is invalid, uncomment the following:
                 // await client.query('ROLLBACK');
                 // return NextResponse.json({ error: 'Failed to integrate with shipping partner. Please try again.' }, { status: 500 });
@@ -300,7 +307,11 @@ export async function POST(req: Request) {
             console.log('Payment method is Stripe. Proceeding with Stripe session creation.');
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
 
-            // Using cartItems fetched earlier to create Stripe line items
+            // Fix 3: Remove 'stripeLineItems' if it's not used (it was commented out below)
+            // If you actually intend to send individual line items to Stripe, uncomment the 'line_items' in the Stripe session creation
+            // and use this array. For now, it's removed to resolve the "assigned a value but never used" error.
+            // If you keep the single line item approach for 'Order Total', this variable is indeed unused.
+            /*
             const stripeLineItems = cartItems.map(item => ({
                 price_data: {
                     currency: 'usd',
@@ -309,6 +320,7 @@ export async function POST(req: Request) {
                 },
                 quantity: item.quantity,
             }));
+            */
 
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
@@ -334,9 +346,12 @@ export async function POST(req: Request) {
             console.log(`Stripe session created: ${session.id}`);
             console.log(`Updating checkout_orders (ID: ${order_id}) with stripe_session_id: ${session.id}`);
 
+            // Fix 1 continued: Assign the session ID to the 'stripeSessionId' variable
+            stripeSessionId = session.id;
+
             await client.query( // Use client
                 `UPDATE checkout_orders SET stripe_session_id = $1 WHERE id = $2`,
-                [session.id, order_id]
+                [stripeSessionId, order_id] // Use the updated stripeSessionId
             );
             console.log('checkout_orders updated with stripe_session_id.');
 
@@ -349,7 +364,7 @@ export async function POST(req: Request) {
             `;
             const insertStripePaymentParams = [
                 order_id,
-                session.id,
+                stripeSessionId, // Use the updated stripeSessionId
                 total_amount,
                 'usd'
             ];
@@ -385,7 +400,7 @@ export async function POST(req: Request) {
             { status: 400 }
         );
 
-    } catch (err: any) {
+    } catch (err: unknown) { // Fix 4: Use 'unknown' instead of 'any'
         // If an error occurred, roll back the transaction
         if (client) {
             try {
@@ -397,15 +412,23 @@ export async function POST(req: Request) {
         }
         console.error('--- Checkout route FATAL error:', err);
         // Log more details about the error for debugging
-        if (err.type) console.error('Error Type:', err.type);
-        if (err.statusCode) console.error('Status Code:', err.statusCode);
-        if (err.raw && err.raw.message) console.error('Raw Message:', err.raw.message);
-        console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
-
-        return NextResponse.json(
-            { error: 'Failed to process checkout', details: err.message || 'An unknown error occurred' },
-            { status: 500 }
-        );
+        if (err instanceof Error) { // Type guard to safely access error properties
+            if ('type' in err && typeof err.type === 'string') console.error('Error Type:', err.type);
+            if ('statusCode' in err && typeof err.statusCode === 'number') console.error('Status Code:', err.statusCode);
+            if ('raw' in err && typeof err.raw === 'object' && err.raw !== null && 'message' in err.raw && typeof err.raw.message === 'string') console.error('Raw Message:', err.raw.message);
+            console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+            return NextResponse.json(
+                { error: 'Failed to process checkout', details: err.message || 'An unknown error occurred' },
+                { status: 500 }
+            );
+        } else {
+            // Handle cases where err is not an instance of Error
+            console.error('Full Error Object in /api/checkout:', JSON.stringify(err));
+            return NextResponse.json(
+                { error: 'Failed to process checkout', details: 'An unknown error occurred' },
+                { status: 500 }
+            );
+        }
     } finally {
         if (client) {
             client.release(); // Release the client back to the pool

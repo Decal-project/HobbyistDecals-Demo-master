@@ -47,8 +47,9 @@ interface CartForFrontend {
     items: CartItemForFrontend[]; // The array of items, each with its calculated display price
 }
 
-// Removed PayPalCreateOrderData and PayPalActions as they are no longer directly used for type annotations in this component.
-// Their types are implicitly handled by the PaypalButton component's props.
+interface PayPalCreateOrderData {
+    orderID?: string;
+}
 
 interface PayPalOnApproveData {
     orderID: string;
@@ -202,70 +203,70 @@ export default function CheckoutForm() {
     };
 
     const renderFields = (section: 'billing' | 'shipping') => {
-        const sectionData = formData[section];
+        const data = formData[section];
         return (
             <>
                 <div className="grid grid-cols-2 gap-4">
                     <input
                         required
                         placeholder="First Name"
-                        value={sectionData.firstName}
+                        value={data.firstName}
                         onChange={e => handleField(section, 'firstName', e.target.value)}
                         className="p-2 border"
                     />
                     <input
                         required
                         placeholder="Last Name"
-                        value={sectionData.lastName}
+                        value={data.lastName}
                         onChange={e => handleField(section, 'lastName', e.target.value)}
                         className="p-2 border"
                     />
                 </div>
                 <input
                     placeholder="Company (optional)"
-                    value={sectionData.company}
+                    value={data.company}
                     onChange={e => handleField(section, 'company', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Country"
-                    value={sectionData.country}
+                    value={data.country}
                     onChange={e => handleField(section, 'country', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Street Address"
-                    value={sectionData.address}
+                    value={data.address}
                     onChange={e => handleField(section, 'address', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="City"
-                    value={sectionData.city}
+                    value={data.city}
                     onChange={e => handleField(section, 'city', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="State"
-                    value={sectionData.state}
+                    value={data.state}
                     onChange={e => handleField(section, 'state', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Postal Code"
-                    value={sectionData.postalCode}
+                    value={data.postalCode}
                     onChange={e => handleField(section, 'postalCode', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
                 <input
                     required
                     placeholder="Phone"
-                    value={sectionData.phone}
+                    value={data.phone}
                     onChange={e => handleField(section, 'phone', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
@@ -273,7 +274,7 @@ export default function CheckoutForm() {
                     required
                     placeholder="Email"
                     type="email"
-                    value={sectionData.email}
+                    value={data.email}
                     onChange={e => handleField(section, 'email', e.target.value)}
                     className="p-2 border w-full mt-2"
                 />
@@ -364,7 +365,7 @@ export default function CheckoutForm() {
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
-                                createOrder={async () => {
+                                createOrder={async (data: PayPalCreateOrderData, actions: any) => {
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
                                             method: 'POST',
@@ -385,7 +386,7 @@ export default function CheckoutForm() {
                                         return null;
                                     }
                                 }}
-                                onApprove={async (data: PayPalOnApproveData) => {
+                                onApprove={async (data: PayPalOnApproveData, actions: any) => {
                                     try {
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
                                             method: 'POST',
@@ -394,7 +395,7 @@ export default function CheckoutForm() {
                                         const orderData = await captureRes.json();
                                         console.log('PayPal Payment Successful!', orderData);
 
-                                        // --- ADDED THIS SECTION TO SAVE ORDER DETAILS ---
+                                        // --- SAVE ORDER DETAILS ---
                                         const res = await fetch('/api/checkout', {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
@@ -436,9 +437,32 @@ export default function CheckoutForm() {
                                             return;
                                         }
 
-                                        // --- END OF SECTION TO SAVE ORDER DETAILS ---
+                                        // --- SEND CONFIRMATION EMAIL ---
+                                        try {
+                                            const emailRes = await fetch('/api/paypal-confirmation-email', { // Corrected path
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                },
+                                                body: JSON.stringify({ paypal_order_id: data.orderID }),
+                                            });
 
-                                        router.push('/thank-you');
+                                            if (!emailRes.ok) {
+                                                const emailError = await emailRes.json();
+                                                console.error('Error sending confirmation email:', emailError);
+                                                alert('Failed to send confirmation email.');
+                                            } else {
+                                                const emailSuccess = await emailRes.json();
+                                                console.log('Confirmation email sent successfully:', emailSuccess);
+                                                alert('Confirmation email sent!');
+                                            }
+                                        } catch (error) {
+                                            console.error('Error calling confirmation email API:', error);
+                                            alert('Failed to send confirmation email.');
+                                        }
+
+                                        // --- REDIRECT TO THANK YOU PAGE WITH NAME AND AMOUNT ---
+                                        router.push(`/thank-you?name=${formData.billing.firstName}&amount=${totalDisplay.toFixed(2)}`);
                                     } catch (err) {
                                         console.error('PayPal Capture Error:', err);
                                         alert('Failed to capture PayPal payment.');
@@ -447,7 +471,7 @@ export default function CheckoutForm() {
                                 onCancel={() => {
                                     alert('PayPal payment cancelled.');
                                 }}
-                                onError={(err: PayPalOnErrorData) => {
+                                onError={(err: PayPalOnErrorData | any) => {
                                     console.error('PayPal Error:', err);
                                     alert(`An error occurred during PayPal payment: ${err?.message || 'Unknown error'}`);
                                 }}

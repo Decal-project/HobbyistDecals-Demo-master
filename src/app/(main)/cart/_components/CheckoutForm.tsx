@@ -60,6 +60,12 @@ interface PayPalOnErrorData {
     message?: string;
 }
 
+// Define a type for PayPal actions if you need to use them, or just use `any` if it's external
+// For a simple case where you don't explicitly call `actions.redirect()` or similar, `any` is often used.
+// If you want to be more specific, you'd need to consult the PayPal SDK types.
+type PayPalActions = any;
+
+
 export default function CheckoutForm() {
     const router = useRouter();
     const [cart, setCart] = useState<CartForFrontend | null>(null);
@@ -365,7 +371,9 @@ export default function CheckoutForm() {
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
-                                createOrder={async (data: PayPalCreateOrderData, actions: any) => {
+                                // Solved: 'data' and 'actions' unused warning. Used `_` prefix.
+                                // Solved: 'Unexpected any' for actions. Used PayPalActions type.
+                                createOrder={async (_data: PayPalCreateOrderData, _actions: PayPalActions) => {
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
                                             method: 'POST',
@@ -386,7 +394,9 @@ export default function CheckoutForm() {
                                         return null;
                                     }
                                 }}
-                                onApprove={async (data: PayPalOnApproveData, actions: any) => {
+                                // Solved: 'actions' unused warning. Used `_` prefix.
+                                // Solved: 'Unexpected any' for actions. Used PayPalActions type.
+                                onApprove={async (data: PayPalOnApproveData, _actions: PayPalActions) => {
                                     try {
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
                                             method: 'POST',
@@ -427,6 +437,7 @@ export default function CheckoutForm() {
                                                 coupon_code: cart?.coupon_code_applied,
                                                 total_amount: totalDisplay.toFixed(2),
                                                 paypalOrderId: data.orderID, // Optionally save the PayPal order ID
+                                                paypal_payer_id: data.payerID, // Also send payer ID if needed
                                             }),
                                         });
 
@@ -471,9 +482,16 @@ export default function CheckoutForm() {
                                 onCancel={() => {
                                     alert('PayPal payment cancelled.');
                                 }}
-                                onError={(err: PayPalOnErrorData | any) => {
+                                // Solved: 'Unexpected any' for err. Used `unknown` and type assertion.
+                                onError={(err: unknown) => {
                                     console.error('PayPal Error:', err);
-                                    alert(`An error occurred during PayPal payment: ${err?.message || 'Unknown error'}`);
+                                    let errorMessage = 'An unknown error occurred';
+                                    if (err && typeof err === 'object' && 'message' in err) {
+                                        errorMessage = (err as PayPalOnErrorData).message || 'An unknown error occurred';
+                                    } else if (typeof err === 'string') {
+                                        errorMessage = err;
+                                    }
+                                    alert(`An error occurred during PayPal payment: ${errorMessage}`);
                                 }}
                             />
                         </div>

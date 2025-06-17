@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import pool from '@/lib/db'; // Assuming '@/lib/db' exports a pg.Pool instance
+import { PoolClient } from 'pg'; // Import PoolClient for type hinting
 
 console.log("Stripe Secret Key being used:", process.env.STRIPE_SECRET_KEY ? "Key Found (length: " + process.env.STRIPE_SECRET_KEY.length + ")" : "Key NOT Found!");
 
@@ -10,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(req: Request) {
-    let client; // Declare client outside try block so it's accessible in finally
+    let client: PoolClient | null = null; // Declare client with PoolClient type and initialize to null
     try {
         // Acquire a client from the connection pool
         client = await pool.connect();
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
         if (affiliateCodeCookie) {
             const { value: affiliateCode } = affiliateCodeCookie;
             try {
-                const { rows } = await client.query( // Use client for queries within transaction
+                const { rows } = await client.query<{ user_id: number }>( // Specify row type for clarity
                     `SELECT user_id FROM affiliate_links WHERE code = $1`,
                     [affiliateCode]
                 );
@@ -37,8 +38,12 @@ export async function POST(req: Request) {
                 } else {
                     console.warn(`Affiliate code '${affiliateCode}' found in cookie but not in affiliate_links table.`);
                 }
-            } catch (dbError) {
-                console.error("Error fetching affiliate user ID from affiliate_links:", dbError);
+            } catch (dbError: unknown) { // Use 'unknown' here
+                if (dbError instanceof Error) {
+                    console.error("Error fetching affiliate user ID from affiliate_links:", dbError.message);
+                } else {
+                    console.error("Error fetching affiliate user ID from affiliate_links:", dbError);
+                }
                 // Continue execution, as this is not a critical error for order creation
             }
         }
@@ -89,10 +94,7 @@ export async function POST(req: Request) {
             );
         }
 
-        // Fix 1: Change 'let' to 'const' for stripeSessionId
-        // stripeSessionId is assigned once within the 'stripe' block, so it can be 'const' after initialization.
-        // It's initialized to null here and then assigned a value if payment_method is 'stripe'.
-        // If it were reassigned multiple times, 'let' would be appropriate.
+        // Fix 1: Change 'let' to 'const' for stripeSessionId (after initial assignment logic)
         let stripeSessionId: string | null = null;
         const finalPaypalOrderId: string | null = paypalOrderId || null; // No reassignment, use const
         const finalPaypalPayerId: string | null = paypal_payer_id || null; // No reassignment, use const
@@ -141,7 +143,7 @@ export async function POST(req: Request) {
 
         console.log('Attempting to insert into checkout_orders with params:', insertOrderParams);
 
-        const { rows: orderRows } = await client.query( // Use client for queries within transaction
+        const { rows: orderRows } = await client.query<{ id: number }>( // Specify row type for clarity
             insertOrderQuery,
             insertOrderParams
         );
@@ -150,7 +152,7 @@ export async function POST(req: Request) {
 
         // --- FETCH CART ITEMS FOR SHIPROCKET & STRIPE LINE ITEMS ---
         // Using the provided public.cart_items schema
-        const { rows: cartItems } = await client.query(
+        const { rows: cartItems } = await client.query<{ sku: string; name: string; quantity: number; price: string }>( // Specify row type for clarity
             `SELECT
                 sku,
                 name,
@@ -182,7 +184,7 @@ export async function POST(req: Request) {
             console.log(`Order ${order_id} has an associated affiliate user ID: ${affiliate_user_id}. Calculating commission.`);
 
             const commissionRate = 0.10;
-            const commissionAmount = total_amount * commissionRate;
+            const commissionAmount = parseFloat(total_amount) * commissionRate; // Ensure total_amount is parsed as number
             const currency = 'usd';
 
             try {
@@ -222,9 +224,12 @@ export async function POST(req: Request) {
                     console.log(`Affiliate ${affiliate_user_id} total earnings updated in affiliate_users table.`);
                 }
 
-            } catch (commissionDbError) {
-                console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError);
-                // This error might warrant a rollback or might be acceptable to log and proceed
+            } catch (commissionDbError: unknown) { // Use 'unknown' here
+                if (commissionDbError instanceof Error) {
+                    console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError.message);
+                } else {
+                    console.error("Error inserting affiliate commission or updating total earnings:", commissionDbError);
+                }
                 throw commissionDbError; // Re-throw to trigger the main catch and rollback
             }
         }
@@ -263,8 +268,8 @@ export async function POST(req: Request) {
                     shipping_company_name: ship_to_different_address ? shipping_company_name : billing_company_name || "",
 
                     payment_method: payment_method === 'cod' ? 'COD' : 'Prepaid', // Shiprocket uses 'COD' or 'Prepaid'
-                    total_amount: total_amount,
-                    sub_total: total_amount, // Adjust if your subtotal is different from total_amount (e.g., if total includes shipping)
+                    total_amount: parseFloat(total_amount), // Ensure total_amount is a number
+                    sub_total: parseFloat(total_amount), // Adjust if your subtotal is different from total_amount (e.g., if total includes shipping)
                     shipping_is_billing: ship_to_different_address ? 0 : 1, // 0 for different, 1 for same
                     length: 10, // Placeholder values, adjust based on your products/packaging
                     breadth: 10,
@@ -280,12 +285,10 @@ export async function POST(req: Request) {
                     body: JSON.stringify(shiprocketPayload),
                 });
 
-                // Fix 2: Remove ': any' from catch block
-                const shiprocketData: any = await shiprocketResponse.json(); // Keep 'any' here as we don't have a specific type for the response
+                // Fix 2: Remove ': any' from catch block and directly check response.ok
+                const shiprocketData = await shiprocketResponse.json(); // No need for 'any' here, let TypeScript infer or define a specific type if known
                 if (!shiprocketResponse.ok) {
                     console.error('[Shiprocket API Error Response]:', shiprocketData);
-                    // Decide if you want to rollback the order if Shiprocket push fails here.
-                    // For now, logging and continuing. If critical, uncomment the throw below.
                     throw new Error(`Shiprocket API Error: ${shiprocketData.message || JSON.stringify(shiprocketData.errors)}`);
                 }
                 console.log('[Shiprocket API Success Response]:', shiprocketData);
@@ -306,21 +309,6 @@ export async function POST(req: Request) {
         if (payment_method === 'stripe') {
             console.log('Payment method is Stripe. Proceeding with Stripe session creation.');
             console.log('Stripe Session Metadata:', { order_id: String(order_id), cart_id: String(cart_id) });
-
-            // Fix 3: Remove 'stripeLineItems' if it's not used (it was commented out below)
-            // If you actually intend to send individual line items to Stripe, uncomment the 'line_items' in the Stripe session creation
-            // and use this array. For now, it's removed to resolve the "assigned a value but never used" error.
-            // If you keep the single line item approach for 'Order Total', this variable is indeed unused.
-            /*
-            const stripeLineItems = cartItems.map(item => ({
-                price_data: {
-                    currency: 'usd',
-                    product_data: { name: item.name || 'Product' }, // Use actual product name
-                    unit_amount: Math.round(parseFloat(item.price) * 100), // Convert to cents
-                },
-                quantity: item.quantity,
-            }));
-            */
 
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
@@ -365,7 +353,7 @@ export async function POST(req: Request) {
             const insertStripePaymentParams = [
                 order_id,
                 stripeSessionId, // Use the updated stripeSessionId
-                total_amount,
+                parseFloat(total_amount), // Ensure amount is a number
                 'usd'
             ];
             console.log('Attempting to insert into public.stripe_payments with params:', insertStripePaymentParams);
@@ -406,16 +394,21 @@ export async function POST(req: Request) {
             try {
                 await client.query('ROLLBACK');
                 console.error('Database transaction rolled back due to error.');
-            } catch (rollbackError) {
-                console.error('Error during rollback:', rollbackError);
+            } catch (rollbackError: unknown) { // Use 'unknown' here
+                if (rollbackError instanceof Error) {
+                    console.error('Error during rollback:', rollbackError.message);
+                } else {
+                    console.error('Error during rollback:', rollbackError);
+                }
             }
         }
         console.error('--- Checkout route FATAL error:', err);
         // Log more details about the error for debugging
         if (err instanceof Error) { // Type guard to safely access error properties
-            if ('type' in err && typeof err.type === 'string') console.error('Error Type:', err.type);
-            if ('statusCode' in err && typeof err.statusCode === 'number') console.error('Status Code:', err.statusCode);
-            if ('raw' in err && typeof err.raw === 'object' && err.raw !== null && 'message' in err.raw && typeof err.raw.message === 'string') console.error('Raw Message:', err.raw.message);
+            // Stripe errors have specific properties, handle them if they exist
+            if ('type' in err && typeof (err as any).type === 'string') console.error('Error Type:', (err as any).type);
+            if ('statusCode' in err && typeof (err as any).statusCode === 'number') console.error('Status Code:', (err as any).statusCode);
+            if ('raw' in err && typeof (err as any).raw === 'object' && (err as any).raw !== null && 'message' in (err as any).raw && typeof (err as any).raw.message === 'string') console.error('Raw Message:', (err as any).raw.message);
             console.error('Full Error Object in /api/checkout:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
             return NextResponse.json(
                 { error: 'Failed to process checkout', details: err.message || 'An unknown error occurred' },

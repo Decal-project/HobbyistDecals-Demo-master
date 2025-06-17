@@ -372,8 +372,6 @@ export default function CheckoutForm() {
                                     text: 'Purchase with PayPal',
                                     loadingComponent: <Loader />,
                                 }}
-                                // Solved: 'data' and 'actions' unused warning. Used `_` prefix.
-                                // Solved: 'Unexpected any' for actions. Used PayPalActions type.
                                 createOrder={async (_data: PayPalCreateOrderData, _actions: PayPalActions) => {
                                     try {
                                         const res = await fetch('/api/create-paypal-order', {
@@ -395,8 +393,6 @@ export default function CheckoutForm() {
                                         return null;
                                     }
                                 }}
-                                // Solved: 'actions' unused warning. Used `_` prefix.
-                                // Solved: 'Unexpected any' for actions. Used PayPalActions type.
                                 onApprove={async (data: PayPalOnApproveData, _actions: PayPalActions) => {
                                     try {
                                         const captureRes = await fetch(`/api/capture-paypal-order/${data.orderID}`, {
@@ -483,7 +479,6 @@ export default function CheckoutForm() {
                                 onCancel={() => {
                                     alert('PayPal payment cancelled.');
                                 }}
-                                // Solved: 'Unexpected any' for err. Used `unknown` and type assertion.
                                 onError={(err: unknown) => {
                                     console.error('PayPal Error:', err);
                                     let errorMessage = 'An unknown error occurred';

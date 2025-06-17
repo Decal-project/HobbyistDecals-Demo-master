@@ -58,12 +58,12 @@ const FooterComponent = () => {
               <Link href="/blogs" className="capitalize text-white text-base">Blogs</Link>
               <Link href="/decal-shop" className="capitalize text-white text-base">Shop</Link>
               <Link href="/contact-us" className="capitalize text-white text-base">Contact Us</Link>
-<Link
-  href="/feedback"
-  className="capitalize text-white text-base bg-[#16689A] px-3 py-1.5 rounded-md hover:bg-[#0f4d73] transition-colors text-center text-white font-medium"
->
-  Write a Review
-</Link>
+              <Link
+                href="/feedback"
+                className="capitalize text-black text-base bg-[#BEE2F3] px-3 py-1.5 rounded-md hover:bg-blue-400 transition-colors text-center font-medium"
+              >
+                Write a Review
+              </Link>
             </div>
           </div>
 
@@ -96,7 +96,7 @@ const FooterComponent = () => {
               </div>
               <button
                 onClick={handleSubscribe}
-                className="bg-[#16689A] text-white text-sm font-semibold px-5 py-2.5 rounded-lg shadow-md cursor-pointer transition-colors active:bg-red-600"
+                className="bg-[#BEE2F3] text-black text-sm font-semibold px-5 py-2.5 rounded-lg shadow-md cursor-pointer transition-colors active:bg-red-600"
               >
                 I&apos;m in!
               </button>

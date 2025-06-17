@@ -304,7 +304,6 @@ export async function POST(req: Request) {
                 metadata: {
                     order_id: String(order_id),
                     cart_id: String(cart_id),
-                    // Corrected: Ensure affiliate_user_id is either a string, null, or undefined
                     affiliate_user_id: affiliate_user_id !== null ? String(affiliate_user_id) : null,
                 },
             });
@@ -377,23 +376,25 @@ export async function POST(req: Request) {
         console.error('--- Checkout route FATAL error:', err);
 
         // More robust error handling for Stripe errors
-        if (err instanceof Stripe.StripeError) {
-            console.error('Stripe Error Type:', err.type);
-            console.error('Stripe Error Code:', err.code); // e.g., 'card_error', 'validation_error'
-            console.error('Stripe Error Message:', err.message);
-            if (err.raw) {
-                console.error('Stripe Raw Error:', err.raw);
+        // Correct way to check for Stripe errors is using 'err.type' or the Stripe.errors class
+        if (err && typeof err === 'object' && 'type' in err && typeof (err as any).type === 'string' && (err as any).type.startsWith('Stripe')) {
+            const stripeError = err as Stripe.StripeError; // Cast to StripeError for better type inference
+            console.error('Stripe Error Type:', stripeError.type);
+            console.error('Stripe Error Code:', stripeError.code); // e.g., 'card_error', 'validation_error'
+            console.error('Stripe Error Message:', stripeError.message);
+            if (stripeError.raw) {
+                console.error('Stripe Raw Error:', stripeError.raw);
                 // Safely access message property if it exists
-                if (typeof err.raw === 'object' && err.raw !== null && 'message' in err.raw && typeof err.raw.message === 'string') {
-                    console.error('Stripe Raw Message (specific):', err.raw.message);
+                if (typeof stripeError.raw === 'object' && stripeError.raw !== null && 'message' in stripeError.raw && typeof (stripeError.raw as any).message === 'string') {
+                    console.error('Stripe Raw Message (specific):', (stripeError.raw as any).message);
                 }
             }
-            if (err.statusCode) {
-                console.error('Stripe Status Code:', err.statusCode);
+            if (stripeError.statusCode) {
+                console.error('Stripe Status Code:', stripeError.statusCode);
             }
             return NextResponse.json(
-                { error: 'Failed to process checkout (Stripe Error)', details: err.message },
-                { status: err.statusCode || 500 } // Use Stripe's status code if available
+                { error: 'Failed to process checkout (Stripe Error)', details: stripeError.message },
+                { status: stripeError.statusCode || 500 } // Use Stripe's status code if available
             );
         } else if (err instanceof Error) {
             // General JavaScript Error

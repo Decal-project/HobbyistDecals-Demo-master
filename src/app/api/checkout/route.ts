@@ -382,8 +382,9 @@ export async function POST(req: Request) {
             console.error('Stripe Error Message:', err.message);
             if (err.raw) {
                 console.error('Stripe Raw Error:', err.raw);
-                if (typeof err.raw === 'object' && 'message' in err.raw) {
-                    console.error('Stripe Raw Message (specific):', (err.raw as any).message); // Sometimes raw.message is more specific
+                // Safely access message property if it exists
+                if (typeof err.raw === 'object' && err.raw !== null && 'message' in err.raw && typeof err.raw.message === 'string') {
+                    console.error('Stripe Raw Message (specific):', err.raw.message);
                 }
             }
             if (err.statusCode) {
